@@ -1,0 +1,13 @@
+vendor/
+composer.lock
+_bk_
+*.rar
+*.zip
+config/_en_server_/
+logs/
+uploads/
+user.txt
+DATOS.txt
+phpmyadmin/
+public/phpmyadmin/
+.phpunit.result.cache
