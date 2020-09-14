@@ -140,12 +140,12 @@ class GoogleController extends Controller
                     }
                 }
                     
-                $_permissions = DB::table('permissions')->setFetchMode('ASSOC')->select(['tb', 'can_create as c', 'can_read as r', 'can_update as u', 'can_delete as d'])->where(['user_id' => $uid])->get();
+                $_permissions = DB::table('permissions')->setFetchMode('ASSOC')->select(['tb', 'can_create as c', 'can_read as r', 'can_update as u', 'can_delete as d', 'can_list as l'])->where(['user_id' => $uid])->get();
 
                 $perms = [];
                 foreach ($_permissions as $p){
                     $tb = $p['tb'];
-                    $perms[$tb] = $p['c'] * 8 + $p['r'] * 4 + $p['u'] * 2 + $p['d'];
+                    $perms[$tb] = $p['l'] * 16 + $p['c'] * 8 + $p['r'] * 4 + $p['u'] * 2 + $p['d'];
                 }
 
             }else{
@@ -193,25 +193,27 @@ class GoogleController extends Controller
                 $perms = [];
             }  
             
+            $access  = $this->gen_jwt([
+                                        'uid' => $uid, 
+                                        'confirmed_email' => 1,
+                                        'roles' => $roles,
+                                        'permissions' => $perms
+            ], 'access_token');
 
-            $my_payload = [
-                'uid' => $uid, 
-                'roles' => $roles,
-                'confirmed_email' => 1,
-                'permissions' => $perms
-                //'google_auth' => $auth
-            ];
+            $refresh = $this->gen_jwt([
+                            'uid' => $uid, 
+                            'confirmed_email' => 1,
+            ], 'refresh_token');
 
-            $access  = $this->gen_jwt($my_payload, 'access_token');
-            $refresh = $this->gen_jwt($my_payload, 'refresh_token');
+            // podría incluir google_auth' => $auth en el access_token
 
             return ['code' => 200,  
                     'data' => [ 
+                                'uid' => $uid,
                                 'access_token'=> $access,
                                 'token_type' => 'bearer', 
                                 'expires_in' => $this->config['access_token']['expiration_time'],
-                                'refresh_token' => $refresh                                         
-                                // 'scope' => 'read write'
+                                'refresh_token' => $refresh  
                     ],
                     'error' => ''
             ];

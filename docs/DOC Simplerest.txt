@@ -962,7 +962,7 @@ Ejemplos:
 - Cambiar la propiedad (ownership) de un registro (campo belongs_to)
 etc.
 
-Roles adicionales o permisos restrictivos no afecan en nada a un admin (sus alcance es inalterado)
+Roles adicionales o permisos restrictivos no afectan en nada a un admin (sus alcance es inalterado)
 
 
 ### Roles virtuales

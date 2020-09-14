@@ -163,10 +163,9 @@ class AuthController extends Controller implements IAuth
                                         'permissions' => $perms //
             ], 'access_token');
 
+            // el refresh no debe llevar ni roles ni permisos por seguridad !
             $refresh = $this->gen_jwt([ 'uid' => $uid, 
-                                        'roles' => $roles, 
-                                        'confirmed_email' => $confirmed_email,
-                                        'permissions' => $perms //
+                                        'confirmed_email' => $confirmed_email
             ], 'refresh_token');
 
             Factory::response()->send([ 
@@ -255,47 +254,21 @@ class AuthController extends Controller implements IAuth
             
                 $confirmed_email = $row['confirmed_email'];    
 
-
-                // Fetch roles
-                $rows = DB::table('user_roles')->setFetchMode('ASSOC')->where(['belongs_to', $uid])->select(['role_id as role'])->get();	
-
-                //Debug::dd(DB::getQueryLog());
-
-                $roles = [];
-                if (count($rows) != 0){            
-                    $r = new RolesModel();
-                
-                    foreach ($rows as $row){
-                        $roles[] = $r->getRoleName($row['role']);
-                    }
-                }
-                
-                $_permissions = DB::table('permissions')->setFetchMode('ASSOC')->select(['tb', 'can_create as c', 'can_read as r', 'can_update as u', 'can_delete as d'])->where(['user_id' => $uid])->get();
-
-                //print_r($rows);
-                //exit; //
-
-                $perms = [];
-                foreach ((array) $_permissions as $p){
-                    $tb = $p['tb'];
-                    $perms[$tb] = $p['c'] * 8 + $p['r'] * 4 + $p['u'] * 2 + $p['d'];
-                }
-
+                $roles = $this->fetchRoles($uid);
+                $perms = $this->fetchPermissions($uid);
             }    
 
             $impersonated_by = $payload->impersonated_by ?? $payload->uid;
             
-            $access  = $this->gen_jwt([ 'uid' => $uid, 
+            $access  = $this->gen_jwt(['uid' => $uid, 
+                                        'confirmed_email' => $confirmed_email,          
                                         'roles' => $roles, 
-                                        'confirmed_email' => $confirmed_email,
                                         'permissions' => $perms,
                                         'impersonated_by' => $impersonated_by
             ], 'access_token');
 
-            $refresh  = $this->gen_jwt([ 'uid' => $uid, 
-                                        'roles' => $roles, 
+            $refresh  = $this->gen_jwt(['uid' => $uid, 
                                         'confirmed_email' => $confirmed_email,
-                                        'permissions' => $perms,
                                         'impersonated_by' => $impersonated_by
             ], 'refresh_token');
 
@@ -356,30 +329,25 @@ class AuthController extends Controller implements IAuth
         //////
         
         try {              
-
-            $roles = ["admin"];
-            $perms = [];
             
             $access  = $this->gen_jwt([ 'uid' => $uid, 
-                                        'roles' => $roles, 
-                                        'confirmed_email' => 1,
-                                        'permissions' => $perms //
+                                        'confirmed_email' => 1,     
+                                        'roles' => ["admin"], 
+                                        'permissions' => []
             ], 'access_token');
 
             $refresh = $this->gen_jwt([ 'uid' => $uid, 
-                                        'roles' => $roles, 
-                                        'confirmed_email' => 1,
-                                        'permissions' => $perms //
+                                        'confirmed_email' => 1
             ], 'refresh_token');
 
             Factory::response()->send([ 
+                                        'uid' => $uid,           
                                         'access_token'=> $access,
                                         'token_type' => 'bearer', 
                                         'expires_in' => $this->config['access_token']['expiration_time'],
                                         'refresh_token' => $refresh,   
-                                        'roles' => $roles,
-                                        'uid' => $uid
-                                        ]);
+                                        'roles' => $roles
+                                    ]);
           
         } catch (InvalidValidationException $e) { 
             Factory::response()->sendError('Validation Error', 400, json_decode($e->getMessage()));
@@ -420,10 +388,6 @@ class AuthController extends Controller implements IAuth
                 Factory::response()->sendError('uid is needed',400);
             }
 
-            if (empty($payload->roles)){
-                Factory::response()->sendError('Undefined roles',400);
-            }
-
             if ($payload->exp < time())
                 Factory::response()->sendError('Token expired, please log in',401);
 
@@ -433,15 +397,21 @@ class AuthController extends Controller implements IAuth
             $roles = $this->fetchRoles($uid);
             $permissions = $this->fetchPermissions($uid);
 
-            $access  = $this->gen_jwt(['uid' => $payload->uid, 'roles' => $payload->roles, 'confirmed_email' => $payload->confirmed_email, 'permissions' => $permissions, 'impersonated_by' => $impersonated_by], 'access_token');
+            $access  = $this->gen_jwt([ 'uid' => $payload->uid,
+                                        'confirmed_email' => $payload->confirmed_email, 
+                                        'roles' => $roles, 
+                                        'permissions' => $permissions, 
+                                        'impersonated_by' => $impersonated_by
+                                    ], 
+            'access_token');
 
             ///////////
             $res = [ 
+                'uid' => $payload->uid,
                 'access_token'=> $access,
                 'token_type' => 'bearer', 
                 'expires_in' => $this->config['access_token']['expiration_time'],
-                'roles' => $payload->roles,
-                'uid' => $payload->uid
+                'roles' => $roles
             ];
 
             if (isset($payload->impersonated_by) && $payload->impersonated_by != null){
@@ -491,6 +461,7 @@ class AuthController extends Controller implements IAuth
                 $affected = $u->where(['id', $uid])->update(['belongs_to' => $uid]);
             }
 
+
             if (!empty($this->config['registration_role'])){
                 $role = $this->config['registration_role'];
 
@@ -505,7 +476,6 @@ class AuthController extends Controller implements IAuth
                 $role = [];
             }        
 
-            $props = ['uid' => $uid, 'roles' => [$role], 'confirmed_email' => 0, 'permissions' => [] ];
 
             if ($email_in_schema){
                 if (empty($data['email']))
@@ -526,8 +496,17 @@ class AuthController extends Controller implements IAuth
                 $lastname  = $data['lastname']  ?? null;
             }                
 
-            $access  = $this->gen_jwt($props, 'access_token');
-            $refresh = $this->gen_jwt($props, 'refresh_token');
+            $access  = $this->gen_jwt([
+                                        'uid' => $uid, 
+                                        'confirmed_email' => 0, 
+                                        'roles' => $role,
+                                        'permissions' => [] 
+            ], 'access_token');
+
+            $refresh = $this->gen_jwt([
+                                        'uid' => $uid, 
+                                        'confirmed_email' => 0, 
+            ], 'refresh_token');
 
             $res = [ 
                 'access_token'=> $access,

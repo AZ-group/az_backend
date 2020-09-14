@@ -1,5 +1,18 @@
 # TODO
 
+- Conceptos:
+
+  - Los campos hidden deben de serlo solo para otros usuarios excepto si mismo y un admin. Así se pueden proteger datos sensibles en una cuenta de usuario por ejemplo.
+
+  - Se pueden aplicar transforms sobre los campos password y los de una tarjeta de crédito conviertiendo estos en algo como "******" y "1050-xxxxxxxxxxx" respectivamente con lo cual se protege la información sin ocultarla completamente.
+
+  - NO deben almacenarse ni roles ni permisos en los refresh_tokens por seguridad. Un refresh_token solo debe servir para ser autenticación y no para autorización.  -- OK
+
+  - No sería necesario invalidar tokens. Con solo chequear si el usuario que presenta sus credenciales ya sea en el login o al renovar el token tiene autorización es suficiente. Como mucho se está dejando una ventana abierta de oportunidad para hacer daño lo que quede de vida al access_token.
+
+
+- No me termina de convencer incluir confirmed_email en el payload que además solo debe tenerse en cuenta para activar la cuenta y ese estado activado solo debe chequearse en el login y el refresco. Lo estados de active deberían ser null (la cuenta no fue activada), true (la cuenta fue activada), false (la cuenta fue desactivada)
+
 - Id opcionalmente no autoincrementales por seguridad !
 
 - En /api/v1/img_resize/#id
