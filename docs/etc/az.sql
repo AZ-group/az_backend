@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: localhost
--- Tiempo de generación: 14-09-2020 a las 04:59:18
+-- Tiempo de generación: 14-09-2020 a las 20:39:26
 -- Versión del servidor: 10.4.11-MariaDB
 -- Versión de PHP: 7.4.3
 
@@ -114,26 +114,73 @@ INSERT INTO `folders` (`id`, `tb`, `name`, `belongs_to`) VALUES
 -- --------------------------------------------------------
 
 --
--- Estructura de tabla para la tabla `group_permissions`
+-- Estructura de tabla para la tabla `folder_other_permissions`
 --
 
-CREATE TABLE `group_permissions` (
+CREATE TABLE `folder_other_permissions` (
   `id` int(11) NOT NULL,
   `folder_id` int(11) NOT NULL,
   `belongs_to` int(11) NOT NULL,
-  `member` int(11) NOT NULL,
+  `guest` tinyint(4) NOT NULL DEFAULT 0,
   `r` tinyint(4) NOT NULL,
   `w` tinyint(4) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 --
--- Volcado de datos para la tabla `group_permissions`
+-- Volcado de datos para la tabla `folder_other_permissions`
 --
 
-INSERT INTO `group_permissions` (`id`, `folder_id`, `belongs_to`, `member`, `r`, `w`) VALUES
+INSERT INTO `folder_other_permissions` (`id`, `folder_id`, `belongs_to`, `guest`, `r`, `w`) VALUES
+(1, 4, 90, 0, 0, 0),
+(2, 5, 87, 0, 1, 1),
+(4, 6, 90, 1, 1, 0),
+(5, 9, 4, 1, 1, 0);
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `folder_permissions`
+--
+
+CREATE TABLE `folder_permissions` (
+  `id` int(11) NOT NULL,
+  `folder_id` int(11) NOT NULL,
+  `belongs_to` int(11) NOT NULL,
+  `access_to` int(11) NOT NULL,
+  `r` tinyint(4) NOT NULL,
+  `w` tinyint(4) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- Volcado de datos para la tabla `folder_permissions`
+--
+
+INSERT INTO `folder_permissions` (`id`, `folder_id`, `belongs_to`, `access_to`, `r`, `w`) VALUES
 (1, 1, 1, 4, 1, 1),
 (2, 2, 72, 79, 1, 1),
 (3, 4, 90, 87, 1, 1);
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `foo`
+--
+
+CREATE TABLE `foo` (
+  `id` int(11) NOT NULL,
+  `bar` varchar(45) COLLATE utf16_spanish_ci NOT NULL,
+  `deleted_at` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf16 COLLATE=utf16_spanish_ci;
+
+--
+-- Volcado de datos para la tabla `foo`
+--
+
+INSERT INTO `foo` (`id`, `bar`, `deleted_at`) VALUES
+(2, 'EEE', NULL),
+(5, 'J', NULL),
+(6, '200', NULL),
+(7, '200', NULL);
 
 -- --------------------------------------------------------
 
@@ -168,31 +215,6 @@ INSERT INTO `messages` (`id`, `from_email`, `from_name`, `to_email`, `to_name`, 
 -- --------------------------------------------------------
 
 --
--- Estructura de tabla para la tabla `other_permissions`
---
-
-CREATE TABLE `other_permissions` (
-  `id` int(11) NOT NULL,
-  `folder_id` int(11) NOT NULL,
-  `belongs_to` int(11) NOT NULL,
-  `guest` tinyint(4) NOT NULL DEFAULT 0,
-  `r` tinyint(4) NOT NULL,
-  `w` tinyint(4) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
-
---
--- Volcado de datos para la tabla `other_permissions`
---
-
-INSERT INTO `other_permissions` (`id`, `folder_id`, `belongs_to`, `guest`, `r`, `w`) VALUES
-(1, 4, 90, 0, 0, 0),
-(2, 5, 87, 0, 1, 1),
-(4, 6, 90, 1, 1, 0),
-(5, 9, 4, 1, 1, 0);
-
--- --------------------------------------------------------
-
---
 -- Estructura de tabla para la tabla `permissions`
 --
 
@@ -216,7 +238,8 @@ CREATE TABLE `permissions` (
 INSERT INTO `permissions` (`id`, `tb`, `can_create`, `can_read`, `can_update`, `can_delete`, `can_list`, `user_id`, `created_at`, `updated_at`) VALUES
 (2, 'products', 0, 1, 1, 1, 0, 168, '0000-00-00 00:00:00', NULL),
 (3, 'foo', 0, 1, 0, 1, 0, 90, '2020-01-14 00:00:00', NULL),
-(37, 'foo', 0, 1, 1, 1, 0, 168, '2020-01-14 23:09:37', '2020-01-15 06:30:55');
+(37, 'foo', 0, 1, 1, 1, 0, 168, '2020-01-14 23:09:37', '2020-01-15 06:30:55'),
+(38, 'foo', 0, 1, 0, 0, 0, 87, '0000-00-00 00:00:00', NULL);
 
 -- --------------------------------------------------------
 
@@ -540,7 +563,7 @@ INSERT INTO `user_roles` (`id`, `belongs_to`, `role_id`, `created_at`, `updated_
 (11, 86, 2, '2019-10-18 21:58:10', '2019-10-18 21:58:10'),
 (12, 86, 3, '2019-10-18 21:58:10', '2019-10-18 21:58:10'),
 (14, 86, 100, '2019-10-18 21:58:10', '2019-10-18 21:58:10'),
-(15, 87, 3, '2019-10-18 21:58:10', '2019-10-18 21:58:10'),
+(15, 87, 2, '2019-10-18 21:58:10', '2019-10-18 21:58:10'),
 (16, 89, 3, '2019-10-18 21:58:10', '2019-10-18 21:58:10'),
 (17, 4, 3, '2019-10-18 21:58:10', '2019-10-18 21:58:10'),
 (18, 1, 3, '2019-10-18 21:58:10', '2019-10-18 21:58:10'),
@@ -635,12 +658,20 @@ ALTER TABLE `folders`
   ADD KEY `owner` (`belongs_to`);
 
 --
--- Indices de la tabla `group_permissions`
+-- Indices de la tabla `folder_other_permissions`
 --
-ALTER TABLE `group_permissions`
+ALTER TABLE `folder_other_permissions`
   ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `folder_id` (`folder_id`,`member`),
-  ADD KEY `member` (`member`),
+  ADD UNIQUE KEY `folder_id` (`folder_id`),
+  ADD KEY `belongs_to` (`belongs_to`);
+
+--
+-- Indices de la tabla `folder_permissions`
+--
+ALTER TABLE `folder_permissions`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `folder_id` (`folder_id`,`access_to`),
+  ADD KEY `member` (`access_to`),
   ADD KEY `belongs_to` (`belongs_to`);
 
 --
@@ -648,14 +679,6 @@ ALTER TABLE `group_permissions`
 --
 ALTER TABLE `messages`
   ADD PRIMARY KEY (`id`);
-
---
--- Indices de la tabla `other_permissions`
---
-ALTER TABLE `other_permissions`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `folder_id` (`folder_id`),
-  ADD KEY `belongs_to` (`belongs_to`);
 
 --
 -- Indices de la tabla `permissions`
@@ -715,9 +738,15 @@ ALTER TABLE `folders`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
--- AUTO_INCREMENT de la tabla `group_permissions`
+-- AUTO_INCREMENT de la tabla `folder_other_permissions`
 --
-ALTER TABLE `group_permissions`
+ALTER TABLE `folder_other_permissions`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+
+--
+-- AUTO_INCREMENT de la tabla `folder_permissions`
+--
+ALTER TABLE `folder_permissions`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
@@ -727,16 +756,10 @@ ALTER TABLE `messages`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=103;
 
 --
--- AUTO_INCREMENT de la tabla `other_permissions`
---
-ALTER TABLE `other_permissions`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
-
---
 -- AUTO_INCREMENT de la tabla `permissions`
 --
 ALTER TABLE `permissions`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=38;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=39;
 
 --
 -- AUTO_INCREMENT de la tabla `products`

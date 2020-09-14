@@ -1,6 +1,6 @@
 # TODO
 
-- En el ACL además de los permisos create-read-update-delete incluir "list"
+- Id opcionalmente no autoincrementales por seguridad !
 
 - En /api/v1/img_resize/#id
   ?height=300

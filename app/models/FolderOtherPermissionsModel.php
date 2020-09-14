@@ -3,9 +3,9 @@ namespace simplerest\models;
 
 use simplerest\core\Model;
 
-class OtherPermissionsModel extends Model 
+class FolderOtherPermissionsModel extends Model 
 {
-	protected $table_name = 'other_permissions';
+	protected $table_name = 'folder_other_permissions';
 	protected $id_name = 'id';
 	//protected $fillable = ['folder_id', 'belongs_to', 'guest', 'r', 'w'];
  

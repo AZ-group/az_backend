@@ -9,8 +9,8 @@ use simplerest\libs\Arrays;
 use simplerest\libs\DB;
 use simplerest\libs\Debug;
 use simplerest\libs\Url;
-use simplerest\models\GroupPermissionsModel;
-use simplerest\models\OtherPermissionsModel;
+use simplerest\models\FolderPermissionsModel;
+use simplerest\models\FolderOtherPermissionsModel;
 use simplerest\models\FoldersModel;
 use simplerest\models\RolesModel;
 use simplerest\libs\Validator;
@@ -78,8 +78,8 @@ abstract class ApiController extends ResourceController
                 $update = ($perms & 2) AND 1; 
                 $delete = ($perms & 1) AND 1;
         
-                if ($list)
-                    $this->is_listable = true;  
+                $this->is_listable = (bool) $list;
+            
 
                 // individual permissions *replaces* role permissions
 
@@ -119,6 +119,7 @@ abstract class ApiController extends ResourceController
 
         $this->impersonated_by = $this->auth_payload->impersonated_by ?? null;
 
+        //var_dump($this->is_listable);
         //var_dump($this->impersonated_by);
         //var_export($this->is_admin);
         //var_dump(['perms' => $perms]);
@@ -219,7 +220,7 @@ abstract class ApiController extends ResourceController
         if ($operation != 'r' && $operation != 'w')
             throw new \InvalidArgumentException("Permissions are 'r' or 'w' but not '$operation'");
 
-        $o = (new OtherPermissionsModel($conn))->setFetchMode('ASSOC');
+        $o = (new FolderOtherPermissionsModel($conn))->setFetchMode('ASSOC');
 
         $rows = $o->where(['folder_id', $folder])->get();
 
@@ -235,10 +236,10 @@ abstract class ApiController extends ResourceController
             return true;
         }
         
-        $g = (new GroupPermissionsModel($conn))->setFetchMode('ASSOC');
+        $g = (new FolderPermissionsModel($conn))->setFetchMode('ASSOC');
         $rows = $g->where([
                                     ['folder_id', $folder], 
-                                    ['member', $this->uid]
+                                    ['access_to', $this->uid]
         ])->get();
 
         $r = $rows[0]['r'] ?? null;
@@ -282,7 +283,7 @@ abstract class ApiController extends ResourceController
 
 
             if ($id == null) {            
-                foreach (['created_by', 'updated_by', 'deleted_by', 'belongs_to'] as $f){
+                foreach (['created_by', 'updated_by', 'deleted_by', 'belongs_to', 'user_id'] as $f){
                     if (isset($_get[$f])){
                         if ($_get[$f] == 'me')
                             $_get[$f] = $this->uid;

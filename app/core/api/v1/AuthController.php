@@ -78,6 +78,38 @@ class AuthController extends Controller implements IAuth
         return \Firebase\JWT\JWT::encode($payload, $this->config['email']['secret_key'],  $this->config['email']['encryption']);
     }
 
+    private function fetchRoles($uid) : Array {
+        $rows = DB::table('user_roles')->setFetchMode('ASSOC')->where(['belongs_to', $uid])->select(['role_id as role'])->get();	
+
+        //Debug::dd(DB::getQueryLog());
+
+        $roles = [];
+        if (count($rows) != 0){            
+            $r = new RolesModel();
+        
+            foreach ($rows as $row){
+                $roles[] = $r->getRoleName($row['role']);
+            }
+        }
+
+        return $roles;
+    }
+
+    private function fetchPermissions($uid) : Array {
+        $_permissions = DB::table('permissions')->setFetchMode('ASSOC')->select(['tb', 'can_create as c', 'can_read as r', 'can_update as u', 'can_delete as d', 'can_list as l'])->where(['user_id' => $uid])->get();
+
+        //print_r($rows);
+        //exit; //
+
+        $perms = [];
+        foreach ((array) $_permissions as $p){
+            $tb = $p['tb'];
+            $perms[$tb] = $p['l'] * 16 + $p['c'] * 8 + $p['r'] * 4 + $p['u'] * 2 + $p['d'];
+        }
+
+        return $perms;
+    }
+
     function login()
     {
         if (!in_array($_SERVER['REQUEST_METHOD'], ['POST','OPTIONS']))
@@ -119,31 +151,11 @@ class AuthController extends Controller implements IAuth
             $confirmed_email = $row['confirmed_email']; 
             $username = $row['username'];   
     
-            // Fetch roles
-            $uid = (int) $row['id'];
-            $rows = DB::table('user_roles')->setFetchMode('ASSOC')->where(['belongs_to', $uid])->select(['role_id as role'])->get();	
+            // Fetch roles && permissions
+            $uid = $row['id'];
 
-            //Debug::dd(DB::getQueryLog());
-
-            $roles = [];
-            if (count($rows) != 0){            
-                $r = new RolesModel();
-            
-                foreach ($rows as $row){
-                    $roles[] = $r->getRoleName($row['role']);
-                }
-            }
-            
-            $_permissions = DB::table('permissions')->setFetchMode('ASSOC')->select(['tb', 'can_create as c', 'can_read as r', 'can_update as u', 'can_delete as d', 'can_list as l'])->where(['user_id' => $uid])->get();
-
-            //print_r($rows);
-            //exit; //
-
-            $perms = [];
-            foreach ((array) $_permissions as $p){
-                $tb = $p['tb'];
-                $perms[$tb] = $p['l'] * 16 + $p['c'] * 8 + $p['r'] * 4 + $p['u'] * 2 + $p['d'];
-            }
+            $roles = $this->fetchRoles($uid);
+            $perms = $this->fetchPermissions($uid);
 
             $access  = $this->gen_jwt([ 'uid' => $uid, 
                                         'roles' => $roles, 
@@ -400,7 +412,7 @@ class AuthController extends Controller implements IAuth
             list($refresh) = sscanf($auth, 'Bearer %s');
 
             $payload = \Firebase\JWT\JWT::decode($refresh, $this->config['refresh_token']['secret_key'], [ $this->config['refresh_token']['encryption'] ]);
-            
+
             if (empty($payload))
                 Factory::response()->sendError('Unauthorized!',401);                     
 
@@ -412,11 +424,14 @@ class AuthController extends Controller implements IAuth
                 Factory::response()->sendError('Undefined roles',400);
             }
 
-            $permissions = $payload->permissions ?? [];
-            $impersonated_by = $payload->impersonated_by ?? null;
-
             if ($payload->exp < time())
                 Factory::response()->sendError('Token expired, please log in',401);
+
+            $uid = $payload->uid;
+            $impersonated_by = $payload->impersonated_by ?? null;
+
+            $roles = $this->fetchRoles($uid);
+            $permissions = $this->fetchPermissions($uid);
 
             $access  = $this->gen_jwt(['uid' => $payload->uid, 'roles' => $payload->roles, 'confirmed_email' => $payload->confirmed_email, 'permissions' => $permissions, 'impersonated_by' => $impersonated_by], 'access_token');
 

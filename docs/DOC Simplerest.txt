@@ -918,11 +918,16 @@ class MyApiController extends ApiController
 	// ..
 
 
+### Permisos
+
+Los permisos sobre los endpoints son en general del tipo CRUD + permiso para listar los recursos: ['read', 'list', 'create', 'update',  'delete']
+
+
 ### Roles
 
-Se pueden crear distintos roles que son mantenidos en el modelo 'RolesModel' y cuyo fin es limitar las acciones CRUD que puedan realizar. El modelo no existe en la base de datos.
+Se pueden crear distintos roles que son mantenidos en el modelo 'RolesModel' y cuyo fin es limitar las acciones CRUD que puedan realizar. El la entidad "roles" como tal no existe en la base de datos y solo vive en el modelo.
 
-Para cada endpoint es posible especificar un conjunto de permisos para cada rol ya sea 'read', 'write' y 'list' además de 'create', 'read', 'delete' y 'update'.
+Para cada endpoint es posible especificar un conjunto de permisos para cada rol ya sea 'read', 'write' y 'list' además de 'create', 'read', 'delete' y 'update'. Ejemplo:
 
 	protected $scope = [
 	    'guest'   => [],  
@@ -935,15 +940,14 @@ Para poder listar recursos debe incluirse el permiso "list" mientras que para po
 
 Equivalencias:
 
-get = read + list 
 write = create + update + delete
 
-Así, la forma más concisa de especificar todos los permisos es ['get', 'write'] que equivale a ['read', 'list', 'create', 'update', 'delete']
+Así, la forma más concisa de especificar todos los permisos es ['read', 'list', 'write'] que equivale a ['read', 'list', 'create', 'update', 'delete']
 
 
 ### Rol de Admin
 
-El rol de "admin" está definido en modelo RolesModel y es muy especial porque aunque es posible asignar permisos adicionales a cualquier rol, hay tareas administrativas que solo puede realizar un admin. 
+El rol de "admin" está definido en modelo RolesModel y es muy especial porque aunque es posible asignar permisos adicionales a cualquier rol, hay tareas administrativas que solo puede realizar un admin:
 
 Ejemplos:
 
@@ -957,6 +961,9 @@ Ejemplos:
 - Llenar cualquier campo incluso los no-fillables
 - Cambiar la propiedad (ownership) de un registro (campo belongs_to)
 etc.
+
+Roles adicionales o permisos restrictivos no afecan en nada a un admin (sus alcance es inalterado)
+
 
 ### Roles virtuales
 
@@ -981,9 +988,26 @@ Los roles son permisos que se asignan masivamente (por igual) a todos los usuari
 
 Si se desea que un usuario particular tenga permisos distintos para una entidad particular que sean distintos de los del rol al que pertenece se pueden especificar "permisos indivuduales" creando un registro para ese usuario y esa tabla referida en la tabla "permissions". Solo puede haber una entrada en "permissions" para cada par (usuario, tabla).
 
-Los cambios en los permisos indivuduales al igual que los roles solo se aplican cuando el usuario "inicia sessión" o sea.. cuando obtiene los tokens.
+Los cambios en los permisos individuales al igual que los roles solo se aplican cuando el usuario "inicia sessión" o sea.. cuando obtiene los tokens y también cuando los tokens son renovados.
 
-Como los roles y permisos viajan en el payload de los tokens y son transferidos desde el refresh token al nuevo access token cuando es renovado la única oportunidad de actualización es cuando el usuario vuelva a obtener estos tokens. 
+
+Hay distintas tablas y por tanto distintos endpoints para manejar distintos aspectos de los permisos:
+
+tabla permisions: 
+
+- create, read, update, delete y list
+- Son permisos dados por un Admin sobre las tablas para usuarios específicos.
+
+tabla folder_permissions:
+- read, write
+- Son dados por los usuarios a ciertos usuarios sobre cierto folder de cierta tabla/
+
+folder_other_permissions:
+- read, write
+- Son dados por los usuarios a otros usuarios (sin especificar su id)
+- Puede especificarse el otorgamiento de permisos a usuarios no-registrados (guest)
+
+Los permisos son leídos al momento de "loguearse" o bien cuando se renuevan las credenciales y por tanto los cambios de permisos solo tienen efecto cuando se renueva el access_token y no antes. 
 
 
 ### Folders
@@ -1019,6 +1043,8 @@ Y puede visualizarse un registro en particular (ej: 124) para el que no tendría
 
 	GET /api/v1/products/124?folder=1		
 
+<-- si el folder se nos ha "compartido" por mediode permisos y no se especifica entonces el registro no se hallará devolviendo 404 (Not Found).
+
 Un usuario con rol de administrador en principio obtendrá todos los registros para un endpoint incluidos los que pertenecen a folders privados de otros usuarios:
 
 	GET /api/v1/products
@@ -1033,7 +1059,7 @@ Los permisos para los folders se conceden creando entradas en la tabla group_per
 
 Obviamente cada usuario puede listar, editar o borrar sus folders usando el endpoint /api/v1/folders
 
-Igualmente cada usuario puede hacer CRUD sobre los permisos de "grupo" y para "otros" a través de sus respectivos endpoints /api/v1/GroupPermissions y /api/v1/OtherPermissions respectivamente de modo de permitir a otros miembros acceso de lectura y/o escritura de sus registros.
+Igualmente cada usuario puede hacer CRUD sobre los permisos de "grupo" y para "otros" a través de sus respectivos endpoints /api/v1/FolderPermissions y /api/v1/FolderOtherPermissions respectivamente de modo de permitir a otros miembros acceso de lectura y/o escritura de sus registros.
 
 Para crear un registro en un folder del que se ha concedido permiso de escritura se incluye como campo el id del "folder". Ej:
 
@@ -1086,6 +1112,9 @@ Mismo para borrar un registro perteneciente a un folder es necesario estar "dent
 	{
     	"folder": "1"
 	}
+
+
+Nota: el acceso a los folders se chequea en base de datos cada vez que se hace un request especificando que el recurso se halla en un folder. No es necesario esperar a que se renueven los tokens para tener acceso a un folder al cual se nos ha concedido permisos. <-- podría cambiarse para incrementar la performance !!!
 
 
 ### Soft delete y la papelera

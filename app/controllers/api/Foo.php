@@ -10,7 +10,7 @@ class Foo extends MyApiController
         'guest'      => [],  
         'registered' => ['create'],
         'basic'      => [],
-        'regular'    => ['read']
+        'regular'    => ['read', 'list', 'write']
     ];
 
     function __construct()

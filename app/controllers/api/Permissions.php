@@ -15,7 +15,7 @@ class Permissions extends MyApiController
         'guest'      => [], 
         'registered' => [],
         'basic'      => [],
-        'regular'    => []
+        'regular'    => ['read', 'list']
     ];
 
     function __construct()

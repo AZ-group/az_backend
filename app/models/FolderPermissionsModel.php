@@ -3,11 +3,11 @@ namespace simplerest\models;
 
 use simplerest\core\Model;
 
-class GroupPermissionsModel extends Model 
+class FolderPermissionsModel extends Model 
 {
-	protected $table_name = "group_permissions";
+	protected $table_name = "folder_permissions";
 	protected $id_name = 'id';
-	//protected $fillable = ['folder_id', 'belongs_to', 'member', 'r', 'w'];
+	//protected $fillable = ['folder_id', 'belongs_to', 'access_to', 'r', 'w'];
   
 	/*
 		Types are INT, STR and BOOL among others
@@ -17,7 +17,7 @@ class GroupPermissionsModel extends Model
 		'id' => 'INT',
 		'folder_id' => 'INT',
 		'belongs_to' => 'INT',
-		'member' => 'INT',
+		'access_to' => 'INT',
 		'r' => 'INT',
 		'w' => 'INT'		
 	];
