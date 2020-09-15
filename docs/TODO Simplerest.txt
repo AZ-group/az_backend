@@ -1,10 +1,34 @@
 # TODO
 
+- [ Bug ]  [ Seguridad ] NO debería poder crear una colección de registros que no me pertenecen sino soy Admin o tengo los permisos correspondientes !!!
+
+- No deberían poder crearse dos colecciones iguales (mismos registros, misma tabla)
+
+- [ Bug? ] Supuesta inconcistencia al ver registros como "guest" con $guest_access = true ya que se muestran en listado pero luego no dejan accederse individualmente *aunque* parece ser que por diseño se exige que individualmente cada registro tenga guest_access = 1
+
+Pasa lo mismo con los archivos ya que el DownloadController solo deja descargar archivos con guest_access = 1
+
+=> depredicar guest_access !!!!
+
+- confirmed_email definitivamente *no* debería ir en los tokens....... sino al pasar a 1 debería disparar un evento (trigger?) que coloque la cuenta como activa (active = 1) 
+
+- En app/libs/Factory.php está mal que en check() se haga referencia a una versión concreta de AuthController ya que está dentro de una librería que no está versionada.
+
+- Generar Modelos, Controladores y APIs via comando (sin sobre-escribir existente excepto que se especifique y posiblemente se confimre) basado en plantillas. ***
+
+- Dejar tablas de prueba con nombres como foo y bar.
+
+- Generar algún tipo de alerta / warning si en producción el access token estuviera configurado para durar más de 15 minutos. El generar tokens con vencimiento alto sería un improblema enorme que obligaría a lidiar con una lista negra.
+
+- Soft-delete para archivos?
+
+- DotEnv
+
 - Conceptos:
 
-  - Los campos hidden deben de serlo solo para otros usuarios excepto si mismo y un admin. Así se pueden proteger datos sensibles en una cuenta de usuario por ejemplo.
+  - Los campos hidden deberían de serlo solo para otros usuarios excepto si mismo y un admin. Así se pueden proteger datos sensibles en una cuenta de usuario por ejemplo. Quizás se podría hacer si el campo hidden aceptara un callback que chequera !$owned && !$this->is_admin .... en todo caso el unset() se hace en toSql() dentro de Model.
 
-  - Se pueden aplicar transforms sobre los campos password y los de una tarjeta de crédito conviertiendo estos en algo como "******" y "1050-xxxxxxxxxxx" respectivamente con lo cual se protege la información sin ocultarla completamente.
+  - Se podría aplicar un OutputMutator (o un transformer) sobre los campos password y los de una tarjeta de crédito conviertiendo estos en algo como "******" y "1050-xxxxxxxxxxx" respectivamente con lo cual se protege la información sin ocultarla completamente.
 
   - NO deben almacenarse ni roles ni permisos en los refresh_tokens por seguridad. Un refresh_token solo debe servir para ser autenticación y no para autorización.  -- OK
 
@@ -111,20 +135,6 @@ https://csapi.dev.claroshop.com/app/v1/product?page_size=5
         "currentPage": XXX,
         "totalPages": XXX,
 
-- [ Bug ]  [ Seguridad ] NO debería poder crear una colección de registros que no me pertenecen sino soy Admin o tengo los permisos correspondientes !!!
-
-- No deberían poder crearse dos colecciones iguales (mismos registros, misma tabla)
-
-- [ Bug? ] Supuesta inconcistencia el ver registros como "guest" con $guest_access = true ya que se muestran en listado pero luego no dejan accederse individualmente *aunque* parece ser que por diseño se exige que individualmente cada registro tenga guest_access = 1
-
-Pasa lo mismo con los archivos ya que el DownloadController solo deja descargar archivos con guest_access = 1
-
-- En app/libs/Factory.php está mal que en check() se haga referencia a una versión concreta de AuthController ya que está dentro de una librería que no está versionada.
-
-- Soft-delete para archivos?
-
-- DotEnv
-
 - Remover el /api puede dar lugar a colisiones con controladores. Inclusive no funcionarán los resource controllers. 
 
 OJO ! afecta al DownloadController
@@ -143,6 +153,9 @@ https://www.sourcefuse.com/blog/rest-api-best-practices/
 
 https://maslosoft.com/kb/how-to-continue-script-execution-in-background-in-php/
 
+
+- Investigar sobre PDO::FETCH_LAZY que puede ahorrar mucha memoria
+https://phpdelusions.net/pdo/fetch_modes
 
 - Leer sobre "long running jobs"
 

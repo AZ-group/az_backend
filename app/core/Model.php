@@ -165,12 +165,18 @@ class Model {
 		return $data;
 	}
 
+	/*
+		Es complicado hacerlo funcionar y falla cuando se selecciona un único registro
+		quizás por el FETCH_MODE
+	*/
 	function applyOutputMutators(?array $rows){
 		if (empty($rows))
 			return;
 		
 		if (empty($this->output_mutators))
 			return $rows;
+
+		//$by_id = in_array('id', $this->w_vars);	
 		
 		foreach ($this->output_mutators as $field => $fn){
 			if (!in_array($field, $this->getProperties()))

@@ -222,15 +222,9 @@ class AuthController extends Controller implements IAuth
                 Factory::response()->sendError('uid is needed',400);
             }
 
-            if (empty($payload->roles)){
-                Factory::response()->sendError('Undefined roles',400);
-            }
+            $roles = $this->fetchRoles($payload->uid);
 
-            if (empty($payload->roles)){
-                Factory::response()->sendError('Undefined roles',400);
-            }
-
-            if (!in_array("admin",$payload->roles) && !(isset($payload->impersonated_by) && !empty($payload->impersonated_by)) ){
+            if (!in_array("admin",$roles) && !(isset($payload->impersonated_by) && !empty($payload->impersonated_by)) ){
                 Factory::response()->sendError('Unauthorized!',401, 'Impersonate requires you are admin');
             }    
 
@@ -324,7 +318,7 @@ class AuthController extends Controller implements IAuth
         }	
 
         $uid = $payload->impersonated_by;
-
+        $roles = ["admin"];
 
         //////
         
@@ -332,7 +326,7 @@ class AuthController extends Controller implements IAuth
             
             $access  = $this->gen_jwt([ 'uid' => $uid, 
                                         'confirmed_email' => 1,     
-                                        'roles' => ["admin"], 
+                                        'roles' => $roles, 
                                         'permissions' => []
             ], 'access_token');
 
