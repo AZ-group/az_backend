@@ -85,6 +85,7 @@ class DumbController extends Controller
         ]);    
     }
 
+    // implementada y funcionando en register() 
     function transaction(){
         DB::beginTransaction();
 
@@ -101,7 +102,7 @@ class DumbController extends Controller
                 'belongs_to' => 90
             ]);   
 
-            throw new \Exception("AAA"); 
+            //throw new \Exception("AAA"); 
 
             DB::commit();
 

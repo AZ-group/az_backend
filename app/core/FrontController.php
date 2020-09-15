@@ -48,11 +48,8 @@ class FrontController
                 Response::getInstance()->sendError("Incorrect format for API version");
 
             $api_version = $_params[1 - $sub]; 
-            
             $controller = $_params[2 - $sub] ?? NULL;  
-            $params = array_slice($_params,3 - $sub,2);  // *
-            $req->setParams($params);    
-        
+                   
             // CamelCase to came_case
             $controller = implode('',array_map('ucfirst',explode('_',$controller)));
            
@@ -68,6 +65,8 @@ class FrontController
             if ($controller == 'Auth'){
                 $class_name .= 'Controller';
                 $method = $_params[3 - $sub];
+                
+                $params = array_slice($_params,4 - $sub,2);  // *
             } else {
                 ///
                 $asked_method = NULL;
@@ -80,7 +79,11 @@ class FrontController
                 }
 
                 $method = $asked_method != NULL ? strtolower($asked_method) : strtolower($_SERVER['REQUEST_METHOD']);
+
+                $params = array_slice($_params,3 - $sub,2);  // *
             }
+
+            $req->setParams($params);  
 
         } else {
             //Debug::dd($_params, 'PARAMS:');

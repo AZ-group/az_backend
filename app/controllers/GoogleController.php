@@ -118,6 +118,9 @@ class GoogleController extends Controller
         if (!$payload)
             exit;
 
+
+        DB::beginTransaction();
+
         try 
         {        
             $conn = $this->getConnection();	
@@ -183,16 +186,34 @@ class GoogleController extends Controller
                     ->update(['belongs_to' => $uid]);
                 }
 
-                $r = new RolesModel();
-                $role = $this->config['registration_role'];
+                if (!empty($this->config['registration_role'])){
+                    $role = $this->config['registration_role'];
 
-                $ur = new UserRolesModel($conn);
-                $id = $ur->create([ 'belongs_to' => $uid, 'role_id' => $r->get_role_id($role) ]);  // registered or other            
-        
-                $roles = [$role];
-                $perms = [];
+                    $r  = new RolesModel();
+                    $ur = DB::table('userRoles');
+
+                    $role_id = $r->get_role_id($role);
+
+                    if ($role_id == null){
+                        throw new Exception('Invalid default registration role');
+                    }
+
+                    $id = $ur->create([ 
+                                        'belongs_to' => $uid, 
+                                        'role_id' => $role_id 
+                                        ]);  
+
+                    if (empty($id))
+                        throw new Exception('Error registrating user role');          
+
+                    $roles = [$role];  
+                } else {
+                    $roles = [];
+                }   
             }  
             
+            $perms = [];
+
             $access  = $this->gen_jwt([
                                         'uid' => $uid, 
                                         'confirmed_email' => 1,
@@ -207,6 +228,8 @@ class GoogleController extends Controller
 
             // podría incluir google_auth' => $auth en el access_token
 
+            DB::commit();
+
             return ['code' => 200,  
                     'data' => [ 
                                 'uid' => $uid,
@@ -218,6 +241,8 @@ class GoogleController extends Controller
                     'error' => ''
             ];
         }catch(\Exception $e){
+            DB::rollback();
+
             return ['error' => $e->getMessage(), 'code' => 500];
         }	
 

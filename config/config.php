@@ -50,7 +50,7 @@ return [
 		aditional role to the implicit 'registered' after being registered
 		leave empty for none
 	*/
-	//'registration_role' => 'regular',
+	'registration_role' => null,
 
 	// seconds
 	'email' => [

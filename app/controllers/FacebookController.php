@@ -83,6 +83,8 @@ class FacebookController extends Controller
             var_dump($lastname);
             */
             
+            DB::beginTransaction();
+
             try 
             {        
                 $conn = $this->getConnection();	
@@ -144,7 +146,7 @@ class FacebookController extends Controller
                     // Debo hacer Transacción aquí:
                     $uid = $u->create($data);
                     if (empty($uid))
-                        return ['error' => 'Error in user registration!', 'code' => 500];
+                        throw new Exception('Error in user registration!');
         
                     if ($u->inSchema(['belongs_to'])){
                         DB::table('users')
@@ -153,26 +155,49 @@ class FacebookController extends Controller
                     }
 
                     $r = new RolesModel();
-                    $role = $this->config['registration_role'];
+                    
+                    
+                    if (!empty($this->config['registration_role'])){
+                        $role = $this->config['registration_role'];
 
-                    $ur = new UserRolesModel($conn);
-                    $id = $ur->create([ 'belongs_to' => $uid, 'role_id' => $r->get_role_id($role) ]); 
-            
-                    $roles = [$role];
+                        $r  = new RolesModel();
+                        $ur = DB::table('userRoles');
+
+                        $role_id = $r->get_role_id($role);
+
+                        if ($role_id == null){
+                            throw new Exception('Invalid default registration role');
+                        }
+
+                        $id = $ur->create([ 
+                                            'belongs_to' => $uid, 
+                                            'role_id' => $role_id 
+                                            ]);  
+
+                        if (empty($id))
+                            throw new Exception('Error registrating user role');          
+
+                        $roles = [$role];        
+
+                    } else {
+                        $roles = [];
+                    }    
+
                     $perms = [];
                 }  
     
                 $access  = $this->gen_jwt([
                                             'uid' => $uid, 
-                                            'confirmed_email' => 1,
                                             'roles' => $roles,
                                             'permissions' => $perms
                 ], 'access_token');
 
                 $refresh = $this->gen_jwt([
-                                            'uid' => $uid, 
-                                            'confirmed_email' => 1,
+                                            'uid' => $uid
                 ], 'refresh_token');
+
+
+                DB::commit(); 
 
                 return ['code' => 200,  
                         'data' => [ 
@@ -185,6 +210,8 @@ class FacebookController extends Controller
                         'error' => ''
                 ];
             }catch(\Exception $e){
+                DB::rollback();
+                
                 return ['error' => $e->getMessage(), 'code' => 500];
             }	
 

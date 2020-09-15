@@ -325,13 +325,11 @@ class AuthController extends Controller implements IAuth
         try {              
             
             $access  = $this->gen_jwt([ 'uid' => $uid, 
-                                        'confirmed_email' => 1,     
                                         'roles' => $roles, 
                                         'permissions' => []
             ], 'access_token');
 
-            $refresh = $this->gen_jwt([ 'uid' => $uid, 
-                                        'confirmed_email' => 1
+            $refresh = $this->gen_jwt([ 'uid' => $uid,
             ], 'refresh_token');
 
             Factory::response()->send([ 
@@ -392,7 +390,6 @@ class AuthController extends Controller implements IAuth
             $permissions = $this->fetchPermissions($uid);
 
             $access  = $this->gen_jwt([ 'uid' => $payload->uid,
-                                        'confirmed_email' => $payload->confirmed_email, 
                                         'roles' => $roles, 
                                         'permissions' => $permissions, 
                                         'impersonated_by' => $impersonated_by
@@ -424,23 +421,31 @@ class AuthController extends Controller implements IAuth
         if (!in_array($_SERVER['REQUEST_METHOD'], ['POST','OPTIONS']))
             Factory::response()->sendError('Incorrect verb ('.$_SERVER['REQUEST_METHOD'].'), expecting POST',405);
             
+        DB::beginTransaction();
+
         try {
             $data  = Factory::request()->getBody();
             
             if ($data == null)
-                Factory::response()->sendError('Invalid JSON',400);
+                Factory::response()->sendError('Bad request',400, 'Invalid JSON');
 
             $u = new UsersModel();
 
             $missing = $u->getMissing($data);
             if (!empty($missing))
-                Factory::response()->sendError('There are missing properties in your request: '.implode(',',$missing), 400);
+                Factory::response()->sendError('Bad request', 400, 'There are missing properties in your request: '.implode(',',$missing));
 
             $email_in_schema = $u->inSchema(['email']);
 
             if ($email_in_schema){
                 if (DB::table('users')->where(['email', $data['email']])->exists())
                     Factory::response()->sendError('Email already exists');  
+
+                if (empty($data['email']))
+                    throw new Exception("Email is empty");
+                    
+                if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL))
+                    throw new Exception("Invalid email");    
             }            
 
             if (DB::table('users')->where(['username', $data['username']])->exists())
@@ -448,7 +453,7 @@ class AuthController extends Controller implements IAuth
 
             $uid = DB::table('users')->setValidator(new Validator())->create($data);
             if (empty($uid))
-                Factory::response()->sendError("Error in user registration", 500, 'Error creating user');
+                throw new Exception('Error creating user');
 
             $u = DB::table('users');    
             if ($u->inSchema(['belongs_to'])){
@@ -462,27 +467,30 @@ class AuthController extends Controller implements IAuth
                 $r  = new RolesModel();
                 $ur = DB::table('userRoles');
 
-                $ur_id = $ur->create([ 'belongs_to' => $uid, 'role_id' => $r->get_role_id($role) ]);  
+                $role_id = $r->get_role_id($role);
+
+                if ($role_id == null){
+                    throw new Exception('Invalid default registration role');
+                }
+
+                $ur_id = $ur->create([ 
+                                       'belongs_to' => $uid, 
+                                       'role_id' => $role_id 
+                                    ]);  
 
                 if (empty($ur_id))
-                    Factory::response()->sendError("Error in user registration", 500, 'Error registrating user role');  
+                    throw new Exception('Error registrating user role');  
             }else{
                 $role = [];
             }        
 
 
-            if ($email_in_schema){
-                if (empty($data['email']))
-                    throw new Exception("Email is empty");
-                    
-                if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL))
-                    throw new Exception("Invalid email");
-
+            if ($email_in_schema){ 
                 // Email confirmation
                 $exp = time() + $this->config['email']['expires_in'];	
 
                 $base_url =  HTTP_PROTOCOL . '://' . $_SERVER['HTTP_HOST'] . ($this->config['BASE_URL'] == '/' ? '/' : $this->config['BASE_URL']) ;
-        
+
                 $token = $this->gen_jwt_email_conf($data['email']);
                 $url = $base_url . (!$this->config['REMOVE_API_SLUG'] ? 'api/v1' : 'v1') . '/auth/confirm_email/' . $token . '/' . $exp; 
 
@@ -492,34 +500,35 @@ class AuthController extends Controller implements IAuth
 
             $access  = $this->gen_jwt([
                                         'uid' => $uid, 
-                                        'confirmed_email' => 0, 
                                         'roles' => $role,
                                         'permissions' => [] 
             ], 'access_token');
 
             $refresh = $this->gen_jwt([
-                                        'uid' => $uid, 
-                                        'confirmed_email' => 0, 
+                                        'uid' => $uid
             ], 'refresh_token');
 
             $res = [ 
+                'uid' => $uid,
                 'access_token'=> $access,
                 'token_type' => 'bearer', 
                 'expires_in' => $this->config['access_token']['expiration_time'],
                 'refresh_token' => $refresh,
-                'roles' => [$role],
-                'uid' => $uid
+                'roles' => [$role]
             ];
 
             if ($email_in_schema)
                 $res['email_confirmation_link'] = $url;
 
 
+            DB::commit();    
             Factory::response()->send($res);
 
         } catch (InvalidValidationException $e) { 
+            DB::rollback();
             Factory::response()->sendError('Validation Error', 400, json_decode($e->getMessage()));
         }catch(\Exception $e){
+            DB::rollback();
             Factory::response()->sendError($e->getMessage());
         }	
             
@@ -592,88 +601,74 @@ class AuthController extends Controller implements IAuth
 	{
 		if (!in_array($_SERVER['REQUEST_METHOD'], ['GET','OPTIONS']))
             Factory::response()->sendError('Incorrect verb ('.$_SERVER['REQUEST_METHOD'].'), expecting GET',405);
-    
+
 		// Es menos costoso verificar así en principio
 		if ((int) $exp < time()) {
-            $error = 'Link is outdated';
-		} else {
+            Factory::response()->sendError('Link is outdated', 400);
+        }         
 
-			if($jwt != null)
-			{
-				try {
-					$payload = \Firebase\JWT\JWT::decode($jwt, $this->config['email']['secret_key'], [ $this->config['email']['encryption'] ]);
-					
-					if (empty($payload))
-						$error = 'Unauthorized!';                     
+        if($jwt != null)
+        {
+            try {
+                $payload = \Firebase\JWT\JWT::decode($jwt, $this->config['email']['secret_key'], [ $this->config['email']['encryption'] ]);
+                
+                if (empty($payload))
+                    $error = 'Unauthorized!';                     
 
-					if (!isset($payload->email) || empty($payload->email)){
-						$error = 'email is needed';
-					}
+                if (!isset($payload->email) || empty($payload->email)){
+                    $error = 'email is needed';
+                }
 
-					if ($payload->exp < time())
-						$error = 'Token expired';
-					
-					$u = DB::table('users');
-					$ok = (bool) $u->where(['email', $payload->email])
-					->fill(['confirmed_email'])
-					->update(['confirmed_email' => 1]);
-										
-					//if (!$ok)		
-					//	$error = 'Error en activación';				
+                if ($payload->exp < time())
+                    $error = 'Token expired';
+                
+                $u = DB::table('users');
 
-				} catch (\Exception $e) {
-					/*
-					* the token was not able to be decoded.
-					* this is likely because the signature was not able to be verified (tampered token)
-					*
-					* reach this point if token is empty or invalid
-					*/
-					Factory::response()->sendError($e->getMessage(),401);
-				}	
-			}else{
-				Factory::response()->sendError('Authorization jwt token not found',400);
-			}     
-		}	
+                $rows = DB::table('users')->setFetchMode('ASSOC')->where(['email', $payload->email])->get(['id']);
 
-		if (!isset($error)){
+                if (count($rows) == 0){
+                    Factory::response()->sendError("Not found", 404, "Email not found");
+                }
 
-			$rows = DB::table('users')->setFetchMode('ASSOC')->where(['email', $payload->email])->get(['id']);
-			$uid  = $rows[0]['id'];
+                $uid  = $rows[0]['id'];
+                
+                $ok = (bool) DB::table('users')->where(['id', $uid])
+                ->fill(['confirmed_email'])
+                ->update(['confirmed_email' => 1]);
 
-			$affected_rows = DB::table('users')
-			->where(['id' => $uid])
-			->fill(['confirmed_email'])
-			->update(['confirmed_email' => 1]);
-			
-			if ($affected_rows === false)
-				Factory::response()->sendError('Error', 500);
+            } catch (\Exception $e) {
+                /*
+                * the token was not able to be decoded.
+                * this is likely because the signature was not able to be verified (tampered token)
+                *
+                * reach this point if token is empty or invalid
+                */
+                Factory::response()->sendError($e->getMessage(),401);
+            }	
+        }else{
+            Factory::response()->sendError('Authorization jwt token not found',400);
+        }     
 
-			$rows = DB::table('user_roles')->setFetchMode('ASSOC')->where(['belongs_to', $uid])->get(['role_id as role']);	
+        $roles = $payload->roles ?? [];
+        $perms = $payload->permissions ?? [];
 
-			$r = new RolesModel();
+        $access  = $this->gen_jwt([ 'uid' => $uid,   
+                                    'roles' => $roles, 
+                                    'permissions' => $perms
+        ], 'access_token');
 
-			$roles = [];
-			if (count($rows) != 0){            
-				foreach ($rows as $row){
-					$roles[] = $r->getRoleName($row['role']);
-				}
-			}else
-				$roles[] = 'registered';
+        $refresh = $this->gen_jwt(['uid' => $uid, 
+        ], 'refresh_token');
 
-
-			$access  = $this->gen_jwt(['uid' => $uid, 'roles' => $roles, 'confirmed_email' => 1], 'access_token');
-			$refresh = $this->gen_jwt(['uid' => $uid, 'roles' => $roles, 'confirmed_email' => 1], 'refresh_token');
-
-            
-            Factory::response()->send([
-				'access_token' => $access,
-				'expires_in' => $this->config['email']['expires_in'],
-				'refresh_token' => $refresh
-			]);
-	
-		}else {
-			Factory::response()->sendError(' Email confirmation has failed', 200, $error);
-		}	
+        
+        Factory::response()->send([
+            'uid' => $uid,  
+            'access_token' => $access,
+            'token_type' => 'bearer', 
+            'expires_in' => $this->config['access_token']['expiration_time'],
+            'refresh_token' => $refresh,
+            'roles' => $roles   
+        ]);	
 
     }     
     
