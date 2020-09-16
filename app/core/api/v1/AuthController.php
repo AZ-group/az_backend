@@ -536,6 +536,7 @@ class AuthController extends Controller implements IAuth
                 $base_url =  HTTP_PROTOCOL . '://' . $_SERVER['HTTP_HOST'] . ($this->config['BASE_URL'] == '/' ? '/' : $this->config['BASE_URL']) ;
 
                 $token = $this->gen_jwt_email_conf($data['email'], $roles, $perms);
+
                 $url = $base_url . (!$this->config['REMOVE_API_SLUG'] ? 'api/v1' : 'v1') . '/auth/confirm_email/' . $token . '/' . $exp; 
 
                 $firstname = $data['firstname'] ?? null;
@@ -706,6 +707,7 @@ class AuthController extends Controller implements IAuth
             Factory::response()->sendError('Authorization jwt token not found',400);
         }     
 
+        /*
         $roles = $payload->roles ?? [];
         $perms = $payload->permissions ?? [];
 
@@ -727,7 +729,9 @@ class AuthController extends Controller implements IAuth
             'refresh_token' => $refresh,
             'roles' => $roles   
         ]);	
+        */
 
+        Factory::response()->send(['msg' => 'Email confirmed - thanks!']);
     }     
     
     function change_pass(){

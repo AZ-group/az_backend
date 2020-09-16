@@ -293,7 +293,20 @@ Al momento de registrarse exitosamente en el JSON de la respuesta se incluye
 
 	"email_confirmation_link": "http://az.lan/api/v1/auth/confirm_email/eyJ0eXA...KDFsI/1600830742"
 
-Y siguiendo ese enlace el correo de la cuenta queda verificado.
+Y siguiendo ese enlace el correo de la cuenta queda verificado devolviendo:
+
+{
+    "data": {
+        "msg": "Email confirmed - thanks!"
+    },
+    "status_code": 200,
+    "error": "",
+    "error_detail": ""
+}
+
+<-- es posible devolver tokens pero serían inseguro -aunque el recuérdame genera tokens-. 
+
+Luego de confirmar el correo es responsabilidad del usuario volverse a loguear. 
 
 
 # Recuérdame
