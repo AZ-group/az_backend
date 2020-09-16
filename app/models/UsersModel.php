@@ -40,6 +40,13 @@ class UsersModel extends Model
 		$this->registerInputMutator('password', function($pass){ return password_hash($pass, PASSWORD_DEFAULT); }, true);
 		//$this->registerOutputMutator('password', function($pass){ return '******'; } );
         parent::__construct($db);
-    }
+	}
+	
+	// Hooks
+	function onUpdating() {
+		if ($this->isDirty('email')) {
+			$this->update(['confirmed_email' => 0]);
+		}	
+	}
 	
 }

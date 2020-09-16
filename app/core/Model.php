@@ -63,6 +63,7 @@ class Model {
 	protected $controller;
 	protected $exec = true;
 	protected $fetch_mode = \PDO::FETCH_OBJ;
+	protected $data = []; 
 	
 	
 	function __construct(\PDO $conn = null){
@@ -949,7 +950,7 @@ class Model {
 		return $this->_dd($this->last_pre_compiled_query, $this->last_bindings);
 	}
 
-	function get(array $fields = null, array $order = null, int $limit = NULL, int $offset = null){
+	function get(array $fields = null, array $order = null, int $limit = NULL, int $offset = null, $pristine = false){
 		$q = $this->toSql($fields, $order, $limit, $offset);
 		$st = $this->bind($q);
 
@@ -958,12 +959,12 @@ class Model {
 			if (empty($output))
 				return [];
 	
-			return $this->applyTransformer($this->applyOutputMutators($output));
+			return $pristine ? $output : $this->applyTransformer($this->applyOutputMutators($output));
 		}else
 			return false;	
 	}
 
-	function first(array $fields = null){
+	function first(array $fields = null, $pristine = false){
 		$q = $this->toSql($fields, NULL);
 		$st = $this->bind($q);
 
@@ -972,7 +973,7 @@ class Model {
 			if (empty($output))
 				return false;
 	
-			return $this->applyTransformer($this->applyOutputMutators((array) $output));
+			return $pristine ? $output : $this->applyTransformer($this->applyOutputMutators((array) $output));
 		}else
 			return false;	
 	}
@@ -1316,6 +1317,12 @@ class Model {
 	 */
 	function update(array $data, $set_updated_at = true)
 	{
+		$this->data = $data;
+		$this->onUpdating($data);
+
+		//var_dump($this->w_vars);
+		//var_dump($this->w_vals);
+
 		if ($this->conn == null)
 			throw new SqlException('No conection');
 			
@@ -1392,9 +1399,12 @@ class Model {
 		$this->last_pre_compiled_query = $q;
 	 
 		if($st->execute())
-			return $st->rowCount();
+			$count = $st->rowCount();
 		else 
-			return false;	
+			$count = false;
+			
+		$this->onUpdated($count);
+		return $count;
 	}
 
 	/**
@@ -1416,6 +1426,8 @@ class Model {
 				throw new InvalidValidationException(json_encode($validado));
 			} 
 		}
+
+		$this->onDeleting($soft_delete);
 
 		if ($soft_delete){
 			if (!$this->inSchema(['deleted_at'])){
@@ -1464,9 +1476,12 @@ class Model {
 		$this->last_pre_compiled_query = $q;
 
 		if($st->execute())
-			return $st->rowCount();
+			$count = $st->rowCount();
 		else 
-			return false;		
+			$count = false;	
+		
+		$this->onDeleted($count);
+		return $count;	
 	}
 
 	/*
@@ -1479,6 +1494,8 @@ class Model {
 
 		if (!Arrays::is_assoc($data))
 			throw new \InvalidArgumentException('Array of data should be associative');
+	
+		$this->data = $data;	
 		
 		$data = $this->applyInputMutator($data);
 		$vars = array_keys($data);
@@ -1498,6 +1515,9 @@ class Model {
 				throw new InvalidValidationException(json_encode($validado));
 			} 
 		}
+
+		// Evento
+		$this->onCreating();
 
 		$str_vars = implode(', ',$vars);
 
@@ -1535,12 +1555,53 @@ class Model {
 		$this->last_pre_compiled_query = $q;
 
 		$result = $st->execute();
+
 		if ($result){
-			return $this->{$this->id_name} = $this->conn->lastInsertId();
+			$last_inserted_id = $this->{$this->id_name} = $this->conn->lastInsertId();
 		}else
-			return false;
+			$last_inserted_id = false;
+
+		$this->onCreated($last_inserted_id);	
+		return $ret;	
 	}
-		
+	
+	/*
+		 to be called inside onUpdating() event hook
+
+		 el problema es que necesito ejecutar el mismo WHERE que el UPDATE en un GET para seleccionar el mismo registro y tener contra que comparar.	
+
+		 https://stackoverflow.com/questions/45702409/laravel-check-if-updateorcreate-performed-update/49350664#49350664
+		 https://stackoverflow.com/questions/48793257/laravel-check-with-observer-if-column-was-changed-on-update/48793801
+	*/	 
+
+	function isDirty($field) 
+	{
+		if (in_array($field, array_keys($this->data)))
+		{
+			$this->conn = \simplerest\libs\DB::getConnection();
+
+			$old_val = $this->first([$field], true)[$field];
+			$new_val = $this->data[$field];			
+
+			return $new_val != $old_val;
+		}
+
+		return false;
+	}
+
+	/*
+		Even hooks -podrían estar definidos en clase abstracta o interfaz-
+	*/
+
+	function onCreating() {	}
+	function onCreated($count) { }
+
+	function onUpdating() { }
+	function onUpdated($count) { }
+
+	function onDeleting($soft_delete) { }
+	function onDeleted($count) { }
+
 	/*
 		'''Reflection'''
 	*/

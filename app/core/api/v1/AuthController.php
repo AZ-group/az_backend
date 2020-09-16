@@ -604,13 +604,17 @@ class AuthController extends Controller implements IAuth
                 if (empty($payload))
                     Factory::response()->sendError('Unauthorized!',401);  
 
-                //var_dump($payload);    
-       
+                if (!isset($payload->active)){
+                    Factory::response()->sendError('Unauthorized', 401, 'Lacks active status');
+                }
+
                 if ($payload->active === false) {
                     Factory::response()->sendError('Non authorized', 403, 'Deactivated account');
-                } elseif ($payload->active === null) {
-                    Factory::response()->sendError('Non authorized', 403, 'Account pending for activation');
-                }           
+                } 
+                
+                //if ($payload->active === null) {
+                //    Factory::response()->sendError('Non authorized', 403, 'Account pending for activation');
+                //}           
 
                 if (empty($payload->ip))
                     Factory::response()->sendError('Unauthorized',401,'Lacks IP in web token');
@@ -873,7 +877,7 @@ class AuthController extends Controller implements IAuth
                 }
             }
             
-            $_permissions = DB::table('permissions')->setFetchMode('ASSOC')->select(['tb', 'can_create as c', 'can_read as r', 'can_update as u', 'can_delete as d'])->where(['user_id' => $uid])->get();
+            $_permissions = DB::table('permissions')->setFetchMode('ASSOC')->select(['tb', 'can_create as c', 'can_read as r', 'can_update as u', 'can_delete as d', 'can_list as l'])->where(['user_id' => $uid])->get();
 
             //print_r($rows);
             //exit; //
@@ -881,7 +885,7 @@ class AuthController extends Controller implements IAuth
             $perms = [];
             foreach ((array) $_permissions as $p){
                 $tb = $p['tb'];
-                $perms[$tb] = $p['c'] * 8 + $p['r'] * 4 + $p['u'] * 2 + $p['d'];
+                $perms[$tb] = $p['l'] * 16 + $p['c'] * 8 + $p['r'] * 4 + $p['u'] * 2 + $p['d'];
             }
 
             //var_dump($roles); 

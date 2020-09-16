@@ -1,12 +1,18 @@
 # TODO
 
-- confirmed_email definitivamente *no* debería ir en los tokens....... sino al pasar a 1 debería disparar un evento (trigger?) que coloque la cuenta como activa (active = 1) 
+- Deseos y promesas
 
-=> active debería leerse de la DB al loguearse y renovar e ir dentro del access token
+- Definir DB !!!
 
-- [ Bug ]  [ Seguridad ] NO debería poder crear una colección de registros que no me pertenecen sino soy Admin o tengo los permisos correspondientes !!!
+- Poder hacer impersonate por roles -por cualquiera- y no solo por uid
 
-- No deberían poder crearse dos colecciones iguales (mismos registros, misma tabla)
+  POST /v1/auth/impersonate que recibe un refresh_token de un Admin y en el body:
+
+  { 
+    "role" : "basic"	
+  }
+
+<-- la ventaja es no tener que tener que tener en cuenta a ningún usuario en particular, solo el rol que interesa.
 
 - [ Bug? ] Supuesta inconcistencia al ver registros como "guest" con $guest_access = true ya que se muestran en listado pero luego no dejan accederse individualmente *aunque* parece ser que por diseño se exige que individualmente cada registro tenga guest_access = 1
 
@@ -14,17 +20,40 @@ Pasa lo mismo con los archivos ya que el DownloadController solo deja descargar 
 
 => depredicar guest_access !!!!
 
-- En app/libs/Factory.php está mal que en check() se haga referencia a una versión concreta de AuthController ya que está dentro de una librería que no está versionada.
-
 - Generar Modelos, Controladores y APIs via comando (sin sobre-escribir existente excepto que se especifique y posiblemente se confimre) basado en plantillas. ***
+
+- DotEnv
+
+- Id opcionalmente no autoincrementales por seguridad !
+
+- Enviar efectivamente correos -prioridad alta-
+
+- Correos con formato. <-- ver como es en Laravel que usa un motor de plantillas.
+
+- [ Bug ]  [ Seguridad ] NO debería poder crear una colección de registros que no me pertenecen sino soy Admin o tengo los permisos correspondientes !!!
+
+- No deberían poder crearse dos colecciones iguales (mismos registros, misma tabla)
+
+- En app/libs/Factory.php está mal que en check() se haga referencia a una versión concreta de AuthController ya que está dentro de una librería que no está versionada.
 
 - Dejar tablas de prueba con nombres como foo y bar.
 
-- Generar algún tipo de alerta / warning si en producción el access token estuviera configurado para durar más de 15 minutos. El generar tokens con vencimiento alto sería un improblema enorme que obligaría a lidiar con unalista negra.
+- Generar algún tipo de alerta / warning si en producción el access token estuviera configurado para durar más de 1500 minutos  (poco más de un día). El generar tokens con vencimiento alto sería un improblema enorme que obligaría a lidiar con unalista negra.
+
+- Generar una alerta si aumenta el número de usuarios con el rol de "admin". 
 
 - Soft-delete para archivos?
 
-- DotEnv
+- Cambios en las tablas del ACL:
+
+  - La tabla permissions debería llamarse resource_permissions
+
+  - Los 'roles' deberían ser una tabla en la DB
+
+  - Debería crearse una tabla 'role_permissions' en vez de seguir manteniendo los permisos para cada rol en el archivo .php de de cada api.
+
+  <-- la tabla 'roles' y 'role_permissions' deberían compilarse de alguna forma y ser incluidos dentro del payload del access_token para evitar andar leyéndolas cada vez. ¿O sera que con REDIS lo soluciono realmente?
+
 
 - Conceptos:
 
@@ -36,10 +65,6 @@ Pasa lo mismo con los archivos ya que el DownloadController solo deja descargar 
 
   - No sería necesario invalidar tokens. Con solo chequear si el usuario que presenta sus credenciales ya sea en el login o al renovar el token tiene autorización es suficiente. Como mucho se está dejando una ventana abierta de oportunidad para hacer daño lo que quede de vida al access_token.
 
-
-- No me termina de convencer incluir confirmed_email en el payload que además solo debe tenerse en cuenta para activar la cuenta y ese estado activado solo debe chequearse en el login y el refresco. Lo estados de active deberían ser null (la cuenta no fue activada), true (la cuenta fue activada), false (la cuenta fue desactivada)
-
-- Id opcionalmente no autoincrementales por seguridad !
 
 - En /api/v1/img_resize/#id
   ?height=300
@@ -80,16 +105,6 @@ DELETE  \
 - Investigar API de Claro que tiene hasta relaciones polimorficas mostradas como "atributos"
 https://csapi.dev.claroshop.com/app/v1/product?page_size=5
 
-- Chequear
-
-	- /v1/entidad además de /v1/api/entidad y verificar que no afecte otros controllers
-	- Collections OK
-	- TrashCan OK  
-	- Mutators OK 
-	- Transformers OK
-  - Files OK
-  - CORS <-- toca testearlo
-  
 - Corregir JSON en /v1/files
 
 "failures": [
@@ -108,6 +123,9 @@ https://csapi.dev.claroshop.com/app/v1/product?page_size=5
 - Middleware ejecutado después de una API podría servir para hacer los thumbnails de imágenes. Tocaría registrar el Middleware posiblemente en la propia API al final del construtor. 
 
 - Middleware podría tener la funcionalidad de envio de enlace para verificación de correo luego de hacer el registro.
+
+
+- Id opcionalmente no autoincrementales por seguridad !
 
 - Enviar efectivamente correos -prioridad alta-
 
@@ -137,15 +155,9 @@ https://csapi.dev.claroshop.com/app/v1/product?page_size=5
         "currentPage": XXX,
         "totalPages": XXX,
 
-- Remover el /api puede dar lugar a colisiones con controladores. Inclusive no funcionarán los resource controllers. 
-
-OJO ! afecta al DownloadController
-
 - Redis con API Rest ?
 
-- Implementar notificaciones push -urgente ***
-
-- Falta algún mecanismo porque si habilito "guest_access" se pueden acceder indiscriminadamente a todos los registros (excepto los de los folders) !!!!!!!!! 
+- Implementar notificaciones push o reverse API.
 
 - Usar Midlewares para evitar tener que hardcodear la clase Auth
 
@@ -304,8 +316,6 @@ Ejemplo:
 https://stackoverflow.com/questions/43187735/laravel-5-4-create-model-controller-and-migration-in-single-artisan-command
 
 
-- Vista de correo enviado para cambio de contraseña o confirmación de correo.
-
 - Usar archivos .env 
 
   'mysql' => [
@@ -331,7 +341,6 @@ https://github.com/vlucas/phpdotenv
 
 https://laravel.com/docs/5.8/pagination
 
-- Usar templates para los correos 
 
 - Implementar "where anidados" como en Laravel con callbacks
 
@@ -440,7 +449,6 @@ o...
 
 <-- productos de la orden 99 del cliente 1
 
-- Un usuario que cambia la contraseña sigue verificado? debería poder volverse read-only el correo o bien al cambiar el correo ser obligario verificarlo de nuevo.
 
 - ACL, eventos beforeCheckAccess y afterCheckAccess ?
 
@@ -459,13 +467,11 @@ https://developer.vimeo.com/guidelines/rate-limiting
 https://support.exactonline.com/community/s/knowledge-base#All-All-HNO-Simulation-gen-apilimits
 https://stackoverflow.com/a/49611482/980631
 
-- Implementar front con DataTables o bien VueJs
-
 - Swagger for Documentation
 
 Swagger is a widely-used tool to document REST APIs that provides a way to explore the use of a specific API, therefore allowing developers to understand the underlying semantic behavior. It’s a declarative way of adding documentation using annotations which further generates a JSON describing APIs and their usage.
 
-- Al generar los modelos..... modificar la tabla correspondiente agregando el campo `deleted_at` y `belongs_to` ? 
+- Al generar los modelos..... opcionalmente modificar la tabla correspondiente agregando el campo `deleted_at` y `belongs_to` 
 
 - Ofrecer la forma de filtrado compatible con JSON:API
 
@@ -517,13 +523,10 @@ Content-Length: ...
 - Simplificar la forma de crear la conexion a la DB como en Laravel Lummen:
 https://lumen.laravel.com/docs/6.x/database
 
-- Implementar mi data-validator
 - Generar Modelos con sus schemas a partir de la DB como con CRUDO usando un comando.
-- Form de registro (front)
-- Paginador (front)
-- Controles más complejos como checkbox, radio, combobox
-- Middlewares
+
 - Migrations, seeders,...
+
 - Sanitización a nivel de urls, FILTER_SANITIZE_URL
 
 https://www.w3schools.com/php/php_filter.asp

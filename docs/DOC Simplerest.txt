@@ -259,10 +259,8 @@ Debe permitir hacer el impersonate como "Guest" con
 POST /v1/auth/impersonate que recibe un refresh_token de un Admin y en el body:
 
 { 
-	"impersonate" : "guest"	
+	"role" : "guest"	
 }
-
-<-- el username "guest" debe estar en una lista negra de nombres de usuarios reservados
 
 Obteniendo algo como
 
@@ -740,6 +738,32 @@ Por último tenemos los campos ocultos:
 
 	protected $hidden   = [	'password' ];
 
+
+# Event hooks 
+
+Se definen varios event hooks sobre el modelo que se disparan ante una operación CRUD
+
+onCreating() antes de que se cree un registro
+onCreated($last_inserted_id) luego de que se cree un registro
+
+onUpdating() antes de que se actualice
+onUpdated($count) después de que se actualiza 
+
+onDeleting($soft_delete) antes del borrado
+onDeleted($count) después del borrado
+
+etc.
+
+Un uso práctico de estos eventos es para des-confirmar un email cuando se ha cambiado. En este caso se hace uso de la función isDirty() que acepta como parámetro el campo que necesitamos saber si ha cambiado.
+
+	function onUpdating() {
+		if ($this->isDirty('email')) {
+			$this->update(['confirmed_email' => 0]);
+		}	
+	}
+
+
+PD: Laravel también incluye los eventos onRestoring() y onRestored() para cuando existe un soft-delete
 
 ### Validaciones
 
