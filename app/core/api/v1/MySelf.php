@@ -45,6 +45,8 @@ class MySelf extends Controller
 
         $this->auth_payload = $auth_object->check();
 
+        //var_dump($this->auth_payload);
+
         if (!empty($this->auth_payload)){
             $this->uid = $this->auth_payload->uid; 
             //Debug::dd($this->uid, 'UID:');
@@ -92,7 +94,7 @@ class MySelf extends Controller
         //var_export($this->callable);
 
         if (empty($this->callable))
-            Factory::response()->sendError('You are not authorized',403);
+            Factory::response()->sendError('You are not authorized ~',403);
 
         $this->callable = array_merge($this->callable,['head','options']);
 

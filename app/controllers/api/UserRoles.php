@@ -8,7 +8,6 @@ class UserRoles extends MyApiController
 {     
     protected $scope = [
         'guest'      => [], 
-        'registered' => ['list'],
         'basic'      => ['list'],
         'regular'    => ['list']
     ];

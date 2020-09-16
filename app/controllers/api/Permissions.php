@@ -13,7 +13,6 @@ class Permissions extends MyApiController
 { 
     protected $scope = [
         'guest'      => [], 
-        'registered' => [],
         'basic'      => [],
         'regular'    => ['read', 'list']
     ];

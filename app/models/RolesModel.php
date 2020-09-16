@@ -38,7 +38,7 @@ class RolesModel {
 			return false;
 		}elseif ($role_name == 'admin'){
 			return true;
-		}elseif ($role_name == 'guest' || $role_name == 'registered'){
+		}elseif ($role_name == 'guest'){
 			return false;
 		}			
 

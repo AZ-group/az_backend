@@ -1,5 +1,9 @@
 # TODO
 
+- confirmed_email definitivamente *no* debería ir en los tokens....... sino al pasar a 1 debería disparar un evento (trigger?) que coloque la cuenta como activa (active = 1) 
+
+=> active debería leerse de la DB al loguearse y renovar e ir dentro del access token
+
 - [ Bug ]  [ Seguridad ] NO debería poder crear una colección de registros que no me pertenecen sino soy Admin o tengo los permisos correspondientes !!!
 
 - No deberían poder crearse dos colecciones iguales (mismos registros, misma tabla)
@@ -10,15 +14,13 @@ Pasa lo mismo con los archivos ya que el DownloadController solo deja descargar 
 
 => depredicar guest_access !!!!
 
-- confirmed_email definitivamente *no* debería ir en los tokens....... sino al pasar a 1 debería disparar un evento (trigger?) que coloque la cuenta como activa (active = 1) 
-
 - En app/libs/Factory.php está mal que en check() se haga referencia a una versión concreta de AuthController ya que está dentro de una librería que no está versionada.
 
 - Generar Modelos, Controladores y APIs via comando (sin sobre-escribir existente excepto que se especifique y posiblemente se confimre) basado en plantillas. ***
 
 - Dejar tablas de prueba con nombres como foo y bar.
 
-- Generar algún tipo de alerta / warning si en producción el access token estuviera configurado para durar más de 15 minutos. El generar tokens con vencimiento alto sería un improblema enorme que obligaría a lidiar con una lista negra.
+- Generar algún tipo de alerta / warning si en producción el access token estuviera configurado para durar más de 15 minutos. El generar tokens con vencimiento alto sería un improblema enorme que obligaría a lidiar con unalista negra.
 
 - Soft-delete para archivos?
 
@@ -362,7 +364,7 @@ a nivel de API
 
 protected $hidden = [
                       'password',
-                      'active' => ['guest', 'registered', 'basic'] 
+                      'active' => ['guest', 'basic'] 
 ]
 
 - Restricción de valores 

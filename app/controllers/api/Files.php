@@ -16,7 +16,6 @@ class Files extends MyApiController
 
     protected $scope = [
         'guest'      => ['read'],  
-        'registered' => ['read'],
         'basic'      => ['read', 'write'],
         'regular'    => ['read', 'write']
     ];

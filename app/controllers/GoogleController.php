@@ -131,7 +131,7 @@ class GoogleController extends Controller
             if (count($rows) == 1){
                 // Email already exists
                 $uid = $rows[0]['id'];
-
+                
                 $ur = (new UserRolesModel($conn))->setFetchMode('ASSOC');
                 $rows = $ur->where(['belongs_to', $uid])->get(['role_id']);
 
@@ -150,8 +150,11 @@ class GoogleController extends Controller
                     $tb = $p['tb'];
                     $perms[$tb] = $p['l'] * 16 + $p['c'] * 8 + $p['r'] * 4 + $p['u'] * 2 + $p['d'];
                 }
+                
+                $active = $rows[0]['active'];
 
-            }else{
+            } else {
+
                 $data['email'] = $payload['email'];
                 $data['firstname'] = $payload['given_name'] ?? NULL;
                 $data['lastname'] = $payload['family_name'] ?? NULL;
@@ -186,6 +189,7 @@ class GoogleController extends Controller
                     ->update(['belongs_to' => $uid]);
                 }
 
+                /*
                 if (!empty($this->config['registration_role'])){
                     $role = $this->config['registration_role'];
 
@@ -210,20 +214,23 @@ class GoogleController extends Controller
                 } else {
                     $roles = [];
                 }   
+                */
+                
+                $active = $this->config['pre_activated'] ? true : null;
             }  
             
+            $roles = []; //
             $perms = [];
 
             $access  = $this->gen_jwt([
                                         'uid' => $uid, 
-                                        'confirmed_email' => 1,
                                         'roles' => $roles,
-                                        'permissions' => $perms
+                                        'permissions' => $perms,
+                                        'active' => $active
             ], 'access_token');
 
             $refresh = $this->gen_jwt([
-                            'uid' => $uid, 
-                            'confirmed_email' => 1,
+                            'uid' => $uid
             ], 'refresh_token');
 
             // podría incluir google_auth' => $auth en el access_token

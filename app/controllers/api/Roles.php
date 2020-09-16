@@ -10,7 +10,6 @@ class Roles extends MyApiController
 {
     protected $scope = [
         'guest'      => [], 
-        'registered' => ['read'],
         'basic'      => ['read'],
         'regular'    => ['read']
     ];

@@ -116,6 +116,9 @@ class FacebookController extends Controller
                         $tb = $p['tb'];
                         $perms[$tb] = $p['l'] * 16 +  $p['c'] * 8 + $p['r'] * 4 + $p['u'] * 2 + $p['d'];
                     }
+
+                    $active = $rows[0]['active'];
+
                 }else{
                     $data['email'] = $email;
                     $data['firstname'] = $firstname ?? NULL;
@@ -143,7 +146,6 @@ class FacebookController extends Controller
                     $data['username'] = $username;
                     ///
                 
-                    // Debo hacer Transacción aquí:
                     $uid = $u->create($data);
                     if (empty($uid))
                         throw new Exception('Error in user registration!');
@@ -154,8 +156,8 @@ class FacebookController extends Controller
                         ->update(['belongs_to' => $uid]);
                     }
 
+                    /*
                     $r = new RolesModel();
-                    
                     
                     if (!empty($this->config['registration_role'])){
                         $role = $this->config['registration_role'];
@@ -181,15 +183,20 @@ class FacebookController extends Controller
 
                     } else {
                         $roles = [];
-                    }    
+                    }  
+                    */
 
-                    $perms = [];
+                    $active = $this->config['pre_activated'] ? true : null;                    
                 }  
+
+                $roles = []; //
+                $perms = [];
     
                 $access  = $this->gen_jwt([
                                             'uid' => $uid, 
                                             'roles' => $roles,
-                                            'permissions' => $perms
+                                            'permissions' => $perms,
+                                            'active' => $active
                 ], 'access_token');
 
                 $refresh = $this->gen_jwt([
@@ -211,7 +218,7 @@ class FacebookController extends Controller
                 ];
             }catch(\Exception $e){
                 DB::rollback();
-                
+
                 return ['error' => $e->getMessage(), 'code' => 500];
             }	
 

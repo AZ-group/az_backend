@@ -91,6 +91,21 @@ Y se devuelve un JSON como este:
     "error_detail": ""
 }
 
+Es posible solicitar un rol (comprador o vendedor por ejemplo) al momento del registro. Es requisito tener definidos los roles como pre-aprobados en config/config.php
+
+Ej:
+	'auto_approval_roles' => ['vendedor'],
+
+Entonces al momento de hacer el registro se puede especificar el o los roles que se desean obtener:
+
+{
+		"username": "super_ventas",
+		"email": "b2@mail.com",
+		"password": "gogogo",
+        "roles": ["vendedor"]
+}
+
+
 # Login 
 
 	POST /v1/auth/login
@@ -183,7 +198,6 @@ Se devolverá un nuevo acccess token en un JSON como este:
         "token_type": "bearer",
         "expires_in": 900,
         "roles": [
-            "registered"
         ],
         "uid": "352"
     },
@@ -272,6 +286,36 @@ Obteniendo algo como
 
 Nota: se puede hacer un Impersonate con el refresh_token de otro Impersonate.
 
+
+# Confirmación de correo
+
+Al momento de registrarse exitosamente en el JSON de la respuesta se incluye
+
+	"email_confirmation_link": "http://az.lan/api/v1/auth/confirm_email/eyJ0eXA...KDFsI/1600830742"
+
+Y siguiendo ese enlace el correo de la cuenta queda verificado.
+
+
+# Recuérdame
+
+POST /api/v1/auth/rememberme con el body
+
+	{
+		"email": "algun_usuario@mail.com"
+	}
+
+Debe generar un enlace para cambiar el enlace por GET y en "modo desarrollador" produciría una respuesta como esta: 
+
+	{
+		"data": {
+			"link_sent": "http://az.lan/api/v1/auth/change_pass_by_link/eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImlhdCI6MTYwMDIyNjQxMCwiZXhwIjoxNjAwODMxMjEwLCJpcCI6IjEyNy4wLjAuMSIsInJvbGVzIjpbInJlZ3VsYXIiXSwicGVybWlzc2lvbnMiOnsicHJvZHVjdHMiOjcsImZvbyI6N30sInVpZCI6IjE2OCIsImFjdGl2ZSI6IjEifQ.Z2HsyPGfGflCG1vOq5hwKqd50QOEgLZO5flixz4hMTU/1600831210"
+		},
+		"status_code": 200,
+		"error": "",
+		"error_detail": ""
+	}
+
+<-- en producción no tiene chiste que se lea el enlace a seguir !	
 
 # Versionado
 
@@ -967,19 +1011,11 @@ Roles adicionales o permisos restrictivos no afectan en nada a un admin (sus alc
 
 ### Roles virtuales
 
-El sistema tiene 2 roles que son virtuales: "guest" y "registered".
+El sistema tiene un rol virtual que es "guest" para el caso de un usuario que no ha presentado credenciales (autenticación).
 
-El rol "guest" se obtiene al hacer request a un endpoint sin haber presentado antes credenciales (autenticarse).
-
-Por otro lado, todo usuario registrado goza del rol "registered" aunque no se le hayan asignado roles. Se lo puede ver como el padre de todos de todos los roles, excepto de "guest".
-
-Cabe notar que los roles virtuales NO son vistos en el endpoint para roles de usuario /api/v1/userRoles y por tanto un usuario invitado o registrado sin roles no mostrará roles.
+Este role virtual no aparece reflejado en /api/v1/userRoles 
 
 Respecto del acceso a "folders", un "guest" o invitado no puede en principio visualizar registros que no pertenezcan a folders con permiso de lectura para "otros" especificando que sea también para guests.
-
-Si se necesitara que los invitados pudieran visualizar registros no-privados (sin folders asignados) creados por cualquier usuario se puede lograr seteando en el ApiController: 
-
-    static protected $guest_access = true;
 
 
 ### Permisos individuales
@@ -1623,8 +1659,7 @@ GET /api/v1/files?file_ext=jpg
 
 Borrar un archivo 
 
-DEL /api/v1/files/241
-
+	DEL /api/v1/files/241
 
 
 # NGINX web server
