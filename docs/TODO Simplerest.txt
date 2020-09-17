@@ -38,7 +38,7 @@ Pasa lo mismo con los archivos ya que el DownloadController solo deja descargar 
 
 - Dejar tablas de prueba con nombres como foo y bar.
 
-- Generar algún tipo de alerta / warning si en producción el access token estuviera configurado para durar más de 1500 minutos  (poco más de un día). El generar tokens con vencimiento alto sería un improblema enorme que obligaría a lidiar con unalista negra.
+- Generar algún tipo de alerta / warning si en producción el access token estuviera configurado para durar más de 1500 minutos  (poco más de un día). El generar tokens con vencimiento alto sería un problema enorme que obligaría a lidiar con unalista negra.
 
 - Generar una alerta si aumenta el número de usuarios con el rol de "admin". 
 
@@ -390,10 +390,6 @@ protected $constraint = [
 Justificación: un caso de uso sería que un usuario con rol de gerente por ejemplo otorgar roles a usuarios pero nunca pueda ser un rol igual o superior al de gerente. La solución es restringir los valores que puede tomar el rol_id  
 
 - No tiene sentido que un usuario pueda registrarse sin correo *excepto* venga de Facebook en cuyo caso me guardo el fb_id
-
-- Eventos: 
- 
-  * al verificar el correo poder por ejemplo agregar el rol usuario 'regular'
 
 - Arreglar lo que pasa si un usuario es borrado con soft delete (warnings)
 

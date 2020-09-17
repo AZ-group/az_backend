@@ -46,7 +46,7 @@ class UsersModel extends Model
 	function onUpdating() {
 		if ($this->isDirty('email')) {
 			$this->update(['confirmed_email' => 0]);
-		}	
+		}
 	}
 	
 }

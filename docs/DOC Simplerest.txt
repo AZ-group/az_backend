@@ -10,9 +10,14 @@ Algunas características:
 - Login por usuario / email y contraseña
 - Login con Facebook
 - Login con Google
+- Impersonate
 - Sistema de roles 
 - Sistema de permisos personalizados que decoran los roles
 - Papelera de reciclaje
+- Colecciones para acciones masivas
+- Versionado
+- Internacionalización
+
 
 # Estructura del proyecto
 
@@ -762,6 +767,7 @@ Un uso práctico de estos eventos es para des-confirmar un email cuando se ha ca
 		}	
 	}
 
+La función isDirty() acepta un campo o un array de campos o incluso puede estar vacia en cuyo caso verifica si algún campo sería cambiado.
 
 PD: Laravel también incluye los eventos onRestoring() y onRestored() para cuando existe un soft-delete
 

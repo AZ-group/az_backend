@@ -1317,12 +1317,6 @@ class Model {
 	 */
 	function update(array $data, $set_updated_at = true)
 	{
-		$this->data = $data;
-		$this->onUpdating($data);
-
-		//var_dump($this->w_vars);
-		//var_dump($this->w_vals);
-
 		if ($this->conn == null)
 			throw new SqlException('No conection');
 			
@@ -1350,6 +1344,9 @@ class Model {
 				throw new InvalidValidationException(json_encode($validado));
 			} 
 		}
+	
+		$this->data = $data;
+		$this->onUpdating($data);
 		
 		$set = '';
 		foreach($vars as $ix => $var){
@@ -1574,20 +1571,39 @@ class Model {
 		 https://stackoverflow.com/questions/48793257/laravel-check-with-observer-if-column-was-changed-on-update/48793801
 	*/	 
 
-	function isDirty($field) 
+	function isDirty($fields = null) 
 	{
-		if (in_array($field, array_keys($this->data)))
-		{
-			$this->conn = \simplerest\libs\DB::getConnection();
+		if ($fields == null){
+			$fields = $this->properties;
+		}
 
-			$old_val = $this->first([$field], true)[$field];
-			$new_val = $this->data[$field];			
+		if (!is_array($fields)){
+			$fields = [$fields];
+		}
 
-			return $new_val != $old_val;
+		// to be updated
+		$keys = array_keys($this->data);
+
+		if (!$this->inSchema($fields)){
+			throw new \Exception("A field was not found in table {$this->table_name}");
+		}
+		
+		$old_vals = $this->first($fields);
+		foreach ($fields as $field){	
+			if (!in_array($field, $keys)){
+				continue;
+			}
+
+			$new_val = $this->data[$field];
+			
+			if ($new_val != $old_vals[$field]){
+				return true;
+			}	
 		}
 
 		return false;
 	}
+
 
 	/*
 		Even hooks -podrían estar definidos en clase abstracta o interfaz-
