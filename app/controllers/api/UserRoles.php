@@ -7,7 +7,7 @@ use simplerest\controllers\MyApiController;
 class UserRoles extends MyApiController
 {     
     protected $scope = [
-        'guest'      => [], 
+        'guest'      => ['list'], 
         'basic'      => ['list'],
         'regular'    => ['list']
     ];

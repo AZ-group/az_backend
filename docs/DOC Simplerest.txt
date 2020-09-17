@@ -212,18 +212,20 @@ Se devolverá un nuevo acccess token en un JSON como este:
 
 # Impersonate
 
+Es posible asumir la identidad de otro usuario o bien un rol en particular -solo uno a la vez-
+
 POST /v1/auth/impersonate que recibe un refresh_token de un Admin y en el body:
 
 	{ 
-		"impersonate" : "90"  
+		"uid" : "90"  
 	}
 
 Lo cual genera el par access y refresh token como Admin donde dentro un campo "impersonated_by" con el id del admin, ej:
 
 {
     "data": {
-        "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImlhdCI6MTU5OTY5MjQxOSwiZXhwIjoxNjg5NjkyNDE5LCJpcCI6IjEyNy4wLjAuMSIsInVpZCI6IjkwIiwicm9sZXMiOlsicmVndWxhciJdLCJjb25maXJtZWRfZW1haWwiOiIxIiwicGVybWlzc2lvbnMiOnsiZm9vIjo1fSwiaW1wZXJzb25hdGVkX2J5Ijo0fQ.fUuK5P-0BAFCRuXGIx4RHcP-0bbjvAHOEFLySuHUUsk",
-        "refresh_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImlhdCI6MTU5OTY5MjQxOSwiZXhwIjoxOTE1MDUyNDE5LCJpcCI6IjEyNy4wLjAuMSIsInVpZCI6IjkwIiwicm9sZXMiOlsicmVndWxhciJdLCJjb25maXJtZWRfZW1haWwiOiIxIiwicGVybWlzc2lvbnMiOnsiZm9vIjo1fSwiaW1wZXJzb25hdGVkX2J5Ijo0fQ.6IEs1wv6PbeLOoPnD8HtzOt77Gy7IHxuHkI3D0lh3sY",
+        "access_token": "eyJ0...",
+        "refresh_token": "eyJ0....",
         "token_type": "bearer",
         "expires_in": 90000000,
         "roles": [
@@ -235,6 +237,16 @@ Lo cual genera el par access y refresh token como Admin donde dentro un campo "i
     "error": "",
     "error_detail": ""
 }
+
+O bien con un rol que inclusive puede ser "guest"
+
+	POST /v1/auth/impersonate que recibe un refresh_token de un Admin y en el body:
+
+	{ 
+		"role": "basic"	
+	}
+
+No tiene sentido enviar un rol y un uid en el mismo request y el resultado puede no ser el esperado.
 
 Para parar la "impersonalización",...
 
@@ -768,6 +780,7 @@ Un uso práctico de estos eventos es para des-confirmar un email cuando se ha ca
 	}
 
 La función isDirty() acepta un campo o un array de campos o incluso puede estar vacia en cuyo caso verifica si algún campo sería cambiado.
+
 
 PD: Laravel también incluye los eventos onRestoring() y onRestored() para cuando existe un soft-delete
 

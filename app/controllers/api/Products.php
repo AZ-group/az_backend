@@ -13,7 +13,7 @@ class Products extends MyApiController
     function __construct()
     {       
         $this->scope['guest']      = ['read', 'list'];
-        $this->scope['basic'] = ['read', 'write', 'list'];
+        $this->scope['basic'] = ['write', 'list'];
         $this->scope['regular'] = ['read', 'write', 'list'];
 
         parent::__construct();

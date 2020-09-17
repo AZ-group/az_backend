@@ -209,7 +209,11 @@ class AuthController extends Controller implements IAuth
         if ($data == null)
             return;
             
-        $impersonate = $data->impersonate ?? null;
+        if (!isset($data->uid) && !isset($data->role))
+            Factory::response()->sendError('Bad request', 400, 'Nothing to impersonate');
+
+        $impersonate_user = $data->uid ?? null;
+        $impersonate_role = $data->role ?? null;
 
         $request = Factory::request();
 
@@ -239,15 +243,23 @@ class AuthController extends Controller implements IAuth
             if (!in_array("admin",$roles) && !(isset($payload->impersonated_by) && !empty($payload->impersonated_by)) ){
                 Factory::response()->sendError('Unauthorized!',401, 'Impersonate requires you are admin');
             }    
+            
+            if (!empty($impersonate_role)){
+                if ($impersonate_role == 'guest'){
+                    $uid = -1;
+                    $roles = ['guest'];
+                    $perms = [];
+                    $active = null;
+                } else {
+                    $uid = $payload->uid; // sigo siendo yo (el admin)
+                    $roles = [$impersonate_role]; 
+                    $perms = []; // permisos inalterados (rol puro)
+                    $active = 1; // asumo está activo
+                }    
+            }
 
-            if ($impersonate == 'guest'){
-                $uid = -1;
-                $roles = ['guest'];
-                $perms = [];
-                $active = null;
-
-            } else {    
-                $uid = $impersonate;
+            if (!empty($impersonate_user)){ 
+                $uid = $impersonate_user;
 
                 $row = DB::table('users')
                 ->where([ 'id' =>  $uid ] ) 
@@ -344,7 +356,8 @@ class AuthController extends Controller implements IAuth
             
             $access  = $this->gen_jwt([ 'uid' => $uid, 
                                         'roles' => $roles, 
-                                        'permissions' => []
+                                        'permissions' => [],
+                                        'active' => 1
             ], 'access_token');
 
             $refresh = $this->gen_jwt([ 'uid' => $uid,
@@ -604,10 +617,6 @@ class AuthController extends Controller implements IAuth
                 if (empty($payload))
                     Factory::response()->sendError('Unauthorized!',401);  
 
-                if (!isset($payload->active)){
-                    Factory::response()->sendError('Unauthorized', 401, 'Lacks active status');
-                }
-
                 if ($payload->active === false) {
                     Factory::response()->sendError('Non authorized', 403, 'Deactivated account');
                 } 
@@ -616,20 +625,27 @@ class AuthController extends Controller implements IAuth
                 //    Factory::response()->sendError('Non authorized', 403, 'Account pending for activation');
                 //}           
 
-                if (empty($payload->ip))
+                if (!isset($payload->ip) || empty($payload->ip))
                     Factory::response()->sendError('Unauthorized',401,'Lacks IP in web token');
 
                 if ($payload->ip != $_SERVER['REMOTE_ADDR'])
                     Factory::response()->sendError('Unauthorized!',401, 'IP change'); 
 
-                if (empty($payload->uid))
+                if (!isset($payload->uid) || empty($payload->uid))
                     Factory::response()->sendError('Unauthorized',401,'Lacks id in web token');  
+
+                //var_dump($payload->uid);
+                //exit;    
+
+                if (!isset($payload->active) && $payload->uid != -1){
+                    Factory::response()->sendError('Unauthorized', 401, 'Lacks active status');
+                }    
                                                   
                 if ($payload->exp < time())
                     Factory::response()->sendError('Token expired',401);
 
-                //print_r($payload);
-                //exit; ///
+                //print_r($payload->roles);
+                //exit; 
 
                 return ($payload);
 

@@ -26,6 +26,7 @@ abstract class ApiController extends ResourceController
 
     protected $scope;
     protected $is_listable;
+    protected $is_readable;
     protected $callable = [];
     protected $config;
     protected $impersonated_by;
@@ -79,7 +80,8 @@ abstract class ApiController extends ResourceController
                 $delete = ($perms & 1) AND 1;
         
                 $this->is_listable = (bool) $list;
-            
+                $this->is_readable = (bool) $read;
+
 
                 // individual permissions *replaces* role permissions
 
@@ -104,6 +106,10 @@ abstract class ApiController extends ResourceController
 
                         if (in_array('list', $cruds)){
                             $this->is_listable = true;
+                        }
+
+                        if (in_array('read', $cruds)){
+                            $this->is_readable = true;
                         }
         
                         if (!empty($this->scope[$role])){
@@ -265,12 +271,17 @@ abstract class ApiController extends ResourceController
         if (!$this->is_admin && $id == null && !$this->is_listable)
             Factory::response()->sendError('Unauthorized', 401, "You are not allowed to list");    
 
+        if (!$this->is_admin && $id != null && !$this->is_readable)
+            Factory::response()->sendError('Unauthorized', 401, "You are not allowed to retrieve");    
+
         $_get    = Factory::request()->getQuery();    
         $folder  = Arrays::shift($_get,'folder');
 
         // Si el rol no le permite a un usuario ver un recurso aunque se le comparta un folder tampoco podrá listarlo
         if (!$this->is_admin && $folder != null && !$this->is_listable)
             Factory::response()->sendError('You are not authorized', 403, 'You are not allowed to list');      
+
+        //var_dump($this->is_readable);
 
         try {            
 
