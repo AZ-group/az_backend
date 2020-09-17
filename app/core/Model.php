@@ -1559,7 +1559,7 @@ class Model {
 			$last_inserted_id = false;
 
 		$this->onCreated($last_inserted_id);	
-		return $ret;	
+		return $last_inserted_id;	
 	}
 	
 	/*

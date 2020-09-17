@@ -639,11 +639,7 @@ class AuthController extends Controller implements IAuth
                 
                 if (empty($payload))
                     Factory::response()->sendError('Unauthorized!',401);  
-
-                if ($payload->active === false) {
-                    Factory::response()->sendError('Non authorized', 403, 'Deactivated account');
-                } 
-                
+ 
                 //if ($payload->active === null) {
                 //    Factory::response()->sendError('Non authorized', 403, 'Account pending for activation');
                 //}           
@@ -663,6 +659,10 @@ class AuthController extends Controller implements IAuth
                 if (!isset($payload->active) && $payload->uid != -1){
                     Factory::response()->sendError('Unauthorized', 401, 'Lacks active status');
                 }    
+
+                if ($payload->active === false) {
+                    Factory::response()->sendError('Non authorized', 403, 'Deactivated account');
+                } 
                                                   
                 if ($payload->exp < time())
                     Factory::response()->sendError('Token expired',401);

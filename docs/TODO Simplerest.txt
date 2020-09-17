@@ -34,6 +34,8 @@ Pasa lo mismo con los archivos ya que el DownloadController solo deja descargar 
 
 - Soft-delete para archivos?
 
+- Testear de nuevo los permisos que decoran los roles ! 
+
 - Cambios en las tablas del ACL:
 
   - La tabla permissions debería llamarse resource_permissions

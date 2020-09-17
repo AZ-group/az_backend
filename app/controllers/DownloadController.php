@@ -10,8 +10,8 @@ use simplerest\models\RolesModel;
 
 class DownloadController extends ResourceController
 {
+    // caso puntual donde lo conservo:
     static protected $guest_access = true;
-    static protected $owned = true;
 
     function __construct()
     {
@@ -36,21 +36,13 @@ class DownloadController extends ResourceController
         $_get = [];    
         
         if (!$this->is_admin){
-            if ($this->isGuest()){
-                if (static::$guest_access){
-                    $instance = DB::table('files');
-                    
-                    if ($instance->inSchema(['guest_access'])){
-                        $_get[] = ['guest_access', 1];
-                    } else {
-                        // pasa
-                    }
-                } else {
-                    // 403
-                    Factory::response()->sendError("Unauthorized", 403, "Guests are not authorized to access this resource");
-                }                            
-            } else if (!static::$owned) {
-                // pasa
+            if ($this->isGuest()){                
+                $instance = DB::table('files');
+                
+                if ($instance->inSchema(['guest_access'])){
+                    $_get[] = ['guest_access', 1];
+                }
+                                         
             } else {
                 $_get[] = ['belongs_to', $this->uid];
             }

@@ -7,13 +7,11 @@ use simplerest\controllers\MyApiController;
 class Products extends MyApiController
 { 
     static protected $folder_field = 'workspace';
-    //static protected $owned = false;
-    static protected $guest_access = true;
 
     function __construct()
     {       
-        $this->scope['guest']      = ['read', 'list'];
-        $this->scope['basic'] = ['write', 'list'];
+        $this->scope['guest'] = ['read'];
+        $this->scope['basic'] = ['read', 'list', 'write'];
         $this->scope['regular'] = ['read', 'write', 'list'];
 
         parent::__construct();

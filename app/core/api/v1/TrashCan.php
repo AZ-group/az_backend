@@ -16,7 +16,7 @@ class TrashCan extends MyApiController
 {   
     function __construct()
     {
-        $this->scope['guest'] = [];   
+        $this->scope['guest'] = [];  
         parent::__construct();
     }
 
@@ -44,13 +44,18 @@ class TrashCan extends MyApiController
             if (!class_exists($model))
                 Factory::response()->sendError("Entity $entity does not exists", 400);
 
+
             $conn = DB::getConnection();
             $instance = (new $model($conn))->setFetchMode('ASSOC'); 
-            
-            if (!$instance->inSchema(['deleted_at']))
-                Factory::response()->sendError('Not implemented', 501, "Trashcan not implemented for $entity");
+                
+            if (!$instance->inSchema(['belongs_to'])){
+                Factory::response()->sendError('Not implemented', 501, "Trashcan not implemented for $entity. Reason: lacks belongs_to in the table.");
+            }    
 
-            $owned = $api_ctrl::get_owned() && $instance->inSchema(['belongs_to']);
+            if (!$instance->inSchema(['deleted_at'])){
+                Factory::response()->sendError('Not implemented', 501, "Trashcan not implemented for $entity.  Reason: lacks belongs_to in the table.");
+            }    
+           
             ////////////////////////////////////////////////////
             
             $fields  = Arrays::shift($_get,'fields');
@@ -90,7 +95,7 @@ class TrashCan extends MyApiController
                     ['deleted_at', NULL, 'IS NOT']
                 ];  
 
-                if (!$this->is_admin && $owned){  
+                if (!$this->is_admin) {  
                     $_get[] = ['belongs_to', $this->uid];
                 } 
 
@@ -251,7 +256,7 @@ class TrashCan extends MyApiController
                 if ($this->isGuest()){
                     Factory::response()->send([]);
                 }else
-                    if (!$this->is_admin && $owned)
+                    if (!$this->is_admin)
                         $_get[] = ['belongs_to', $this->uid];        
             
 
@@ -367,7 +372,6 @@ class TrashCan extends MyApiController
         if (!$instance->inSchema(['deleted_at']))
                 Factory::response()->sendError('Not implemented', 501, "Trashcan not implemented for $entity");
 
-        $owned = $api_ctrl::get_owned() && $instance->inSchema(['belongs_to']);
         ////////////////////////////////////////////////////
 
         ///
@@ -395,7 +399,7 @@ class TrashCan extends MyApiController
             }
 
             
-            if (!$this->is_admin && $owned){
+            if (!$this->is_admin){
                 $_get[] = ['belongs_to', $this->uid];
 
                 if ($rows[0]['belongs_to'] != $this->uid)
@@ -506,7 +510,6 @@ class TrashCan extends MyApiController
             if (!$instance->inSchema(['deleted_at']))
                 Factory::response()->sendError('Not implemented', 501, "Trashcan not implemented for $entity");
             
-            $owned = $api_ctrl::get_owned() && $instance->inSchema(['belongs_to']);
             ////////////////////////////////////////////////////
 
             $instance->fill(['deleted_at']); //
@@ -521,7 +524,7 @@ class TrashCan extends MyApiController
                 Factory::response()->code(404)->sendError("Register for id=$id does not exists in trash");
             }
             
-            if (!$this->is_admin && $owned && $rows[0]['belongs_to'] != $this->uid){
+            if (!$this->is_admin && $rows[0]['belongs_to'] != $this->uid){
                 Factory::response()->sendError('Forbidden', 403, 'You are not the owner');
             }         
                         

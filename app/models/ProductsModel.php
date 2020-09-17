@@ -9,8 +9,6 @@ use simplerest\core\Model;
 */
 class ProductsModel extends Model 
 {
-	protected $table_name = "products";
-	protected $id_name = 'id';
 	protected $nullable = ['description', 'size', 'active', 'locked', 'workspace', 'created_at', 'updated_at', 'deleted_at', 'deleted_by' ];
  
 	/*

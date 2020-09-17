@@ -19,8 +19,6 @@ use simplerest\core\exceptions\InvalidValidationException;
 
 abstract class ApiController extends ResourceController
 {
-    static protected $guest_access = false;  
-    static protected $owned = true;
     static protected $folder_field;
     static protected $soft_delete = true;
 
@@ -143,10 +141,6 @@ abstract class ApiController extends ResourceController
         $headers = array_merge($headers, ['Access-Control-Allow-Methods' => implode(',',array_map( function ($e){ return strtoupper($e); },$this->callable )) ]);
         $this->setheaders($headers);            	        
  
-    }
-
-    static function get_owned(){
-        return static::$owned;
     }
     
     /**
@@ -341,7 +335,7 @@ abstract class ApiController extends ResourceController
             //var_export($_get);
             //exit;
                 
-            $owned = static::get_owned() && $instance->inSchema(['belongs_to']);
+            $owned = $instance->inSchema(['belongs_to']);
 
             $_q      = Arrays::shift($_get,'q'); /* search */
             
@@ -389,6 +383,7 @@ abstract class ApiController extends ResourceController
                     Factory::response()->sendError('Folder not found', 404);  
         
                 $folder_access = $this->is_admin || $f_rows[0]['belongs_to'] == $this->uid  || $this->hasPerm($folder, $conn, 'r');   
+
                 if (!$folder_access)
                     Factory::response()->sendError("Forbidden", 403, "You don't have permission for the folder $folder");
             }
@@ -402,33 +397,27 @@ abstract class ApiController extends ResourceController
                 if (empty($folder)){               
                     // root, by id
                     
+                    if (!$this->is_admin && !$this->isGuest()){  
+                        $_get[] = ['belongs_to', $this->uid];                        
+                    } 
+                    
                     if (!$this->is_admin){                      
                         if ($this->isGuest()){
-                            if (static::$guest_access){
-                                if ($instance->inSchema(['guest_access'])){
-                                        $_get[] = ['guest_access', 1];
-                                    } else {
-                                        // pasa
-                                    }
-                                } else {
-                                    // 403
-                                    Factory::response()->sendError("Forbidden", 403, "Guests are not authorized to access this resource");
-                                }                            
-                            } else if (!$owned) {
-                                // pasa
-                            } else {
-                                $_get[] = ['belongs_to', $this->uid];
+                           
+                            if ($instance->inSchema(['guest_access'])){
+                                $_get[] = ['guest_access', 1];
+                            } 
+                                                    
+                        } else {
+                            $_get[] = ['belongs_to', $this->uid];
                         }
-                        
                     }   
+                    
                 }else{
                     // folder, by id
                     if (empty(static::$folder_field))
                         Factory::response()->sendError("Forbidden", 403, "folder_field is undefined");
-                    
-                    if ($this->isGuest() && !$folder_access)
-                        Factory::response()->send([]);    
-                        
+                                           
                     $_get[] = [static::$folder_field, $f_rows[0]['name']];
                     $_get[] = ['belongs_to', $f_rows[0]['belongs_to']];
                 }
@@ -618,22 +607,14 @@ abstract class ApiController extends ResourceController
                 }
                   
                 if (empty($folder)){
-                    // root, sin especificar folder ni id (lista)
-                    if ($this->isGuest()){
-                        if (!static::$guest_access){
-                            Factory::response()->send([]);
-                        }
-                    }else
-                        if (!$this->is_admin && $owned)
-                            $_get[] = ['belongs_to', $this->uid];        
+                    // root, sin especificar folder ni id (lista)   // *             
+                    if (!$this->isGuest() && !$this->is_admin && $owned )
+                        $_get[] = ['belongs_to', $this->uid];        
                 }else{
                     // folder, sin id
                     if (empty(static::$folder_field))
                         Factory::response()->sendError("Forbidden", 403, "'folder_field' is undefined");
                   
-                    if ($this->isGuest() && !$folder_access)
-                        Factory::response()->send([]); 
-
                     $_get[] = [static::$folder_field, $f_rows[0]['name']];
                     $_get[] = ['belongs_to', $f_rows[0]['belongs_to']];
                 }
@@ -892,7 +873,7 @@ abstract class ApiController extends ResourceController
             $instance = new $model();
             $instance->setConn($conn)->setFetchMode('ASSOC');
 
-            $owned = static::get_owned() && $instance->inSchema(['belongs_to']);
+            $owned = $instance->inSchema(['belongs_to']);
 
             // evito que cualquiera pueda cambiar la propiedad de un registro
             if (!$this->is_admin){
@@ -1024,7 +1005,7 @@ abstract class ApiController extends ResourceController
             $instance = (new $model($conn))->setFetchMode('ASSOC');
             $instance->fill(['deleted_at']); //
 
-            $owned = static::get_owned() && $instance->inSchema(['belongs_to']);
+            $owned = $instance->inSchema(['belongs_to']);
 
             $rows = $instance->where(['id', $id])->get();
             

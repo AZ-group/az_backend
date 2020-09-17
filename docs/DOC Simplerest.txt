@@ -246,7 +246,9 @@ O bien con un rol que inclusive puede ser "guest"
 		"role": "basic"	
 	}
 
-No tiene sentido enviar un rol y un uid en el mismo request y el resultado puede no ser el esperado.
+La ventaja de hacer la impersonalización por roles es que no es necesario tener varias cuentas con diferentes roles para hacer pruebas y tampoco es necesario des-loguearse para simular ser un "guest".
+
+Al hacer un impersonate debe elegirse si se hace por uid o por rol. No tiene mucho sentido enviar un rol y un uid en el mismo request y el resultado puede no ser el esperado.
 
 Para parar la "impersonalización",...
 

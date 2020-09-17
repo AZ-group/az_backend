@@ -37,6 +37,7 @@ class MySelf extends Controller
 
         $operations = [ 
             'read'   => ['get'],
+            'list'   => ['get'],
             'create' => ['post'],
             'update' => ['put', 'patch'],
             'delete' => ['delete'],
