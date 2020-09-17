@@ -269,9 +269,9 @@ POST /v1/auth/stopImpersonate con el access_token del admin que está haciendo u
 
 Tanto created_by, updated_by y deleted_by reflejan referencian al Admin pero belongs_to al momento de crear un registro es con el usuario con por el que se hace la sustitución.
 
-El token se puede seguir renovando normalmente.
+El token se puede seguir renovando normalmente pero con ciertas limitaciones: al renovar el token de un impersonate hecho "por rol", el rol se pierde volviendo al rol de admin. Esto ocurre porque los roles no viajan en el payload del refres_token que solo se utiliza para autenticación -y no autorización-.
 
-Debe permitir hacer el impersonate como "Guest" con
+S puede hacer el impersonate al rol de "guest" y en este caso particular se puede seguir renovando el token conservando dicho rol indefinidamente (hasta vencimiento el refres_token)
 
 POST /v1/auth/impersonate que recibe un refresh_token de un Admin y en el body:
 
@@ -283,8 +283,8 @@ Obteniendo algo como
 
 {
     "data": {
-        "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImlhdCI6MTU5OTcwNjgyOSwiZXhwIjoxNjg5NzA2ODI5LCJpcCI6IjEyNy4wLjAuMSIsInVpZCI6LTEsInJvbGVzIjpbImd1ZXN0Il0sImNvbmZpcm1lZF9lbWFpbCI6MCwicGVybWlzc2lvbnMiOltdLCJpbXBlcnNvbmF0ZWRfYnkiOjR9.-yjDS4wiU60V5tnSMi_-fFejNhcPn7kzKuscSeHF9E0",
-        "refresh_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImlhdCI6MTU5OTcwNjgyOSwiZXhwIjoxOTE1MDY2ODI5LCJpcCI6IjEyNy4wLjAuMSIsInVpZCI6LTEsInJvbGVzIjpbImd1ZXN0Il0sImNvbmZpcm1lZF9lbWFpbCI6MCwicGVybWlzc2lvbnMiOltdLCJpbXBlcnNvbmF0ZWRfYnkiOjR9.r27FDx766HmNoPSbyqleMVFwYNSjbS2m1eQwAvle3xA",
+        "access_token": "eyJ0eXAiOiJ..",
+        "refresh_token": "eyJ0eXAi...",
         "token_type": "bearer",
         "expires_in": 90000000,
         "roles": [
@@ -299,7 +299,7 @@ Obteniendo algo como
 
 <-- observar que el único rol es "guest", el uid es -1 y nuevamente queda habilitada la impersonalización.
 
-Nota: se puede hacer un Impersonate con el refresh_token de otro Impersonate.
+Nota: se puede hacer un impersonate con el refresh_token de otro Impersonate.
 
 
 # Confirmación de correo

@@ -407,25 +407,48 @@ class AuthController extends Controller implements IAuth
             if (empty($payload))
                 Factory::response()->sendError('Unauthorized!',401);                     
 
-            if (empty($payload->uid)){
+            if (!isset($payload->uid) || empty($payload->uid)){
                 Factory::response()->sendError('uid is needed',400);
             }
 
             if ($payload->exp < time())
                 Factory::response()->sendError('Token expired, please log in',401);
 
-            $active =  $payload->active ?? false;
-
-            if ($payload->active === false) {
-                Factory::response()->sendError('Non authorized', 403, 'Deactivated account');
-            }
 
             $uid = $payload->uid;
             $impersonated_by = $payload->impersonated_by ?? null;
+            $impersonated_by_role = null;
 
-            $roles = $this->fetchRoles($uid);
-            $permissions = $this->fetchPermissions($uid);
+            if ($impersonated_by) {
+                // guest
+                if ($payload->uid == -1) 
+                {
+                    $active = false;
+                    $roles = ["guest"];
+                    $permissions = [];
+                } else {
+                    $impersonated_by_role = true;
+                }
+            }     
 
+            if (!$impersonated_by || $impersonated_by_role) {
+
+                $row = DB::table('users')->setFetchMode('ASSOC')->where(['id' => $payload->uid])->first();
+
+                if (!$row)
+                    throw new Exception("User not found");
+
+                $active = $row['active'];     
+
+                if ((string) $row['active'] === "0") {
+                    Factory::response()->sendError('Non authorized', 403, 'Deactivated account !');
+                }
+
+                $roles = $this->fetchRoles($uid);
+                $permissions = $this->fetchPermissions($uid);
+            }            
+
+          
             $access  = $this->gen_jwt([ 'uid' => $payload->uid,
                                         'roles' => $roles, 
                                         'permissions' => $permissions, 

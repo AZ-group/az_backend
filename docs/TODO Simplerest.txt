@@ -4,16 +4,6 @@
 
 - Definir DB !!!
 
-- Poder hacer impersonate por roles -por cualquiera- y no solo por uid
-
-  POST /v1/auth/impersonate que recibe un refresh_token de un Admin y en el body:
-
-  { 
-    "role" : "basic"	
-  }
-
-<-- la ventaja es no tener que tener que tener en cuenta a ningún usuario en particular, solo el rol que interesa.
-
 - [ Bug? ] Supuesta inconcistencia al ver registros como "guest" con $guest_access = true ya que se muestran en listado pero luego no dejan accederse individualmente *aunque* parece ser que por diseño se exige que individualmente cada registro tenga guest_access = 1
 
 Pasa lo mismo con los archivos ya que el DownloadController solo deja descargar archivos con guest_access = 1
