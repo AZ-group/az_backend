@@ -7,9 +7,8 @@ use simplerest\controllers\MyApiController;
 class Foo extends MyApiController
 { 
     protected $scope = [
-        'guest'      => [],  
-        'registered' => ['create'],
-        'basic'      => [],
+        'guest'      => ['read', 'list', 'write'],  
+        'basic'      => ['read', 'list', 'write'],
         'regular'    => ['read', 'list', 'write']
     ];
 
