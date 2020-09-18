@@ -251,6 +251,12 @@ class AuthController extends Controller implements IAuth
                     $perms = [];
                     $active = null;
                 } else {
+                    $r = new RolesModel();
+
+                    if ($r->get_role_id($impersonate_role) === NULL){
+                        Factory::response()->sendError("Bad request", 400, "Role $impersonate_role is not valid");
+                    }
+
                     $uid = $payload->uid; // sigo siendo yo (el admin)
                     $roles = [$impersonate_role]; 
                     $perms = []; // permisos inalterados (rol puro)
@@ -281,7 +287,7 @@ class AuthController extends Controller implements IAuth
             }    
 
             $impersonated_by = $payload->impersonated_by ?? $payload->uid;
-            
+
             $access  = $this->gen_jwt(['uid' => $uid, 
                                         'roles' => $roles, 
                                         'permissions' => $perms,

@@ -982,44 +982,6 @@ protected $rules = [
 
 La implementación del ACL incluye "roles" y permisos individuales para cada usuario sobre cada tabla expuesta a través de la API.
 
-Como regla general un usuario puede solo visualizar aquellos registros que ha creado y por tanto le pertenecen pero si se desea que los registros puedan ser leídos o escritos por los demás usuarios registrados (siempre de acuerdo a sus permisos sobre esa tabla de acuerdo a su rol) se puede especificar la propiedad estática $owned = false como sigue:
-
-class Products extends MyApiController
-{ 
-    static protected $owned = false;
-	// ..
-
-Los usuarios no registrados o "invitados" (guest) solo pueden visualizar registros pertenecientes a carpetas compartidas con "otros" especificando acceso para invitados.
-
-Es posible hacer que un invitado visualice todos los registros (que no pertenezcan a carpetas que de por si son privadas excepto se expongan con permisos para grupo y otros) especificando en la api la propiedad estática $guest_access = true
-
-class Products extends MyApiController
-{ 
-    static protected $guest_access = true;
-	// ...
-
-Cabe señalar que es necesario que el rol "guest" tenga acceso de lectura y que $guest_access=true es necesario pero no suficiente.
-
-class Products extends MyApiController
-{ 
-	static protected $guest_access = true;
-
-    function __construct()
-    {       
-        $this->scope['guest']      = ['read'];
-        //..
-        parent::__construct();
-    }
-     
-
-Si se desea que todos los endpoints posean guest_access por ejemplo el lugar adecuado para especificarlo es en ela clase MyApiController
-
-class MyApiController extends ApiController
-{
-    static protected $guest_access = true;
-	// ..
-
-
 ### Permisos
 
 Los permisos sobre los endpoints son en general del tipo CRUD + permiso para listar los recursos: ['read', 'list', 'create', 'update',  'delete']
@@ -1073,7 +1035,9 @@ El sistema tiene un rol virtual que es "guest" para el caso de un usuario que no
 
 Este role virtual no aparece reflejado en /api/v1/userRoles 
 
-Respecto del acceso a "folders", un "guest" o invitado no puede en principio visualizar registros que no pertenezcan a folders con permiso de lectura para "otros" especificando que sea también para guests.
+Respecto del acceso a "folders", un "guest" o invitado no puede en principio visualizar registros que no pertenezcan a folders con permiso de lectura para "otros" especificando que sea también para guests. <-- chequear 
+
+Es posible brindar acceso de lectura a guests a registros individuales de cualquier recurso si en el Modelo existe el campo guest_access y en el registro en particular vale 1 (true)
 
 
 ### Permisos individuales

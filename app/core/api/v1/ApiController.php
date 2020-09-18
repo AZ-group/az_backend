@@ -218,7 +218,7 @@ abstract class ApiController extends ResourceController
     protected function hasPerm(int $folder, object $conn, string $operation)
     {
         if ($operation != 'r' && $operation != 'w')
-            throw new \InvalidArgumentException("Permissions are 'r' or 'w' but not '$operation'");
+            throw new \InvalidArgumentException("Invalid operation '$operation'. It should be 'r' or 'w'.");
 
         $o = (new FolderOtherPermissionsModel($conn))->setFetchMode('ASSOC');
 
@@ -262,20 +262,20 @@ abstract class ApiController extends ResourceController
     function get($id = null) {
         global $api_version;
 
-        if (!$this->is_admin && $id == null && !$this->is_listable)
-            Factory::response()->sendError('Unauthorized', 403, "You are not allowed to list");    
-
-        if (!$this->is_admin && $id != null && !$this->is_readable)
-            Factory::response()->sendError('Unauthorized', 401, "You are not allowed to retrieve");    
-
         $_get    = Factory::request()->getQuery();    
         $folder  = Arrays::shift($_get,'folder');
 
         // Si el rol no le permite a un usuario ver un recurso aunque se le comparta un folder tampoco podrá listarlo
-        if (!$this->is_admin && $folder != null && !$this->is_listable)
-            Factory::response()->sendError('Unauthorized', 403, 'You are not allowed to list');      
 
-        //var_dump($this->is_readable);
+        if (!$this->is_admin) {
+
+            if ($id == null && !$this->is_listable)
+                Factory::response()->sendError('Unauthorized', 403, "You are not allowed to list");    
+
+            if ($id != null && !$this->is_readable)
+                Factory::response()->sendError('Unauthorized', 401, "You are not allowed to retrieve");  
+
+        }
 
         try {            
 
@@ -395,23 +395,21 @@ abstract class ApiController extends ResourceController
                 ];  
 
                 if (empty($folder)){               
-                    // root, by id
-                    
-                    if (!$this->is_admin && !$this->isGuest()){  
-                        $_get[] = ['belongs_to', $this->uid];                        
-                    } 
-                    
-                    if (!$this->is_admin){                      
-                        if ($this->isGuest()){
-                           
-                            if ($instance->inSchema(['guest_access'])){
-                                $_get[] = ['guest_access', 1];
-                            } 
-                                                    
-                        } else {
+                    // root, by id          
+                         
+                    if ($this->isGuest()){
+                        
+                        if ($instance->inSchema(['guest_access'])){
+                            $_get[] = ['guest_access', 1];
+                        } elseif (!empty(static::$folder_field)) {
+                            $_get[] = [static::$folder_field, NULL, 'IS'];
+                        } 
+                                                
+                    } else {
+                        if (!$this->isAdmin())
                             $_get[] = ['belongs_to', $this->uid];
-                        }
-                    }   
+                    }
+                       
                     
                 }else{
                     // folder, by id

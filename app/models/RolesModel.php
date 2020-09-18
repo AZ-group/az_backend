@@ -47,7 +47,7 @@ class RolesModel {
 				return $r['is_admin'];
 		}
 
-		throw new \Exception("Role is not in model");
+		throw new \Exception("Role '$role_name' is not a valid role");
 	}
 	
 	function getRoleName($role_id){

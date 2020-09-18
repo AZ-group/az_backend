@@ -1,14 +1,26 @@
 # TODO
 
-- Deseos y promesas
-
 - Definir DB !!!
 
-- [ Bug? ] Supuesta inconcistencia al ver registros como "guest" con $guest_access = true ya que se muestran en listado pero luego no dejan accederse individualmente *aunque* parece ser que por diseño se exige que individualmente cada registro tenga guest_access = 1
+-  [ Incoherente ] Un vendedor no podría ver los productos listados por otro vendedor si estuviera logueado siendo que un guest podría verlo. Esto es porque actualmente no hay herencia de roles pero todos los roles deberían heredar de guest (tener más permisos)
 
-Pasa lo mismo con los archivos ya que el DownloadController solo deja descargar archivos con guest_access = 1
+guest
+registered
+A
+B
+...
+admin
 
-=> depredicar guest_access !!!!
+Herencia posible:
+
+guest <-- registered
+registered <-- A
+registered <-- B
+...
+
+
+Otra posibilidad sería que cada vendedor cree un sus publicaciones en un folder con permiso de lectura para guest o que directamente se especifique que cada registro posee un guest_access
+
 
 - Generar Modelos, Controladores y APIs via comando (sin sobre-escribir existente excepto que se especifique y posiblemente se confimre) basado en plantillas. ***
 
