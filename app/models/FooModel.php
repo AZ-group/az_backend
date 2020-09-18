@@ -11,6 +11,7 @@ class FooModel extends Model
 	protected $schema = [
 		'id' => 'INT',
 		'bar' => 'STR',
+		'hide' => 'INT',
 		'deleted_at' => 'STR'
 	];
 
@@ -20,6 +21,10 @@ class FooModel extends Model
 
     function __construct($db = NULL){
 		parent::__construct($db);
+	}
+
+	function onReading() {
+		$this->where(['hide' => 0]);
 	}
 
 }

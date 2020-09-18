@@ -7,9 +7,9 @@ use simplerest\controllers\MyApiController;
 class Foo extends MyApiController
 { 
     protected $scope = [
-        'guest'      => ['retrieve', 'list', 'write'],  
-        'basic'      => ['retrieve', 'list', 'write'],
-        'regular'    => ['retrieve', 'list', 'write']
+        'guest'      => ['show', 'list', 'write'],  
+        'basic'      => ['show', 'list', 'write'],
+        'regular'    => ['show', 'list', 'write']
     ];
 
     function __construct()

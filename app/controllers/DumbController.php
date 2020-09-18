@@ -1384,8 +1384,8 @@ class DumbController extends Controller
         ->get();
 
         //Debug::dd(DB::getQueryLog());
-        Debug::dd($m2->getLastPrecompiledQuery());
-        Debug::dd($dos);
+        //Debug::dd($m2->getLastPrecompiledQuery());
+        //Debug::dd($dos);
     }
 
     /*

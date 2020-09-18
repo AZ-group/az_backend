@@ -2,6 +2,33 @@
 
 - Definir DB !!!
 
+- Es posible usar los event hooks de la API como Middlewares
+
+onReding  -> si un campo hidden = 1 entonces devolver 404 (No found)
+
+Ej:
+
+  function onReading() {
+		$this->where(['hide' => 0]);
+	}
+
+- Podrían creerse necesarios los eventos onSoftDeleting ni onSoftDeleted pero en realidad están siendo capturados por los hooks onUpdating y onUpdated respectivamente. La superposición de event hooks para mismos eventos podría provocar efectos no deseados.
+
+- Nuevos hooks:
+
+onFolderAccessing
+onFolderAccessed
+
+- [ Security ] ¿Qué puedo hacer si hay credenciales comprometidas de un usuario?
+
+Se podría invalidar el access token del usuario y lo bueno es que solo es necesario hacerlo durante el tiempo de duración de los acccess tokens. No hay problema con los refresh tokens ya que solo se utilizan para autenticación y no para autorización.
+
+- [ Security ] ¿Qué puedo hacer para invalidar todos los tokens? ¿Es efectivo?
+
+Aún sin implementar invalidación de tokens es posible expulsar a todos los usuarios y obligarlos a loguearse nuevamente cambiando las secret keys. Advertencia: si alguién se hubiera hecho con un access token podría haber cambiado la contraseña y si posee el refresh token puede volver a loguearse sin problemas. Obviamente si los tokens son de un usuario con elevados privilegios puede haber alterado permisos de mínima sobre registros y folders. 
+
+- Arreglar la falta de normalización de los folders.
+
 -  [ Incoherente ] Un vendedor no podría ver los productos listados por otro vendedor si estuviera logueado siendo que un guest podría verlo. Esto es porque actualmente no hay herencia de roles pero todos los roles deberían heredar de guest (tener más permisos)
 
 guest
@@ -52,6 +79,21 @@ Soluciones:
 - Soft-delete para archivos?
 
 - Testear de nuevo los permisos que decoran los roles ! 
+
+- Modificar sendError() 
+
+Actualmente es así:
+
+  sendError('Unauthorized', 403, 'Please confirm your e-mail');
+
+Y debería ser así:
+
+  sendError('Please confirm your e-mail', 403);  <-- el texto 'Unauthorized' se estandarizaría en base al código de error y solo se agregaria opcionalmente una descripción.
+
+ También sería válido:
+
+  sendError('Please confirm your e-mail') <-- en tal caso el error sería un 500
+
 
 - Cambios en las tablas del ACL:
 
@@ -133,6 +175,14 @@ https://csapi.dev.claroshop.com/app/v1/product?page_size=5
 
 - Middleware podría tener la funcionalidad de envio de enlace para verificación de correo luego de hacer el registro.
 
+- [ ACL ] Posiblemente acnvertir "admin" en "superadmin" y luego "admin" podría ser un rol más con limitaciones
+
+- [ ACL ] Posiblemente agregar dos nuevos permisos (presentes en Salesforce) que se podrían entregar a ciertos roles:
+
+view_all = permiso para que los usuarios -con este permiso- puedan ver todos los registros de una entidad independientemente de las ocpciones de sharing. Es un permiso típico de un admin / superadmin
+
+modify_all = usuarios -con este permiso- pueden leer, editar, borrar y transferir el ownership de un registro independientemente de las ocpciones de sharing
+
 
 - Id opcionalmente no autoincrementales por seguridad !
 
@@ -167,6 +217,8 @@ https://csapi.dev.claroshop.com/app/v1/product?page_size=5
 - Redis con API Rest ?
 
 - Implementar notificaciones push o reverse API.
+
+- Reparar error en OutputMutator() 
 
 - Usar Midlewares para evitar tener que hardcodear la clase Auth
 

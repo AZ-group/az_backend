@@ -32,7 +32,7 @@ abstract class ApiController extends ResourceController
     protected $model_table;
    
 
-    function __construct(array $headers = [], IAuth $auth_object = null) 
+    function __construct(array $headers = []) 
     {        
         parent::__construct();
 
@@ -55,7 +55,7 @@ abstract class ApiController extends ResourceController
         //var_export($perms); exit; ///
 
         $operations = [ 
-            'retrieve'  => ['get'],
+            'show'      => ['get'],
             'list'      => ['get'],
             'read'      => ['get'],
             'create'    => ['post'],
@@ -72,14 +72,14 @@ abstract class ApiController extends ResourceController
         }else{
             if ($perms !== NULL)
             {
-                $list       = ($perms & 16) AND 1;
-                $retrieve   = ($perms & 8 ) AND 1;
-                $create     = ($perms & 4 ) AND 1; 
-                $update     = ($perms & 2 ) AND 1; 
-                $delete     = ($perms & 1 ) AND 1;
+                $list     = ($perms & 16) AND 1;
+                $show     = ($perms & 8 ) AND 1;
+                $create   = ($perms & 4 ) AND 1; 
+                $update   = ($perms & 2 ) AND 1; 
+                $delete   = ($perms & 1 ) AND 1;
         
                 $this->is_listable = (bool) $list;
-                $this->is_retrievable = (bool) $retrieve;
+                $this->is_retrievable = (bool) $show;
 
 
                 // individual permissions *replaces* role permissions
@@ -87,8 +87,8 @@ abstract class ApiController extends ResourceController
                 if ($create)
                     $this->callable = array_merge($this->callable, $operations['create']); 
 
-                if ($retrieve || $list)
-                    $this->callable = array_merge($this->callable, $operations['retrieve']);    
+                if ($show || $list)
+                    $this->callable = array_merge($this->callable, $operations['show']);    
 
                 if ($update)
                     $this->callable = array_merge($this->callable, $operations['update']); 
@@ -107,7 +107,7 @@ abstract class ApiController extends ResourceController
                             $this->is_listable = true;
                         }
 
-                        if (in_array('retrieve', $cruds)    || in_array('read', $cruds)){
+                        if (in_array('show', $cruds)    || in_array('read', $cruds)){
                             $this->is_retrievable = true;
                         }
         
@@ -408,7 +408,7 @@ abstract class ApiController extends ResourceController
                         } 
                                                 
                     } else {
-                        if (!$this->isAdmin())
+                        if (!$this->isAdmin() && $owned)
                             $_get[] = ['belongs_to', $this->uid];
                     }
                        
@@ -761,7 +761,14 @@ abstract class ApiController extends ResourceController
             Factory::response()->sendError('Validation Error', 400, json_decode($e->getMessage()));
         } catch (SqlException $e) { 
             Factory::response()->sendError('SQL Exception', 500, json_decode($e->getMessage()));   
-        } catch (\Exception $e) {            
+        } catch (\Exception $e) {  
+
+            if (preg_match("/^SQLSTATE\[[0-9]+\]/",$e->getMessage())) {
+                DB::$model = $instance;
+                $msg = "ERROR DE SQL: ". DB::getQueryLog(); 
+                Factory::response()->sendError($e->getMessage(), 500, $msg);
+            }
+                   
             Factory::response()->sendError($e->getMessage());
         }	    
     } // 

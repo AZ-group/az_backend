@@ -10,8 +10,8 @@ class Roles extends MyApiController
 {
     protected $scope = [
         'guest'      => [], 
-        'basic'      => ['retrieve'],
-        'regular'    => ['retrieve']
+        'basic'      => ['show'],
+        'regular'    => ['show']
     ];
 
     function __construct()

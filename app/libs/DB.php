@@ -6,8 +6,8 @@ use simplerest\core\Model;
 
 class DB {
 
-	private static $conn;
-	private static $model;
+	public static $conn;
+	public static $model;
 	//private static $enabled = false;
 
     private function __construct() { }

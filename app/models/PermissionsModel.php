@@ -14,7 +14,7 @@ class PermissionsModel extends Model
 		'tb' => 'STR',
 		'user_id' => 'INT',
 		'can_list' => 'INT',
-		'can_retrieve' => 'INT', 
+		'can_access' => 'INT', 
 		'can_create' => 'INT',
 		'can_update' => 'INT',
 		'can_delete' => 'INT',

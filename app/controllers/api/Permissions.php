@@ -14,7 +14,7 @@ class Permissions extends MyApiController
     protected $scope = [
         'guest'      => [], 
         'basic'      => [],
-        'regular'    => ['retrieve', 'list']
+        'regular'    => ['show', 'list']
     ];
 
     function __construct()

@@ -762,6 +762,9 @@ Por último tenemos los campos ocultos:
 
 Se definen varios event hooks sobre el modelo que se disparan ante una operación CRUD
 
+onReading() antes de leer un registro / lista 
+onRead() luego de leer
+
 onCreating() antes de que se cree un registro
 onCreated($last_inserted_id) luego de que se cree un registro
 
@@ -783,8 +786,17 @@ Un uso práctico de estos eventos es para des-confirmar un email cuando se ha ca
 
 La función isDirty() acepta un campo o un array de campos o incluso puede estar vacia en cuyo caso verifica si algún campo sería cambiado.
 
+Otro uso práctico de event hooks es para ocultar registros basados en cierta condición. Ej: si un campo definido por el usuario hidden = 1 entonces devolver 404 (No found)
+
+	function onReading() {
+		$this->where(['hide' => 0]);
+	}
+
+
+Es posible usar los event hooks de la API como Middlewares.
 
 PD: Laravel también incluye los eventos onRestoring() y onRestored() para cuando existe un soft-delete
+
 
 ### Validaciones
 
@@ -984,26 +996,26 @@ La implementación del ACL incluye "roles" y permisos individuales para cada usu
 
 ### Permisos
 
-Los permisos sobre los endpoints son en general del tipo CRUD + permiso para listar los recursos: ['retrieve', 'list', 'create', 'update',  'delete']
+Los permisos sobre los endpoints son en general del tipo CRUD + permiso para listar los recursos: ['show', 'list', 'create', 'update',  'delete']
 
 
 ### Roles
 
 Se pueden crear distintos roles que son mantenidos en el modelo 'RolesModel' y cuyo fin es limitar las acciones CRUD que puedan realizar. El la entidad "roles" como tal no existe en la base de datos y solo vive en el modelo.
 
-Para cada endpoint es posible especificar un conjunto de permisos para cada rol ya sea 'read' y 'write' o bien ser más específico y especificar 'retrieve', 'list', create', 'delete' y 'update'. Ejemplo:
+Para cada endpoint es posible especificar un conjunto de permisos para cada rol ya sea 'read' y 'write' o bien ser más específico y especificar 'show', 'list', create', 'delete' y 'update'. Ejemplo:
 
 	protected $scope = [
 	    'guest'   => [],  
-	    'basic'   => ['retrieve'],
+	    'basic'   => ['show'],
 	    'regular' => ['read', 'write']
 	];
 
-Para poder listar recursos debe incluirse el permiso "list" mientras que para poder visualizar un recurso por id se necesita el permiso "read".
+Para poder listar recursos debe incluirse el permiso "list" mientras que para poder visualizar un registro de un recurso por id se necesita el permiso "access".
 
 Equivalencias:
 
-read = retrieve + list
+read = access + list
 write = create + update + delete
 
 
@@ -1020,9 +1032,9 @@ Ejemplos:
 - Borrar definitivamente un registro bloqueado
 - Restaurar (undelete) un registro bloqueado
 - Acceder a registros en folders no-compartidos
+- Tranferir un registro o sea cambiar la propiedad (ownership) de un registro (campo belongs_to)
+- Modificar la fecha de creación 
 - Llenar cualquier campo incluso los no-fillables
-- Cambiar la propiedad (ownership) de un registro (campo belongs_to)
-etc.
 
 Roles adicionales o permisos restrictivos no afectan en nada a un admin (sus alcance es inalterado)
 

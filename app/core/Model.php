@@ -734,11 +734,15 @@ class Model {
 		if ($existance)
 			$q .= ')';
 
+		// Parche
+		$q = str_replace('WHERE AND', 'WHERE', $q);
+		$q = str_replace('WHERE OR', 'WHERE', $q);
+
 		//Debug::dd($q, 'Query:');
 		//Debug::dd($vars, 'Vars:');
 		//Debug::dd($values, 'Vals:');
-		//exit;
 		//var_dump($q);
+		//exit;
 		//var_export($vars);
 		//var_export($values);
 		
@@ -951,31 +955,49 @@ class Model {
 	}
 
 	function get(array $fields = null, array $order = null, int $limit = NULL, int $offset = null, $pristine = false){
+		$this->onReading();
+		
 		$q = $this->toSql($fields, $order, $limit, $offset);
 		$st = $this->bind($q);
 
+		$count = null;
 		if ($this->exec && $st->execute()){
 			$output = $st->fetchAll($this->fetch_mode);
-			if (empty($output))
-				return [];
-	
-			return $pristine ? $output : $this->applyTransformer($this->applyOutputMutators($output));
+			$count = $st->rowCount();
+
+			if (empty($output)) {
+				$ret = [];
+			}else {
+				$ret = $pristine ? $output : $this->applyTransformer($this->applyOutputMutators($output));
+			}
 		}else
-			return false;	
+			$ret = false;
+				
+		$this->onRead($count);
+		return $ret;	
 	}
 
 	function first(array $fields = null, $pristine = false){
+		$this->onReading();
+
 		$q = $this->toSql($fields, NULL);
 		$st = $this->bind($q);
 
+		$count = null;
 		if ($this->exec && $st->execute()){
 			$output = $st->fetch($this->fetch_mode);
-			if (empty($output))
-				return false;
-	
-			return $pristine ? $output : $this->applyTransformer($this->applyOutputMutators((array) $output));
+			$count = $st->rowCount();
+
+			if (empty($output)) {
+				$ret = [];
+			}else {
+				$ret = $pristine ? $output : $this->applyTransformer($this->applyOutputMutators($output));
+			}
 		}else
-			return false;	
+			$ret = false;
+				
+		$this->onRead($count);
+		return $ret;
 	}
 	
 	function value($field){
@@ -1513,7 +1535,7 @@ class Model {
 			} 
 		}
 
-		// Evento
+		// Event hook
 		$this->onCreating();
 
 		$str_vars = implode(', ',$vars);
@@ -1608,6 +1630,9 @@ class Model {
 	/*
 		Even hooks -podrían estar definidos en clase abstracta o interfaz-
 	*/
+
+	function onReading() {	}
+	function onRead($count) { }
 
 	function onCreating() {	}
 	function onCreated($count) { }
