@@ -19,8 +19,13 @@ registered <-- B
 ...
 
 
-Otra posibilidad sería que cada vendedor cree un sus publicaciones en un folder con permiso de lectura para guest o que directamente se especifique que cada registro posee un guest_access
+Usar guest_access = 1 en cada registro de la tabla *tampoco* es la solución porque sería equivalente a el permiso "list" sobre la tabla.
 
+Soluciones:
+
+  * Herencia entre roles <-- complicado de implementar
+  * Que cada vendedor tenga un folder y lo comparta con "otros" incluido los "guest".  <-- poco eficiente
+  * root_access = true sobre todo el recurso. <-- suena a parche
 
 - Generar Modelos, Controladores y APIs via comando (sin sobre-escribir existente excepto que se especifique y posiblemente se confimre) basado en plantillas. ***
 
