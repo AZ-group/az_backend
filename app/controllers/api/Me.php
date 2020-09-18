@@ -14,7 +14,7 @@ class Me extends MySelf
 { 
     protected $scope = [
         'guest'      => [], 
-        'basic'      => ['read', 'list'],
-        'regular'    => ['read', 'write', 'list']
+        'basic'      => ['retrieve', 'list'],
+        'regular'    => ['retrieve', 'write', 'list']
     ];    
 }  

@@ -222,7 +222,7 @@ CREATE TABLE `permissions` (
   `id` int(11) NOT NULL,
   `tb` varchar(80) COLLATE utf16_spanish_ci NOT NULL,
   `can_create` tinyint(4) NOT NULL DEFAULT 0,
-  `can_read` tinyint(4) NOT NULL DEFAULT 0,
+  `can_retrieve` tinyint(4) NOT NULL DEFAULT 0,
   `can_update` tinyint(4) NOT NULL DEFAULT 0,
   `can_delete` tinyint(4) NOT NULL DEFAULT 0,
   `can_list` tinyint(4) NOT NULL DEFAULT 0,
@@ -235,7 +235,7 @@ CREATE TABLE `permissions` (
 -- Volcado de datos para la tabla `permissions`
 --
 
-INSERT INTO `permissions` (`id`, `tb`, `can_create`, `can_read`, `can_update`, `can_delete`, `can_list`, `user_id`, `created_at`, `updated_at`) VALUES
+INSERT INTO `permissions` (`id`, `tb`, `can_create`, `can_retrieve`, `can_update`, `can_delete`, `can_list`, `user_id`, `created_at`, `updated_at`) VALUES
 (2, 'products', 0, 1, 1, 1, 0, 168, '0000-00-00 00:00:00', NULL),
 (3, 'foo', 0, 1, 0, 1, 0, 90, '2020-01-14 00:00:00', NULL),
 (37, 'foo', 0, 1, 1, 1, 0, 168, '2020-01-14 23:09:37', '2020-01-15 06:30:55'),

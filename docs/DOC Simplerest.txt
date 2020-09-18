@@ -984,29 +984,27 @@ La implementación del ACL incluye "roles" y permisos individuales para cada usu
 
 ### Permisos
 
-Los permisos sobre los endpoints son en general del tipo CRUD + permiso para listar los recursos: ['read', 'list', 'create', 'update',  'delete']
+Los permisos sobre los endpoints son en general del tipo CRUD + permiso para listar los recursos: ['retrieve', 'list', 'create', 'update',  'delete']
 
 
 ### Roles
 
 Se pueden crear distintos roles que son mantenidos en el modelo 'RolesModel' y cuyo fin es limitar las acciones CRUD que puedan realizar. El la entidad "roles" como tal no existe en la base de datos y solo vive en el modelo.
 
-Para cada endpoint es posible especificar un conjunto de permisos para cada rol ya sea 'read', 'write' y 'list' además de 'create', 'read', 'delete' y 'update'. Ejemplo:
+Para cada endpoint es posible especificar un conjunto de permisos para cada rol ya sea 'read' y 'write' o bien ser más específico y especificar 'retrieve', 'list', create', 'delete' y 'update'. Ejemplo:
 
 	protected $scope = [
 	    'guest'   => [],  
-	    'basic'   => ['read'],
-	    'regular' => ['read', 'list'],
-	    'admin'   => ['read', 'list', 'write']
+	    'basic'   => ['retrieve'],
+	    'regular' => ['read', 'write']
 	];
 
 Para poder listar recursos debe incluirse el permiso "list" mientras que para poder visualizar un recurso por id se necesita el permiso "read".
 
 Equivalencias:
 
+read = retrieve + list
 write = create + update + delete
-
-Así, la forma más concisa de especificar todos los permisos es ['read', 'list', 'write'] que equivale a ['read', 'list', 'create', 'update', 'delete']
 
 
 ### Rol de Admin

@@ -98,7 +98,7 @@ class AuthController extends Controller implements IAuth
     }
 
     private function fetchPermissions($uid) : Array {
-        $_permissions = DB::table('permissions')->setFetchMode('ASSOC')->select(['tb', 'can_create as c', 'can_read as r', 'can_update as u', 'can_delete as d', 'can_list as l'])->where(['user_id' => $uid])->get();
+        $_permissions = DB::table('permissions')->setFetchMode('ASSOC')->select(['tb', 'can_create as c', 'can_retrieve as r', 'can_update as u', 'can_delete as d', 'can_list as l'])->where(['user_id' => $uid])->get();
 
         //print_r($rows);
         //exit; //
@@ -106,7 +106,7 @@ class AuthController extends Controller implements IAuth
         $perms = [];
         foreach ((array) $_permissions as $p){
             $tb = $p['tb'];
-            $perms[$tb] = $p['l'] * 16 + $p['c'] * 8 + $p['r'] * 4 + $p['u'] * 2 + $p['d'];
+            $perms[$tb] = $p['l'] * 16 + $p['r'] * 8 + $p['c'] * 4 + $p['u'] * 2 + $p['d'];
         }
 
         return $perms;
@@ -922,7 +922,7 @@ class AuthController extends Controller implements IAuth
                 }
             }
             
-            $_permissions = DB::table('permissions')->setFetchMode('ASSOC')->select(['tb', 'can_create as c', 'can_read as r', 'can_update as u', 'can_delete as d', 'can_list as l'])->where(['user_id' => $uid])->get();
+            $_permissions = DB::table('permissions')->setFetchMode('ASSOC')->select(['tb', 'can_create as c', 'can_retrieve as r', 'can_update as u', 'can_delete as d', 'can_list as l'])->where(['user_id' => $uid])->get();
 
             //print_r($rows);
             //exit; //
@@ -930,7 +930,7 @@ class AuthController extends Controller implements IAuth
             $perms = [];
             foreach ((array) $_permissions as $p){
                 $tb = $p['tb'];
-                $perms[$tb] = $p['l'] * 16 + $p['c'] * 8 + $p['r'] * 4 + $p['u'] * 2 + $p['d'];
+                $perms[$tb] = $p['l'] * 16 + $p['r'] * 8 + $p['c'] * 4 + $p['u'] * 2 + $p['d'];
             }
 
             //var_dump($roles); 

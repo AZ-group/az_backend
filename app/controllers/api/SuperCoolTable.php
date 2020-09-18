@@ -9,9 +9,9 @@ class SuperCoolTable extends MyApiController
     static protected $guest_access = true;
     
     protected $scope = [
-        'guest'      => ['read'],  
-        'basic'      => ['read', 'write'],
-        'regular'    => ['read', 'write']
+        'guest'      => ['retrieve'],  
+        'basic'      => ['retrieve', 'write'],
+        'regular'    => ['retrieve', 'write']
     ];
 
     function __construct()

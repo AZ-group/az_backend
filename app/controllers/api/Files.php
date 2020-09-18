@@ -14,9 +14,9 @@ class Files extends MyApiController
     static protected $soft_delete = false;
 
     protected $scope = [
-        'guest'      => ['read'],  
-        'basic'      => ['read', 'list', 'write'],
-        'regular'    => ['read', 'write']
+        'guest'      => ['retrieve'],  
+        'basic'      => ['retrieve', 'list', 'write'],
+        'regular'    => ['retrieve', 'write']
     ];
 
     function __construct()

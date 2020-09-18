@@ -10,7 +10,7 @@ CREATE TABLE `permissions` (
   `id` int(11) NOT NULL,
   `table` varchar(80) COLLATE utf16_spanish_ci NOT NULL,
   `can_create` tinyint(4) NOT NULL,
-  `can_read` tinyint(4) NOT NULL,
+  `can_retrieve` tinyint(4) NOT NULL,
   `can_update` tinyint(4) NOT NULL,
   `can_delete` tinyint(4) NOT NULL,
   `user_id` int(11) NOT NULL,

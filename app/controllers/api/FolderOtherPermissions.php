@@ -8,8 +8,8 @@ class FolderOtherPermissions extends MyApiController
 {     
     protected $scope = [
         'guest'   => [ ],  
-        'basic'   => ['read'],
-        'regular' => ['read', 'list', 'write']
+        'basic'   => ['retrieve'],
+        'regular' => ['retrieve', 'list', 'write']
     ];
     
     function __construct()

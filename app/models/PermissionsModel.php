@@ -13,11 +13,11 @@ class PermissionsModel extends Model
 		'id' => 'INT',
 		'tb' => 'STR',
 		'user_id' => 'INT',
-		'can_create' => 'INT',
-		'can_read' => 'INT',
-		'can_update' => 'INT',
-		'can_delete' => 'INT', 
 		'can_list' => 'INT',
+		'can_retrieve' => 'INT', 
+		'can_create' => 'INT',
+		'can_update' => 'INT',
+		'can_delete' => 'INT',
 		'created_at' => 'STR',
 		'updated_at' => 'STR'
 	];

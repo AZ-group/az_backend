@@ -24,7 +24,7 @@ abstract class ApiController extends ResourceController
 
     protected $scope;
     protected $is_listable;
-    protected $is_readable;
+    protected $is_retrievable;
     protected $callable = [];
     protected $config;
     protected $impersonated_by;
@@ -55,12 +55,13 @@ abstract class ApiController extends ResourceController
         //var_export($perms); exit; ///
 
         $operations = [ 
-            'read'   => ['get'],
-            'list'   => ['get'],
-            'create' => ['post'],
-            'update' => ['put', 'patch'],
-            'delete' => ['delete'],
-            'write'  => ['post', 'put', 'patch', 'delete']
+            'retrieve'  => ['get'],
+            'list'      => ['get'],
+            'read'      => ['get'],
+            'create'    => ['post'],
+            'update'    => ['put', 'patch'],
+            'delete'    => ['delete'],
+            'write'     => ['post', 'put', 'patch', 'delete']
         ];           
 
         //var_export($this->is_admin);
@@ -71,14 +72,14 @@ abstract class ApiController extends ResourceController
         }else{
             if ($perms !== NULL)
             {
-                $list   = ($perms & 16) AND 1;
-                $create = ($perms & 8) AND 1;
-                $read   = ($perms & 4) AND 1; 
-                $update = ($perms & 2) AND 1; 
-                $delete = ($perms & 1) AND 1;
+                $list       = ($perms & 16) AND 1;
+                $retrieve   = ($perms & 8 ) AND 1;
+                $create     = ($perms & 4 ) AND 1; 
+                $update     = ($perms & 2 ) AND 1; 
+                $delete     = ($perms & 1 ) AND 1;
         
                 $this->is_listable = (bool) $list;
-                $this->is_readable = (bool) $read;
+                $this->is_retrievable = (bool) $retrieve;
 
 
                 // individual permissions *replaces* role permissions
@@ -86,8 +87,8 @@ abstract class ApiController extends ResourceController
                 if ($create)
                     $this->callable = array_merge($this->callable, $operations['create']); 
 
-                if ($read || $list)
-                    $this->callable = array_merge($this->callable, $operations['read']);    
+                if ($retrieve || $list)
+                    $this->callable = array_merge($this->callable, $operations['retrieve']);    
 
                 if ($update)
                     $this->callable = array_merge($this->callable, $operations['update']); 
@@ -102,12 +103,12 @@ abstract class ApiController extends ResourceController
                     if (isset($this->scope[$role])){
                         $cruds = $this->scope[$role];
 
-                        if (in_array('list', $cruds)){
+                        if (in_array('list', $cruds)        || in_array('read', $cruds)){
                             $this->is_listable = true;
                         }
 
-                        if (in_array('read', $cruds)){
-                            $this->is_readable = true;
+                        if (in_array('retrieve', $cruds)    || in_array('read', $cruds)){
+                            $this->is_retrievable = true;
                         }
         
                         if (!empty($this->scope[$role])){
@@ -124,6 +125,7 @@ abstract class ApiController extends ResourceController
         $this->impersonated_by = $this->auth_payload->impersonated_by ?? null;
 
         //var_dump($this->is_listable);
+        //var_dump($this->is_retrievable);
         //var_dump($this->impersonated_by);
         //var_export($this->is_admin);
         //var_dump(['perms' => $perms]);
@@ -272,7 +274,7 @@ abstract class ApiController extends ResourceController
             if ($id == null && !$this->is_listable)
                 Factory::response()->sendError('Unauthorized', 403, "You are not allowed to list");    
 
-            if ($id != null && !$this->is_readable)
+            if ($id != null && !$this->is_retrievable)
                 Factory::response()->sendError('Unauthorized', 401, "You are not allowed to retrieve");  
 
         }

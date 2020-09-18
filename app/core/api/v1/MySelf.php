@@ -36,7 +36,7 @@ class MySelf extends Controller
             set_exception_handler([$this, 'exception_handler']);
 
         $operations = [ 
-            'read'   => ['get'],
+            'retrieve'   => ['get'],
             'list'   => ['get'],
             'create' => ['post'],
             'update' => ['put', 'patch'],
