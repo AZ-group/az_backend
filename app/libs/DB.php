@@ -8,7 +8,6 @@ class DB {
 
 	public static $conn;
 	public static $model;
-	//private static $enabled = false;
 
     private function __construct() { }
 
@@ -39,10 +38,6 @@ class DB {
 		return static::$model->getLog();
 	}
 	
-	//public static function enableQueryLog(){
-	//	static::$enabled = true;
-	//}
-
 	public static function table($from, $alias = NULL) {
 
 		// Usar un wrapper y chequear el tipo

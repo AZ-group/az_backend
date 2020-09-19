@@ -17,5 +17,39 @@ class Products extends MyApiController
         parent::__construct();
     }
 
+    
+    function onReadingFolderBeforeAuth() {
+
+        if ($this->isGuest()){
+            // Informar que debe estar "logueado"
+            return;
+        }
+
+        if ($this->isAdmin()){
+            return;
+        }
+
+        $token = \simplerest\libs\Factory::request()->getQuery('token');
+    
+        // decodificar token y si es válido proseguir
+        
+        $uid = $this->auth->uid;
+        $folder = $this->folder;
+
+        // insertar en la tabla folder_permissions el permiso para el usuario con id $uid`
+        // y el folder  $folder
+    }
+
+    function onReadingFolderAfterAuth() {
+        echo 'AFTER AUTH ';
+        var_dump("Reading folder {$this->folder} with id={$this->id}");
+    }
+
+    /*
+    function onWritingFolder() {
+        var_dump("Writing folder {$this->folder} with id={$this->id}");
+    }
+    */
+    
         
 } // end class

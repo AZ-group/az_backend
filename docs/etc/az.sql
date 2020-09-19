@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: localhost
--- Tiempo de generación: 14-09-2020 a las 20:39:26
+-- Tiempo de generación: 19-09-2020 a las 00:15:43
 -- Versión del servidor: 10.4.11-MariaDB
 -- Versión de PHP: 7.4.3
 
@@ -80,7 +80,11 @@ CREATE TABLE `files` (
 --
 
 INSERT INTO `files` (`id`, `filename`, `file_ext`, `filename_as_stored`, `belongs_to`, `guest_access`, `locked`, `created_at`, `deleted_at`) VALUES
-(240, '65394374_10158090117128840_7189038881361100800_o.jpg', 'jpg', '90-5f5bb828cb06c3.52751786.jpg', 90, 1, 0, '2020-09-11 14:47:20', NULL);
+(240, '65394374_10158090117128840_7189038881361100800_o.jpg', 'jpg', '90-5f5bb828cb06c3.52751786.jpg', 90, 1, 0, '2020-09-11 14:47:20', NULL),
+(242, '79528120_1205478162980483_7100254245131124736_n.jpg', 'jpg', '87-5f63d609a595c2.69295215.jpg', 87, 0, 0, '2020-09-17 18:32:57', NULL),
+(243, '1_dF7xdJ8zEOx4z1jPkr52-Q.png', 'png', '87-5f63d609aad343.97437503.png', 87, 0, 0, '2020-09-17 18:32:57', NULL),
+(244, '79528120_1205478162980483_7100254245131124736_n.jpg', 'jpg', '87-5f63d635043929.14699523.jpg', 87, 1, 0, '2020-09-17 18:33:41', NULL),
+(245, '1_dF7xdJ8zEOx4z1jPkr52-Q.png', 'png', '87-5f63d6350461c0.12545473.png', 87, 0, 0, '2020-09-17 18:33:41', NULL);
 
 -- --------------------------------------------------------
 
@@ -131,7 +135,7 @@ CREATE TABLE `folder_other_permissions` (
 --
 
 INSERT INTO `folder_other_permissions` (`id`, `folder_id`, `belongs_to`, `guest`, `r`, `w`) VALUES
-(1, 4, 90, 0, 0, 0),
+(1, 4, 90, 1, 0, 0),
 (2, 5, 87, 0, 1, 1),
 (4, 6, 90, 1, 1, 0),
 (5, 9, 4, 1, 1, 0);
@@ -169,6 +173,7 @@ INSERT INTO `folder_permissions` (`id`, `folder_id`, `belongs_to`, `access_to`, 
 CREATE TABLE `foo` (
   `id` int(11) NOT NULL,
   `bar` varchar(45) COLLATE utf16_spanish_ci NOT NULL,
+  `hide` tinyint(4) NOT NULL DEFAULT 0,
   `deleted_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf16 COLLATE=utf16_spanish_ci;
 
@@ -176,11 +181,11 @@ CREATE TABLE `foo` (
 -- Volcado de datos para la tabla `foo`
 --
 
-INSERT INTO `foo` (`id`, `bar`, `deleted_at`) VALUES
-(2, 'EEE', NULL),
-(5, 'J', NULL),
-(6, '200', NULL),
-(7, '200', NULL);
+INSERT INTO `foo` (`id`, `bar`, `hide`, `deleted_at`) VALUES
+(2, 'EEE', 0, NULL),
+(5, 'J', 1, NULL),
+(6, 'fooo', 0, NULL),
+(7, '200', 0, NULL);
 
 -- --------------------------------------------------------
 
@@ -222,7 +227,7 @@ CREATE TABLE `permissions` (
   `id` int(11) NOT NULL,
   `tb` varchar(80) COLLATE utf16_spanish_ci NOT NULL,
   `can_create` tinyint(4) NOT NULL DEFAULT 0,
-  `can_access` tinyint(4) NOT NULL DEFAULT 0,
+  `can_show` tinyint(4) NOT NULL DEFAULT 0,
   `can_update` tinyint(4) NOT NULL DEFAULT 0,
   `can_delete` tinyint(4) NOT NULL DEFAULT 0,
   `can_list` tinyint(4) NOT NULL DEFAULT 0,
@@ -235,11 +240,10 @@ CREATE TABLE `permissions` (
 -- Volcado de datos para la tabla `permissions`
 --
 
-INSERT INTO `permissions` (`id`, `tb`, `can_create`, `can_access`, `can_update`, `can_delete`, `can_list`, `user_id`, `created_at`, `updated_at`) VALUES
+INSERT INTO `permissions` (`id`, `tb`, `can_create`, `can_show`, `can_update`, `can_delete`, `can_list`, `user_id`, `created_at`, `updated_at`) VALUES
 (2, 'products', 0, 1, 1, 1, 0, 168, '0000-00-00 00:00:00', NULL),
 (3, 'foo', 0, 1, 0, 1, 0, 90, '2020-01-14 00:00:00', NULL),
-(37, 'foo', 0, 1, 1, 1, 0, 168, '2020-01-14 23:09:37', '2020-01-15 06:30:55'),
-(38, 'foo', 0, 1, 0, 0, 0, 87, '0000-00-00 00:00:00', NULL);
+(37, 'foo', 0, 1, 1, 1, 0, 168, '2020-01-14 23:09:37', '2020-01-15 06:30:55');
 
 -- --------------------------------------------------------
 
@@ -282,7 +286,7 @@ INSERT INTO `products` (`id`, `name`, `description`, `size`, `cost`, `created_at
 (122, 'Cerveza de malta', 'Pichu', '1L', 100, '2018-12-29 00:00:00', NULL, '2019-11-24 22:47:00', NULL, '2019-11-25 02:47:00', NULL, 1, 1, NULL, 90),
 (123, 'PesiLoca', 'x_x', '2L', 30, '2018-12-16 00:00:00', NULL, '2019-11-17 07:48:25', NULL, '2019-11-17 07:48:25', NULL, 1, 0, 'mylist', 90),
 (125, 'Vodka', '', '3L', 350, '2017-01-10 00:00:00', NULL, '2019-12-13 08:54:23', NULL, '2019-12-13 12:54:23', NULL, 1, 0, 'lista publica', 90),
-(126, 'Uvas fermentadas', 'Espectacular', '5L', 50, '2019-06-24 00:00:00', NULL, '2020-01-18 19:02:46', 90, NULL, NULL, 1, 0, 'lista publica', 90),
+(126, 'Uvas fermentadas', 'Espectaculare', '5L', 52, '2019-06-24 00:00:00', NULL, '2020-09-16 10:01:02', 4, NULL, NULL, 1, 0, 'lista publica', 90),
 (131, 'Vodka', 'de Estados Unidos!', '1L', 499, '2019-06-04 00:00:00', NULL, '2020-01-03 21:18:16', 90, NULL, NULL, 1, 0, 'secreto', 4),
 (132, 'Ron venezolano', 'Rico rico', '1L', 100, '2019-10-03 00:00:00', NULL, '2019-12-22 10:11:31', NULL, '2019-12-22 14:11:31', NULL, 1, 0, NULL, 90),
 (133, 'Vodka venezolano', 'de Vzla', '1.15L', 100, '2019-09-19 00:00:00', NULL, '2020-01-03 21:18:00', 90, NULL, NULL, 1, 0, NULL, 90),
@@ -293,7 +297,7 @@ INSERT INTO `products` (`id`, `name`, `description`, `size`, `cost`, `created_at
 (147, 'Aqua fresh', 'Rico', '1L', 105, '2019-03-20 00:00:00', NULL, '2019-11-30 19:21:07', NULL, '2019-11-30 23:21:07', NULL, 1, 0, 'comparto', 90),
 (148, 'Alcohol etílico', '', '1L', 100, '2019-04-21 00:00:00', NULL, '2019-11-03 21:37:48', NULL, NULL, NULL, 1, 0, 'comparto', 90),
 (151, 'Juguito XIII', 'Rico', '1L', 355, '2019-10-03 00:00:00', NULL, '2019-10-15 17:00:58', NULL, NULL, NULL, 1, 0, 'lista24', 90),
-(155, 'Super-jugo', 'BBB', '12', 100, '2019-09-22 00:00:00', NULL, '2020-01-17 11:15:24', NULL, '2020-01-17 15:15:24', NULL, 1, 1, NULL, 90),
+(155, 'Super-jugo', 'BBB', '12', 100, '2019-09-22 00:00:00', NULL, '2020-01-17 11:15:24', NULL, NULL, NULL, 1, 1, NULL, 5),
 (159, 'Agua minerale', 'x_x', '2L', 1150, '2019-10-14 18:08:45', NULL, '2020-09-09 19:09:55', 4, '2020-09-09 19:11:08', 4, 1, 0, NULL, 90),
 (160, 'Limonada', 'Rica', '500ML', 210, '2019-10-23 14:05:30', NULL, '2019-12-22 11:58:48', NULL, '2019-12-12 00:00:00', NULL, 1, 0, NULL, 90),
 (162, 'Juguito de Mabelita', 'de manzanas exprimidas', '2L', 250, '2019-10-25 08:36:26', NULL, '2019-11-12 12:49:52', NULL, NULL, NULL, 1, 0, NULL, 113),
@@ -334,7 +338,6 @@ INSERT INTO `products` (`id`, `name`, `description`, `size`, `cost`, `created_at
 (201, 'vzukvnjjhzintijexhjd', 'x_x', '1L', 66, '2019-11-11 11:48:37', NULL, '2019-11-11 13:15:58', NULL, NULL, NULL, 1, 0, NULL, 90),
 (202, 'VVVBBB', '', '', 0, '2019-11-11 11:59:23', NULL, '2019-11-11 13:10:30', NULL, NULL, NULL, 1, 0, NULL, 148),
 (203, 'Super-gas', '', '2L', 50, '2019-11-11 14:00:47', NULL, NULL, NULL, NULL, NULL, 1, 0, NULL, 87),
-(204, 'Gas2', '', '', 0, '2019-11-11 14:01:49', NULL, NULL, NULL, NULL, NULL, 1, 0, 'lista', 87),
 (205, 'Supreme jugooo', 'de manzanas exprimidas', '1L', 250, '2019-11-11 14:09:52', NULL, NULL, NULL, NULL, NULL, 1, 0, 'lista', 87),
 (206, 'Juguito de tomate de árbol', 'Ecuador', '1L', 200, '2019-11-11 15:14:36', NULL, '2019-11-11 16:26:34', NULL, NULL, NULL, 1, 0, 'lista publica', 90),
 (207, 'Juguito de tomate papaya', NULL, '1L', 150, '2019-11-11 15:15:05', NULL, '2019-11-11 15:41:32', NULL, NULL, NULL, 1, 0, 'lista', 87),
@@ -361,7 +364,10 @@ INSERT INTO `products` (`id`, `name`, `description`, `size`, `cost`, `created_at
 (271, 'Wisky', NULL, '', 400, '2020-01-16 01:19:08', 323, NULL, NULL, NULL, NULL, 1, 0, NULL, 323),
 (272, 'Wisky Super', NULL, '', 500, '2020-01-16 01:19:41', 324, '2020-01-16 01:31:31', 323, NULL, NULL, 1, 0, 'VVV', 324),
 (273, 'EEE90', NULL, '', 50, '2020-01-16 16:09:22', 323, NULL, NULL, NULL, NULL, 1, 0, NULL, 323),
-(274, 'EEE4', NULL, '', 50, '2020-01-16 16:10:34', 4, '2020-01-18 19:32:19', 90, '2020-01-18 23:32:19', NULL, 1, 0, NULL, 90);
+(274, 'EEE4', NULL, '', 50, '2020-01-16 16:10:34', 4, '2020-01-18 19:32:19', 90, '2020-01-18 23:32:19', NULL, 1, 0, NULL, 90),
+(276, 'some product', NULL, '', 700, '2020-09-18 11:20:39', 360, NULL, NULL, NULL, NULL, 1, 0, NULL, 360),
+(277, 'other product', NULL, '', 750, '2020-09-18 11:20:50', 360, NULL, NULL, NULL, NULL, 1, 0, NULL, 360),
+(278, 'expensive product', NULL, '', 1000, '2020-09-18 11:21:27', 360, NULL, NULL, NULL, NULL, 1, 0, NULL, 360);
 
 -- --------------------------------------------------------
 
@@ -372,7 +378,7 @@ INSERT INTO `products` (`id`, `name`, `description`, `size`, `cost`, `created_at
 CREATE TABLE `users` (
   `id` int(11) NOT NULL,
   `username` varchar(15) NOT NULL,
-  `active` tinyint(4) NOT NULL DEFAULT 0,
+  `active` tinyint(4) DEFAULT NULL,
   `locked` tinyint(4) NOT NULL DEFAULT 0,
   `email` varchar(60) NOT NULL,
   `confirmed_email` tinyint(4) NOT NULL DEFAULT 0,
@@ -388,7 +394,7 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `username`, `active`, `locked`, `email`, `confirmed_email`, `firstname`, `lastname`, `password`, `deleted_at`, `belongs_to`) VALUES
-(1, 'boctulus1', 1, 0, 'boctulus1@gmail.com', 1, '', '0', '$2y$10$/ehgjdS8p8IbRKMW4AVVOuX38p8yMIZinciIWsj79rDUfRfKH6/56', NULL, 1),
+(1, 'sss1', 1, 0, 'boctu.l.us@gmail.com', 0, 'P', 'bzz578000', '$2y$10$/ehgjdS8p8IbRKMW4AVVOuX38p8yMIZinciIWsj79rDUfRfKH6/56', NULL, 1),
 (4, 'pbozzolo', 1, 0, 'pbozzolo@gmail.com', 1, 'Paulinoxxxy', 'Bozzoxxxy', '$2y$10$jAKcStnGqtcOslt1Std7ceYqq3mMIh6Lis/Ug4Z6IDQV65tyyP2Xe', NULL, 4),
 (5, 'pepe', 1, 0, 'pepe@gmail.com', 1, 'Pepe', 'Gonzalez', '$2y$10$J.KPjyFukfxcKg83TvQGaeCTrLN9XyYXTgtTDZdZ91DJTdE73VIDK', NULL, 5),
 (9, 'dios', 1, 0, 'dios@gmail.com', 1, 'Paulino', 'Bozzoxx000555zZ', '$2y$10$/ehgjdS8p8IbRKMW4AVVOuX38p8yMIZinciIWsj79rDUfRfKH6/56', NULL, 9),
@@ -447,7 +453,7 @@ INSERT INTO `users` (`id`, `username`, `active`, `locked`, `email`, `confirmed_e
 (87, 'pedro', 1, 0, 'pedro@gmail.com', 1, 'Pedro', 'Picapiedras', '$2y$10$/ehgjdS8p8IbRKMW4AVVOuX38p8yMIZinciIWsj79rDUfRfKH6/56', NULL, 87),
 (88, 'feli8', 1, 0, 'feli@abc', 1, 'Felipe', 'Bozzzolo', '$2y$10$/ehgjdS8p8IbRKMW4AVVOuX38p8yMIZinciIWsj79rDUfRfKH6/56', NULL, 88),
 (89, 'h', 1, 0, 'h@', 1, 'Sr H', 'J', '$2y$10$/ehgjdS8p8IbRKMW4AVVOuX38p8yMIZinciIWsj79rDUfRfKH6/56', NULL, 89),
-(90, 'nano', 1, 0, 'nano@g.c', 1, 'NA', 'Bzz', '$2y$10$qmCo8ZeT1XJWPZ1kuSeFjuj7rEDT9J/YDV4yD3BsVoE.pz0ryfhE2', NULL, 90),
+(90, 'nano', 1, 0, 'nano@g.c', 0, 'NA', 'Bzz', '$2y$10$QrlBRrdiLlkdq4SP7wz2OuhoFPz3klM4vAA3iHb450EocwMsMJPIS', NULL, 90),
 (102, 'feli61', 1, 0, 'feli@delacasita', 1, 'Sr K', 'NS/NC', '$2y$10$/ehgjdS8p8IbRKMW4AVVOuX38p8yMIZinciIWsj79rDUfRfKH6/56', NULL, 102),
 (103, 'feli1', 1, 0, 'feli@delacasita2', 1, 'Sr K', 'NS/NC', '$2y$10$/ehgjdS8p8IbRKMW4AVVOuX38p8yMIZinciIWsj79rDUfRfKH6/56', NULL, 103),
 (104, 'feli7', 1, 0, 'feli@delacasita5', 1, 'Sr K', 'NS/NC', '$2y$10$/ehgjdS8p8IbRKMW4AVVOuX38p8yMIZinciIWsj79rDUfRfKH6/56', NULL, 104),
@@ -531,7 +537,31 @@ INSERT INTO `users` (`id`, `username`, `active`, `locked`, `email`, `confirmed_e
 (328, 'juanjo', 0, 0, 'jjjjj@g.c', 0, NULL, NULL, '$2y$10$kOyfUThkzFnWzsU1Ts6EguIUANb9ObJ.lQaflYZCNgsj10Ey90AcS', NULL, 328),
 (329, 'jj', 0, 0, 'jj@g.c', 0, NULL, NULL, '$2y$10$UoNz79u8eEQ.n4j4DM0Q5.Xu2nKSqvDQKvJlqInLmffBB4RLCwcAK', NULL, 329),
 (330, 'doe2000', 0, 0, 'doe2000@g.com', 0, 'Jhon', 'Doe', '$2y$10$dT6FI/8uxJ1KqAlGWuVE5umF6/cVyWGhCi6SpefKI9wqKaYoIXM/i', NULL, NULL),
-(331, 'fulano', 1, 0, 'fulano@mail.com', 1, NULL, NULL, '$2y$10$7VlzOhXrUhobcoz/Lc20F.KctzVm13TWOU1CeJJ9opZSj.8QYzU32', NULL, 331);
+(331, 'fulano', 1, 0, 'fulano@mail.com', 1, NULL, NULL, '$2y$10$7VlzOhXrUhobcoz/Lc20F.KctzVm13TWOU1CeJJ9opZSj.8QYzU32', NULL, 331),
+(332, 'santo', 0, 0, 'sano@gmail.com', 0, NULL, NULL, '$2y$10$Ok8Q56FySFTFvPNn/3hUIeLtPaA3nQSJGBojUziTtJqNJoeLtpnaG', NULL, 332),
+(333, 'santo2', 0, 0, 'sano2@gmail.com', 1, NULL, NULL, '$2y$10$PRIcsm/.i4r/o8w2eEeNT.H6psqMKDrB5qFlwY.43sC32PzNrgayC', NULL, 333),
+(334, 'santo23', 0, 0, 'sano32@gmail.com', 0, NULL, NULL, '$2y$10$3K8ldfzPdNaN6byfFbvcQeHdFOiaf1oAcgSsmWA6H6y7pM8zmXH2K', NULL, 334),
+(335, 'santo203', 0, 0, 'sano302@gmail.com', 0, NULL, NULL, '$2y$10$Chb6SxZBeLCg3Bw2N86/A.O9tqb6gaPgchPvP0GKiHK.3F4HODM22', NULL, 335),
+(336, 'santo2083', 0, 0, 'sano3802@gmail.com', 0, NULL, NULL, '$2y$10$fTJA4ECEueGBzb0PYdz/6eMfOfivuWPrt4ktwjOACTkSYC5ufswFi', NULL, 336),
+(339, 'san66to2083', 0, 0, 'sano386602@gmail.com', 0, NULL, NULL, '$2y$10$a8YWaW3rysYdKvQ2R.1xV.mZ1LpwiIphKnSRQYzI/A5e9Du56pNXe', NULL, 339),
+(340, 'san66to208399', 0, 0, 'sano3896602@gmail.com', 0, NULL, NULL, '$2y$10$AfCwpXnzyIV/F18iNbvBuOZb04cmC0jcVBFTW1PGiH7RG4HnMRQCG', NULL, 340),
+(341, 'maso8', 0, 0, 'mas8o@gmail.com', 0, NULL, NULL, '$2y$10$od6b7B8.Gqg25vDSpQMXgOcfDgFoIQ7OOzoyh7UdE1rU58T6TspZG', NULL, 341),
+(343, 'sagto208399', 0, 0, 'aadddda@mail.com', 0, NULL, NULL, '$2y$10$.qW3iQOdpcKvr4VhJAzvv.NRoF19l4O1uUYlgcTJdPoOzWLNuGJeq', NULL, 343),
+(344, 'saggto208399', 0, 0, 'aadgddda@mail.com', 0, NULL, NULL, '$2y$10$3LY9zKTpQGIBX8GTFHJ83O0kDWYtFOiW8.rVUJUzNosBHK5Fu0sca', NULL, 344),
+(345, 'sagcgto208399', 0, 0, 'aacddda@mail.com', 0, NULL, NULL, '$2y$10$H2Y0dOlkA0rpO2Y/w1CCXefRYVUteYoEmAanHfblt4GEsY9qsVq16', NULL, 345),
+(346, 'rrrr', 0, 0, 'rrrr@mail.com', 0, NULL, NULL, '$2y$10$3nsjVG3Anq4QyWUvYgdrBeROYoqiwGCf4VUwuaSBu3tV4FpxnV/oq', NULL, 346),
+(347, 'rrrr2', 0, 0, 'rrrr2@mail.com', 0, NULL, NULL, '$2y$10$mp5xgjQ.1Y3lYeycpw3xa.PVtJM/K4je0MyW6xUUv/VuL6LIqKIZK', NULL, 347),
+(348, 'bbb', 0, 0, 'bbb@mail.com', 0, NULL, NULL, '$2y$10$eL0jpgJWAFKOpIPPxQ1jMumgi05eGm/Yb1GGSQIkayzTErpu4nQrK', NULL, 348),
+(349, 'brr', 0, 0, 'brr@mail.com', 0, NULL, NULL, '$2y$10$7KV8ekxJKdLfIn3p6XyMneN0Po6AITGiFehselzsnH1i8XbxMsFCi', NULL, 349),
+(350, 'b2', 0, 0, 'b2@mail.com', 0, NULL, NULL, '$2y$10$8pqTW8xAE9E.rBTtx8rv1eYrCtcirwcGSiQpP.jqyDDLFA92./xPi', NULL, 350),
+(351, 'nn', 0, 0, 'nn@mail.com', 0, NULL, NULL, '$2y$10$k.lBGQ3dfLK12q86F9Z2YOvxvjCr5mibLzVsSZkXdHSDB/gTz6L..', NULL, 351),
+(352, 'nn22', 0, 0, 'nn22@mail.com', 0, NULL, NULL, '$2y$10$X4ti1.3i7DYFPevh2GdadOLP1MDB.4h2K04WkTKqqhOB0Os0Pnlam', NULL, 352),
+(353, 'nn33', 0, 0, 'nn33@mail.com', 0, NULL, NULL, '$2y$10$iz3lt4BtmugCDQh8WHW/MuN7V5FiXIeMGi3.8gqUIAzfWV1fPBHcW', NULL, 353),
+(354, 'nn44', NULL, 0, 'nn44@mail.com', 1, NULL, NULL, '$2y$10$Lh6YQx2HvwvnhNQ/tsBjrO5Suxrho59mMJ/LqfRKLTPHEQRYUvMBq', NULL, 354),
+(355, 'r500', NULL, 0, '500@mail.com', 1, NULL, NULL, '$2y$10$hYayobcJ/UW4UcZWR6GH1u2106o22Oz6R38ZVfZMLIm0P6MsFgjgO', NULL, 355),
+(356, 'rr500', NULL, 0, 'rr500@mail.com', 1, NULL, NULL, '$2y$10$NE/mGDJ22K3MwghbGcqqveh.K.5l1YvrwOhntCJG2Mq1TA9rsKF36', NULL, 356),
+(357, 'rr5000', NULL, 0, 'rr5000@mail.com', 1, NULL, NULL, '$2y$10$0yoHyh9CshfcX6FT2F6zGuZzzZfJdKtvNJqG/uByNau7xFMwzGsbq', NULL, 357),
+(360, 'rr5001', 1, 0, 'rr5001@mail.com', 1, NULL, NULL, '$2y$10$cGezyeUuRKB3BQYNzm/2A.COwInJKgM5Tb1QszWPwrw2z127o7Pom', NULL, 360);
 
 -- --------------------------------------------------------
 
@@ -567,7 +597,6 @@ INSERT INTO `user_roles` (`id`, `belongs_to`, `role_id`, `created_at`, `updated_
 (16, 89, 3, '2019-10-18 21:58:10', '2019-10-18 21:58:10'),
 (17, 4, 3, '2019-10-18 21:58:10', '2019-10-18 21:58:10'),
 (18, 1, 3, '2019-10-18 21:58:10', '2019-10-18 21:58:10'),
-(20, 90, 3, '2019-10-18 21:58:10', '2019-10-18 21:58:10'),
 (21, 85, 2, '2019-10-18 21:58:10', '2019-10-18 21:58:10'),
 (22, 48, 3, '2019-10-18 21:58:10', '2019-10-18 21:58:10'),
 (23, 105, 2, '2019-10-18 22:12:34', NULL),
@@ -622,7 +651,23 @@ INSERT INTO `user_roles` (`id`, `belongs_to`, `role_id`, `created_at`, `updated_
 (118, 308, 3, '2019-12-17 14:13:20', NULL),
 (119, 313, 3, '2019-12-22 14:27:28', NULL),
 (123, 323, 3, '2020-01-15 21:56:45', NULL),
-(129, 321, 2, '2020-01-16 16:14:04', NULL);
+(129, 321, 2, '2020-01-16 16:14:04', NULL),
+(131, 339, 100, '2020-09-15 15:26:30', NULL),
+(132, 340, 100, '2020-09-15 15:31:54', NULL),
+(133, 346, 3, '2020-09-15 16:35:03', NULL),
+(134, 347, 3, '2020-09-15 16:36:18', NULL),
+(135, 348, 2, '2020-09-15 16:36:44', NULL),
+(136, 349, 3, '2020-09-15 16:53:41', NULL),
+(137, 349, 2, '2020-09-15 16:53:41', NULL),
+(138, 350, 2, '2020-09-15 16:54:09', NULL),
+(139, 352, 2, '2020-09-15 17:58:32', NULL),
+(140, 353, 2, '2020-09-15 18:23:40', NULL),
+(141, 354, 2, '2020-09-15 18:24:26', NULL),
+(142, 355, 3, '2020-09-15 20:34:44', NULL),
+(143, 356, 3, '2020-09-15 23:58:48', NULL),
+(144, 357, 3, '2020-09-16 00:03:25', NULL),
+(147, 360, 3, '2020-09-16 00:12:22', NULL),
+(148, 90, 2, '2020-09-16 09:58:40', NULL);
 
 --
 -- Índices para tablas volcadas
@@ -729,7 +774,7 @@ ALTER TABLE `collections`
 -- AUTO_INCREMENT de la tabla `files`
 --
 ALTER TABLE `files`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=242;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=246;
 
 --
 -- AUTO_INCREMENT de la tabla `folders`
@@ -765,19 +810,19 @@ ALTER TABLE `permissions`
 -- AUTO_INCREMENT de la tabla `products`
 --
 ALTER TABLE `products`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=276;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=279;
 
 --
 -- AUTO_INCREMENT de la tabla `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=332;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=361;
 
 --
 -- AUTO_INCREMENT de la tabla `user_roles`
 --
 ALTER TABLE `user_roles`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=131;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=149;
 
 --
 -- Restricciones para tablas volcadas

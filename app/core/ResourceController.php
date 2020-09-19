@@ -10,7 +10,7 @@ use simplerest\core\api\v1\AuthController;
 
 abstract class ResourceController extends Controller
 {
-    protected $auth_payload;
+    protected $auth;
     protected $roles;
     protected $uid;
     protected $is_admin;
@@ -45,22 +45,23 @@ abstract class ResourceController extends Controller
         //var_dump(Factory::request()->headers());    
         //var_dump($this->roles);
 
-        $this->auth_payload = (new AuthController())->check();
+        // auth payload
+        $this->auth = (new AuthController())->check();
 
-        //var_dump($this->auth_payload);
+        //var_dump($this->auth);
             
-        if (!empty($this->auth_payload)){
-            $this->uid = $this->auth_payload->uid; 
-            $this->permissions = $this->auth_payload->permissions ?? NULL;
+        if (!empty($this->auth)){
+            $this->uid = $this->auth->uid; 
+            $this->permissions = $this->auth->permissions ?? NULL;
 
             $r = new RolesModel();
-            $this->roles  = $this->auth_payload->roles;              
+            $this->roles  = $this->auth->roles;              
             
             //var_dump($this->roles); ///
 
             $this->is_admin = false;
             foreach ($this->roles as $role){
-                if ($role != 'registered' && $role != 'guest' && $r->is_admin($role)){
+                if ($role != 'guest' && $r->is_admin($role)){
                     $this->is_admin = true;
                     break;
                 }

@@ -1185,6 +1185,60 @@ Mismo para borrar un registro perteneciente a un folder es necesario estar "dent
 Nota: el acceso a los folders se chequea en base de datos cada vez que se hace un request especificando que el recurso se halla en un folder. No es necesario esperar a que se renueven los tokens para tener acceso a un folder al cual se nos ha concedido permisos. <-- podría cambiarse para incrementar la performance !!!
 
 
+Similarmente a lo que sucede con Model, la clase ApiController también aporta event hooks en particular para los folders los siguientes:
+
+
+    function onReadingFolder() {
+
+    }
+
+    function onReadFolder() {
+        
+    }
+
+
+    function onWritingFolder() {
+
+    }
+
+    function onWritedFolder() {
+        
+    }
+       
+
+Desde cualquiera de esos métodos es obviamente posible acceder a métodos y propiedades de visibilidad por lo menos protected de la clase Model y en particular a folder y id (del registro). Ej:
+
+	function onReadingFolder() {
+        echo "Reading folder {$this->folder} with id={$this->id}";
+    }
+
+Un uso práctico de estos hooks sería con onReadingFolderBeforeAuth() implementar la funcionalidad de conceder acceso a un folder siguiendo un enlace que como parámetro puede tener un token. Si el token es válido se concede el acceso al usuario que sigue el enlace insertando el permiso correspondiente en la tabla folder_permissions.
+
+Ej: <pseudocódigo>
+
+	function onReadingFolderBeforeAuth() {
+
+        if ($this->isGuest()){
+            // Informar que debe estar "logueado"
+            return;
+        }
+
+        if ($this->isAdmin()){
+            return;
+        }
+
+        $token = \simplerest\libs\Factory::request()->getQuery('token');
+    
+        // decodificar token y si es válido proseguir
+        
+        $uid = $this->auth->uid;
+        $folder = $this->folder;
+
+        // insertar en la tabla folder_permissions el permiso para el usuario con id $uid`
+        // y el folder  $folder
+    }
+
+
 ### Soft delete y la papelera
 
 En cada endpoint se puede definir si se habilita el "soft" delete mediante la propiedad $soft_delete en la api. Ejemplo:

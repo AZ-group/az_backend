@@ -44,16 +44,16 @@ class MySelf extends Controller
             'write'  => ['post', 'put', 'patch', 'delete']
         ];           
 
-        $this->auth_payload = $auth_object->check();
+        $this->auth = $auth_object->check();
 
-        //var_dump($this->auth_payload);
+        //var_dump($this->auth);
 
-        if (!empty($this->auth_payload)){
-            $this->uid = $this->auth_payload->uid; 
+        if (!empty($this->auth)){
+            $this->uid = $this->auth->uid; 
             //Debug::dd($this->uid, 'UID:');
 
             $r = new RolesModel();
-            $this->roles  = $this->auth_payload->roles;              
+            $this->roles  = $this->auth->roles;              
 
             $this->is_admin = false;
             foreach ($this->roles as $role){
