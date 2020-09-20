@@ -1,6 +1,4 @@
 <?php
-declare(strict_types=1);
-
 namespace simplerest\models;
 
 use simplerest\core\Model;
@@ -24,7 +22,7 @@ class UserRolesModel extends Model
 	];
 
 	protected $rules = [
-		'role_id'	=> ['in' => [2,3,100], 'messages' => ['in' => 'Invalid role_id'] ] 
+		// 'role_id'	=> ['in' => [2,3,100], 'messages' => ['in' => 'Invalid role_id'] ] 
 	];
 
     function __construct($db = NULL){

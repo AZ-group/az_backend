@@ -107,11 +107,11 @@ abstract class ApiController extends ResourceController
                     if (isset($this->scope[$role])){
                         $cruds = $this->scope[$role];
 
-                        if (in_array('list', $cruds)        || in_array('read', $cruds)){
+                        if (in_array('list', $cruds)   || in_array('read', $cruds)){
                             $this->is_listable = true;
                         }
 
-                        if (in_array('show', $cruds)    || in_array('read', $cruds)){
+                        if (in_array('show', $cruds)   || in_array('read', $cruds)){
                             $this->is_retrievable = true;
                         }
         
@@ -636,9 +636,10 @@ abstract class ApiController extends ResourceController
                         throw new InvalidValidationException(json_encode($validation));
                 }      
 
-
-                // event hook
-                $this->onReadingFolderAfterAuth();
+                if (!empty($folder)) {
+                    // event hook
+                    $this->onReadingFolderAfterAuth();
+                }
            
                 if (strtolower($pretty) == 'false' || $pretty === 0)
                     $pretty = false;
@@ -846,8 +847,10 @@ abstract class ApiController extends ResourceController
                 Factory::response()->sendError('Data validation error', 400, $validado);
             }  
 
-            // event hook    
-            $this->onWritingFolderAfterAuth();
+            if (!empty($folder)) {
+                // event hook    
+                $this->onWritingFolderAfterAuth();
+            }
 
             if ($instance->create($data)!==false){
                 $this->onWritedFolder();
@@ -967,8 +970,10 @@ abstract class ApiController extends ResourceController
                 $data['updated_by'] = $this->impersonated_by != null ? $this->impersonated_by : $this->uid;
             }
 
-            // event hook    
-            $this->onWritingFolderAfterAuth();
+            if (!empty($folder)) {
+                // event hook    
+                $this->onWritingFolderAfterAuth();
+            }
 
             if ($instance->where(['id', $id])->update($data) !== false) {
                 $this->onWritedFolder();
@@ -1091,8 +1096,11 @@ abstract class ApiController extends ResourceController
                 $extra = array_merge($extra, ['deleted_by' => $this->impersonated_by != null ? $this->impersonated_by : $this->uid]);
             }               
        
-            // event hook    
-            $this->onWritingFolderAfterAuth();
+            if (!empty($folder)) {
+                // event hook    
+                $this->onWritingFolderAfterAuth();
+            }
+
             if($instance->delete(static::$soft_delete && $instance->inSchema(['deleted_at']), $extra)){
                 $this->onWritedFolder();
                 Factory::response()->sendJson("OK");

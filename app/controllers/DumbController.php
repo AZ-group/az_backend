@@ -284,14 +284,16 @@ class DumbController extends Controller
     function exists(){
        
         Debug::dd(DB::table('products')->where(['belongs_to' => 103])->exists());
+        var_dump(DB::  getQueryLog());
 
         Debug::dd(DB::table('products')->where([ 
             ['cost', 200, '<'],
             ['name', 'CocaCola'] 
         ])->exists());
+        var_dump(DB::  getQueryLog());
 		
-		 Debug::dd(DB::table('users')->where(['username' => 'boctulus'])->exists());
-                
+        Debug::dd(DB::table('users')->where(['username' => 'boctulus'])->exists());
+        var_dump(DB::  getQueryLog());
     }
            
     function first(){

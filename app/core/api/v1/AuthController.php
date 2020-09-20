@@ -62,7 +62,7 @@ class AuthController extends Controller implements IAuth
         return \Firebase\JWT\JWT::encode($payload, $this->config['email']['secret_key'],  $this->config['email']['encryption']);
     }
 
-    protected function gen_jwt_rememberme($uid, array $roles, array $perms, $active){
+    protected function gen_jwt_rememberme($uid){
         $time = time();
 
         $payload = [
@@ -71,10 +71,7 @@ class AuthController extends Controller implements IAuth
             'iat' => $time, 
             'exp' => $time + $this->config['email']['expires_in'],
             'ip'  => $_SERVER['REMOTE_ADDR'],
-            'roles' => $roles,
-            'permissions' => $perms,
-            'uid' => $uid,
-            'active' => $active
+            'uid' => $uid
          ];
 
         return \Firebase\JWT\JWT::encode($payload, $this->config['email']['secret_key'],  $this->config['email']['encryption']);
@@ -905,38 +902,11 @@ class AuthController extends Controller implements IAuth
                 Factory::response()->sendError('Non authorized', 403, 'Deactivated account !');
             }
 
-			$base_url =  HTTP_PROTOCOL . '://' . $_SERVER['HTTP_HOST'] . ($this->config['BASE_URL'] == '/' ? '/' : $this->config['BASE_URL']) ;
-
-
-            //////
-
-            // Fetch roles
-            $rows = DB::table('user_roles')->setFetchMode('ASSOC')->where(['belongs_to', $uid])->select(['role_id as role'])->get();	
-
-            $roles = [];
-            if (count($rows) != 0){            
-                $r = new RolesModel();
+            $base_url =  HTTP_PROTOCOL . '://' . $_SERVER['HTTP_HOST'] . ($this->config['BASE_URL'] == '/' ? '/' : $this->config['BASE_URL']) ;
             
-                foreach ($rows as $row){
-                    $roles[] = $r->getRoleName($row['role']);
-                }
-            }
+
+            $token = $this->gen_jwt_rememberme($uid);
             
-            $_permissions = DB::table('permissions')->setFetchMode('ASSOC')->select(['tb', 'can_create as c', 'can_show as r', 'can_update as u', 'can_delete as d', 'can_list as l'])->where(['user_id' => $uid])->get();
-
-            //print_r($rows);
-            //exit; //
-
-            $perms = [];
-            foreach ((array) $_permissions as $p){
-                $tb = $p['tb'];
-                $perms[$tb] = $p['l'] * 16 + $p['r'] * 8 + $p['c'] * 4 + $p['u'] * 2 + $p['d'];
-            }
-
-            //var_dump($roles); 
-            //var_export($perms); 
-
-			$token = $this->gen_jwt_rememberme($uid, $roles, $perms, $active);
             $url = $base_url . (!$this->config['REMOVE_API_SLUG'] ? 'api/v1' : 'v1') .'/auth/change_pass_by_link/' . $token . '/' . $exp; 	
 
 		} catch (\Exception $e){
@@ -981,10 +951,20 @@ class AuthController extends Controller implements IAuth
                         Factory::response()->sendError('uid is needed',400);
                     }
 
-                    $roles = !empty($payload->roles) ? $payload->roles : [];
+                    $uid = $payload->uid;
+
+                    $roles = $this->fetchRoles($uid);
+                    $perms = $this->fetchPermissions($uid);
+
+                    $row = DB::table('users')->setFetchMode('ASSOC')
+                    ->where(['id'=> $uid]) 
+                    ->first();
+
+                    if (!$row)
+                        throw new Exception("Uid not found");
+
+                    $active = $row['active']; 
                     
-                    $perms  = $payload->permissions ?? [];
-                    $active = $payload->active;
 
                     if ($active === false) {
                         Factory::response()->sendError('Non authorized', 403, 'Deactivated account');
@@ -993,22 +973,25 @@ class AuthController extends Controller implements IAuth
                     if ($payload->exp < time())
                         Factory::response()->sendError('Token expired, please log in',401);
 
-                    $access  = $this->gen_jwt([ 'uid' => $payload->uid,
+                    $access  = $this->gen_jwt([ 'uid' => $uid,
                                                 'roles' => $roles, 
                                                 'permissions' => $perms, 
                                                 'active' => $active
                     ], 'access_token');
                     
                     $refresh  = $this->gen_jwt([ 
-                                                'uid' => $payload->uid
+                                                'uid' => $uid
                     ], 'refresh_token');
 
                     ///////////
                     Factory::response()->send([ 
-                                                'access_token'=> $access,
-                                                'refresh_token'=> $refresh,
-                                                'token_type' => 'bearer', 
-                                                'expires_in' => $this->config['access_token']['expiration_time']                                            
+                                    'uid' => $uid,
+                                    'access_token'=> $access,
+                                    'refresh_token'=> $refresh,
+                                    'token_type' => 'bearer', 
+                                    'expires_in' => $this->config['access_token']['expiration_time'],
+                                    'roles' => $roles,
+                                    'permissions' => $perms                                            
                     ]);
                     
 

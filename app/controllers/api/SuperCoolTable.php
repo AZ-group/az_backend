@@ -6,7 +6,6 @@ use simplerest\controllers\MyApiController;
 
 class SuperCoolTable extends MyApiController
 { 
-    static protected $guest_access = true;
     
     protected $scope = [
         'guest'      => ['show'],  

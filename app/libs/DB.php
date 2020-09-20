@@ -7,7 +7,7 @@ use simplerest\core\Model;
 class DB {
 
 	public static $conn;
-	public static $model;
+	public static $instance;  
 
     private function __construct() { }
 
@@ -35,7 +35,7 @@ class DB {
 		
 	// Returns last executed query 
 	public static function getQueryLog(){
-		return static::$model->getLog();
+		return static::$instance->getLog();
 	}
 	
 	public static function table($from, $alias = NULL) {
@@ -46,22 +46,22 @@ class DB {
 		
 			$names = explode('_', $tb_name);
 			$names = array_map(function($str){ return ucfirst($str); }, $names);
-			$model = implode('', $names).'Model';		
+			$instance = implode('', $names).'Model';		
 
-			$class = '\\simplerest\\models\\' . $model;
+			$class = '\\simplerest\\models\\' . $instance;
 			$obj = new $class(self::getConnection(), $alias);
 			
 			if (!is_null($alias))
 				$obj->setTableAlias($alias);
 
-			static::$model = $obj;			
+			static::$instance = $obj;			
 			return $obj;	
 		}
 
-		$model = new Model(self::getConnection());
-		static::$model = $model;
+		$instance = new Model(self::getConnection());
+		static::$instance = $instance;
 
-		$st = ($model)->fromRaw($from);	
+		$st = ($instance)->fromRaw($from);	
 		return $st;
 	}
 

@@ -11,7 +11,7 @@ class Products extends MyApiController
     function __construct()
     {       
         $this->scope['guest'] = ['read'];
-        $this->scope['basic'] = ['read', 'write'];
+        $this->scope['basic'] = ['read'];
         $this->scope['regular'] = ['read', 'write'];
 
         parent::__construct();
@@ -19,25 +19,8 @@ class Products extends MyApiController
 
     
     function onReadingFolderBeforeAuth() {
-
-        if ($this->isGuest()){
-            // Informar que debe estar "logueado"
-            return;
-        }
-
-        if ($this->isAdmin()){
-            return;
-        }
-
-        $token = \simplerest\libs\Factory::request()->getQuery('token');
-    
-        // decodificar token y si es válido proseguir
-        
-        $uid = $this->auth->uid;
-        $folder = $this->folder;
-
-        // insertar en la tabla folder_permissions el permiso para el usuario con id $uid`
-        // y el folder  $folder
+        echo 'BEFORE AUTH';
+        var_dump("Reading folder {$this->folder} with id={$this->id}");
     }
 
     function onReadingFolderAfterAuth() {

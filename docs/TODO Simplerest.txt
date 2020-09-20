@@ -2,22 +2,18 @@
 
 - Definir DB !!!
 
-- Es posible usar los event hooks de la API como Middlewares
+- [ ACL ] Posiblemente convertir "admin" en "superadmin" y luego "admin" podría ser un rol más con limitaciones
 
-onReding  -> si un campo hidden = 1 entonces devolver 404 (No found)
+- [ ACL ] Posiblemente agregar dos nuevos permisos (presentes en Salesforce) que se podrían entregar a ciertos roles:
 
-Ej:
+view_all = permiso para que los usuarios -con este permiso- puedan ver todos los registros de una entidad independientemente de las ocpciones de sharing. Es un permiso típico de un admin / superadmin
 
-  function onReading() {
-		$this->where(['hide' => 0]);
-	}
+modify_all = usuarios -con este permiso- pueden leer, editar, borrar y transferir el ownership de un registro independientemente de las ocpciones de sharing
 
-- Podrían creerse necesarios los eventos onSoftDeleting ni onSoftDeleted pero en realidad están siendo capturados por los hooks onUpdating y onUpdated respectivamente. La superposición de event hooks para mismos eventos podría provocar efectos no deseados.
+- Id opcionalmente no autoincrementales por seguridad !
 
-- Nuevos hooks:
-
-onFolderAccessing
-onFolderAccessed
+- ACL, eventos beforeCheckAccess y afterCheckAccess ?
+https://docs.phalcon.io/3.4/en/acl
 
 - [ Security ] ¿Qué puedo hacer si hay credenciales comprometidas de un usuario?
 
@@ -167,24 +163,7 @@ https://csapi.dev.claroshop.com/app/v1/product?page_size=5
 
 - Incluir el nombre del proyecto en un salt sobre las secret keys para evitar que un token generado en un proyecto funcione en otro con las mismas secret keys. O sea aplicar una secret_key = fn(secret_key, nombre_proyecto)
 
-- Hook afterRegister() AuthController ? uso posible enviar un correo de confirmación
-
-- Hook afterCreate() para la API Rest ?
-
-- Middleware ejecutado después de una API podría servir para hacer los thumbnails de imágenes. Tocaría registrar el Middleware posiblemente en la propia API al final del construtor. 
-
-- Middleware podría tener la funcionalidad de envio de enlace para verificación de correo luego de hacer el registro.
-
-- [ ACL ] Posiblemente acnvertir "admin" en "superadmin" y luego "admin" podría ser un rol más con limitaciones
-
-- [ ACL ] Posiblemente agregar dos nuevos permisos (presentes en Salesforce) que se podrían entregar a ciertos roles:
-
-view_all = permiso para que los usuarios -con este permiso- puedan ver todos los registros de una entidad independientemente de las ocpciones de sharing. Es un permiso típico de un admin / superadmin
-
-modify_all = usuarios -con este permiso- pueden leer, editar, borrar y transferir el ownership de un registro independientemente de las ocpciones de sharing
-
-
-- Id opcionalmente no autoincrementales por seguridad !
+- Enviar un correo de confirmación con el event hook onCreated() sobre Users.
 
 - Enviar efectivamente correos -prioridad alta-
 
@@ -506,10 +485,6 @@ o...
 
 <-- productos de la orden 99 del cliente 1
 
-
-- ACL, eventos beforeCheckAccess y afterCheckAccess ?
-
-https://docs.phalcon.io/3.4/en/acl
 
 - Implementar X-Rate-Limit-Limit, X-Rate-Limit-Remaining y X-Rate-Limit-Reset
 

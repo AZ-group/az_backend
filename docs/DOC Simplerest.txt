@@ -68,7 +68,7 @@ OJO ! afecta al DownloadController
 
 # Creación de usuarios
 
-	POST /v1/auth/register	
+	POST /api/v1/auth/register	
 
 	{
     	"name": "Pablo",
@@ -113,7 +113,7 @@ Entonces al momento de hacer el registro se puede especificar el o los roles que
 
 # Login 
 
-	POST /v1/auth/login
+	POST /api/v1/auth/login
 
 	{
 		"email": "usuario@mail.com",
@@ -144,7 +144,7 @@ Es solo seguir el enlace provisto al momento de registrarse o .........
 
 # Cambiar / establecer contraseña
 
-	POST /v1/auth/change_pass
+	POST /api/v1/auth/change_pass
 
 	{
 		"username": "xxxx",
@@ -153,7 +153,7 @@ Es solo seguir el enlace provisto al momento de registrarse o .........
 
 # Recordar contraseña
 
-	POST /v1/auth/rememberme
+	POST /api/v1/auth/rememberme
 
 	{
 		"email": "usuario@mail.com"
@@ -191,7 +191,7 @@ Al seguir el enlace se devuelve un nuevo JSON con el access token necesario para
 
 # Renovación de tokens
 
-	POST /v1/auth/token
+	POST /api/v1/auth/token
 
 <-- enviando el refres_token 
 
@@ -214,7 +214,7 @@ Se devolverá un nuevo acccess token en un JSON como este:
 
 Es posible asumir la identidad de otro usuario o bien un rol en particular -solo uno a la vez-
 
-POST /v1/auth/impersonate que recibe un refresh_token de un Admin y en el body:
+POST /api/v1/auth/impersonate que recibe un refresh_token de un Admin y en el body:
 
 	{ 
 		"uid" : "90"  
@@ -240,7 +240,7 @@ Lo cual genera el par access y refresh token como Admin donde dentro un campo "i
 
 O bien con un rol que inclusive puede ser "guest"
 
-	POST /v1/auth/impersonate que recibe un refresh_token de un Admin y en el body:
+	POST /api/v1/auth/impersonate que recibe un refresh_token de un Admin y en el body:
 
 	{ 
 		"role": "basic"	
@@ -252,7 +252,7 @@ Al hacer un impersonate debe elegirse si se hace por uid o por rol. No tiene muc
 
 Para parar la "impersonalización",...
 
-POST /v1/auth/stopImpersonate con el access_token del admin que está haciendo uso de impersonate lo cual debe devolver un nuevo token sin impersonate, ej:
+POST /api/v1/auth/stopImpersonate con el access_token del admin que está haciendo uso de impersonate lo cual debe devolver un nuevo token sin impersonate, ej:
 
 {
     "data": {
@@ -275,7 +275,7 @@ El token se puede seguir renovando normalmente pero con ciertas limitaciones: al
 
 S puede hacer el impersonate al rol de "guest" y en este caso particular se puede seguir renovando el token conservando dicho rol indefinidamente (hasta vencimiento el refres_token)
 
-POST /v1/auth/impersonate que recibe un refresh_token de un Admin y en el body:
+POST /api/v1/auth/impersonate que recibe un refresh_token de un Admin y en el body:
 
 { 
 	"role" : "guest"	
@@ -1015,8 +1015,36 @@ Para poder listar recursos debe incluirse el permiso "list" mientras que para po
 
 Equivalencias:
 
-read = access + list
+read = show + list
 write = create + update + delete
+
+
+Los permisos de los roles se combinan, así por ejemplo un usuario que tiene los roles "basic" y "regular" (ambos) puede tener permisos de lectura y escritura sobre productos si tiene lo siguiente:
+
+	class Products extends MyApiController
+	{ 
+
+		function __construct()
+		{       
+			$this->scope['guest'] = ['read'];
+			$this->scope['basic'] = [];
+			$this->scope['regular'] = ['read', 'write'];
+
+			parent::__construct();
+		}
+
+O bien ....
+
+	$this->scope['basic'] = ['read',];
+	$this->scope['regular'] = ['write'];
+
+O bien ...
+
+	$this->scope['basic'] = ['write',];
+	$this->scope['regular'] = ['read'];
+
+
+Además por supuesto de que write y read tienen sus equivalencias así que habria otras varias formas de expresar lo mismo.
 
 
 ### Rol de Admin
@@ -1025,16 +1053,23 @@ El rol de "admin" está definido en modelo RolesModel y es muy especial porque a
 
 Ejemplos:
 
-- Bloquear un registro (locked=1)
-- Desbloquear un registro (locked=0)
-- Modificar un registro bloqueado
-- Borrar un registro bloqueado
-- Borrar definitivamente un registro bloqueado
-- Restaurar (undelete) un registro bloqueado
-- Acceder a registros en folders no-compartidos
-- Tranferir un registro o sea cambiar la propiedad (ownership) de un registro (campo belongs_to)
-- Modificar la fecha de creación 
-- Llenar cualquier campo incluso los no-fillables
+- "lock" - bloquear /besbloquear un registro 
+- "alter_locked" - modificar un registro bloqueado
+- "alter_locked" - borrar un registro bloqueado. Requiere también de "write_all_trashcan"
+- "alter_locked" - borrar definitivamente un registro bloqueado
+- "alter_locked" - restaurar (undelete) un registro bloqueado
+- "read_all" - acceder a registros de otros usuarios (no incluye los protegidos en folders)
+- "read_all" - listar registros de otros usuarios (no incluye los protegidos en folders)
+- "read_all_folders" - acceder a registros en folders que no se nos han compartido 
+- "read_all_folders" - listar registros en folders que no se nos han compartido
+- "read_all_trashcan" - acceder a  registros de otros en papelera
+- "read_all_trashcan" - listar registros de otros en papelera
+- "write_all" - modificar / borrar registros de otros usuarios (sin alterar su ownership)
+- "write_all_folders" - modificar / borrar registros de otros usuarios en folders (sin alterar su ownership)
+- "write_all_trashcan" - borrar definitivamente / restaurar registros de otros usuarios
+- "transfer" - tranferir un registro o sea cambiar la propiedad (ownership) de un registro (campo belongs_to)
+- S/N - modificar la fecha de creación 
+- S/N - llenar cualquier campo incluso los no-fillables
 
 Roles adicionales o permisos restrictivos no afectan en nada a un admin (sus alcance es inalterado)
 
@@ -1045,7 +1080,7 @@ El sistema tiene un rol virtual que es "guest" para el caso de un usuario que no
 
 Este role virtual no aparece reflejado en /api/v1/userRoles 
 
-Respecto del acceso a "folders", un "guest" o invitado no puede en principio visualizar registros que no pertenezcan a folders con permiso de lectura para "otros" especificando que sea también para guests. <-- chequear 
+Respecto del acceso a "folders", un "guest" o invitado no puede en principio visualizar registros que pertenezcan a folders sin permiso de lectura para "otros" especificando que sea también para guests.  
 
 Es posible brindar acceso de lectura a guests a registros individuales de cualquier recurso si en el Modelo existe el campo guest_access y en el registro en particular vale 1 (true)
 
@@ -1062,8 +1097,7 @@ Los cambios en los permisos individuales al igual que los roles solo se aplican 
 Hay distintas tablas y por tanto distintos endpoints para manejar distintos aspectos de los permisos:
 
 tabla permisions: 
-
-- create, read, update, delete y list
+- show, list, create, update, delete 
 - Son permisos dados por un Admin sobre las tablas para usuarios específicos.
 
 tabla folder_permissions:
@@ -1119,11 +1153,11 @@ Un usuario con rol de administrador en principio obtendrá todos los registros p
 
 <-- obtiene todos los registros indiscriminadamente
 
-Sin embargo también puede restringir a un folder en particular:
+Sin embargo también puede filtrar a un folder en particular:
 
 	GET /api/v1/products?folder=57
 
-Los permisos para los folders se conceden creando entradas en la tabla group_permissions y es importante notar que debe darse explícitamente permiso al owner (así como a los otros usuarios) para que éste ver registros dentro de ese folder.
+Los permisos para los folders se conceden creando entradas en la tabla folder_permissions y es importante notar que debe darse explícitamente permiso al owner (así como a los otros usuarios) para que éste ver registros dentro de ese folder.
 
 Obviamente cada usuario puede listar, editar o borrar sus folders usando el endpoint /api/v1/folders
 
@@ -1184,26 +1218,33 @@ Mismo para borrar un registro perteneciente a un folder es necesario estar "dent
 
 Nota: el acceso a los folders se chequea en base de datos cada vez que se hace un request especificando que el recurso se halla en un folder. No es necesario esperar a que se renueven los tokens para tener acceso a un folder al cual se nos ha concedido permisos. <-- podría cambiarse para incrementar la performance !!!
 
-
 Similarmente a lo que sucede con Model, la clase ApiController también aporta event hooks en particular para los folders los siguientes:
 
 
-    function onReadingFolder() {
+    function onReadingFolderBeforeAuth() {
 
-    }
+    }	    
+
+    function onReadingFolderAfterAuth() {
+
+    }	
 
     function onReadFolder() {
         
     }
 
+    function onWritingFolderBeforeAuth() {
 
-    function onWritingFolder() {
+    }
+
+    function onWritingFolderAfterAuth() {
 
     }
 
     function onWritedFolder() {
         
-    }
+    }       
+    
        
 
 Desde cualquiera de esos métodos es obviamente posible acceder a métodos y propiedades de visibilidad por lo menos protected de la clase Model y en particular a folder y id (del registro). Ej:

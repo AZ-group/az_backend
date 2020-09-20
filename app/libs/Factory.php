@@ -11,8 +11,10 @@ class Factory {
 		return \simplerest\core\Request::getInstance();
 	}
 
+	/*
 	static function check(){
 		$auth = new \simplerest\core\api\v1\AuthController();
         return $auth->check();
 	}
+	*/
 }

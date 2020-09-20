@@ -68,8 +68,6 @@ class Model {
 	
 	function __construct(\PDO $conn = null){
 
-		// echo '^'; 
-
 		if($conn){
 			$this->conn = $conn;
 			$this->conn->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
@@ -1001,13 +999,20 @@ class Model {
 	}
 	
 	function value($field){
+		$this->onReading();
+
 		$q = $this->toSql([$field], NULL, 1);
 		$st = $this->bind($q);
 
-		if ($this->exec && $st->execute())
-			return $st->fetch(\PDO::FETCH_NUM)[0];
-		else
-			return false;	
+		$count = null;
+		if ($this->exec && $st->execute()) {
+			$ret = $st->fetch(\PDO::FETCH_NUM)[0];
+			$count = $st->rowCount();
+		} else
+			$ret = false;
+			
+		$this->onRead($count);
+		return $ret;	
 	}
 
 	function exists(){
