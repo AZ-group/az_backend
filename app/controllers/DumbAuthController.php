@@ -32,11 +32,12 @@ class DumbAuthController extends ResourceController
         foreach ($permissions as $tb => $perms){
             echo "[$tb]\n";
             $perms = (int) $perms;
-            printf("Create: %d, Read: %d, Update: %d, Delete: %d", 
-                ($perms & 8) AND 1, 
-                ($perms & 4) AND 1, 
-                ($perms & 2) AND 1, 
-                ($perms & 1) AND 1
+            printf("List: %d, Show: %d, Create: %d, Update: %d, Delete: %d", 
+                ($perms & 16) AND 1, 
+                ($perms & 8 ) AND 1, 
+                ($perms & 4 ) AND 1, 
+                ($perms & 2 ) AND 1, 
+                ($perms & 1 ) AND 1
             );
         }
     }

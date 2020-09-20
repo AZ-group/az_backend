@@ -4,16 +4,14 @@
 
 - [ ACL ] Posiblemente convertir "admin" en "superadmin" y luego "admin" podría ser un rol más con limitaciones
 
-- [ ACL ] Posiblemente agregar dos nuevos permisos (presentes en Salesforce) que se podrían entregar a ciertos roles:
-
-view_all = permiso para que los usuarios -con este permiso- puedan ver todos los registros de una entidad independientemente de las ocpciones de sharing. Es un permiso típico de un admin / superadmin
-
-modify_all = usuarios -con este permiso- pueden leer, editar, borrar y transferir el ownership de un registro independientemente de las ocpciones de sharing
+- [ ACL ] Nuevos roles
 
 - Id opcionalmente no autoincrementales por seguridad !
 
-- ACL, eventos beforeCheckAccess y afterCheckAccess ?
-https://docs.phalcon.io/3.4/en/acl
+- [ ACL ] Implementar eventos beforeCheckAccess y afterCheckAccess 
+https://docs.phalcon.io/4.0/en/acl
+
+- En ResourceController hay un "use simplerest\core\api\v1\AuthController" pero no debería estar hardcodeada la version
 
 - [ Security ] ¿Qué puedo hacer si hay credenciales comprometidas de un usuario?
 
