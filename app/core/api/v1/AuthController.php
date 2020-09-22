@@ -9,7 +9,6 @@ use simplerest\libs\Factory;
 use simplerest\libs\DB;
 use simplerest\libs\Utils;
 use simplerest\models\UsersModel;
-use simplerest\models\RolesModel;
 use simplerest\models\UserRolesModel;
 use simplerest\libs\Debug;
 use simplerest\libs\Validator;
@@ -80,14 +79,12 @@ class AuthController extends Controller implements IAuth
     private function fetchRoles($uid) : Array {
         $rows = DB::table('user_roles')->setFetchMode('ASSOC')->where(['belongs_to', $uid])->select(['role_id as role'])->get();	
 
-        //Debug::dd(DB::getQueryLog());
+        $acl = include CONFIG_PATH . 'acl.php';
 
         $roles = [];
-        if (count($rows) != 0){            
-            $r = new RolesModel();
-        
+        if (count($rows) != 0){
             foreach ($rows as $row){
-                $roles[] = $r->getRoleName($row['role']);
+                $roles[] = $acl->getRoleName($row['role']);
             }
         }
 
@@ -625,10 +622,10 @@ class AuthController extends Controller implements IAuth
     @return mixed object | null
     */
     function check() {
+        // lo siguiente iría en un hook  !
         //file_put_contents('CHECK.txt', 'HTTP VERB: ' .  $_SERVER['REQUEST_METHOD']."\n", FILE_APPEND);
 
-        $headers = Factory::request()->headers();
-        $auth = $headers['Authorization'] ?? $headers['authorization'] ?? null;
+        $auth = Factory::request()->getAuth();
 
         if (empty($auth))
             return;
@@ -688,7 +685,7 @@ class AuthController extends Controller implements IAuth
             Factory::response()->sendError('Authorization jwt token not found',400);
         }
 
-        return false;
+        //return false;
     }
 
     

@@ -266,7 +266,6 @@ class MySelf extends Controller
         $id = $this->uid;
        
         $data = Factory::request()->getBody();        
-        $folder = $data['folder'] ?? null;
 
         try {    
             $conn = DB::getConnection();

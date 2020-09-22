@@ -1,21 +1,24 @@
 <?php
 
-namespace simplerest\core;
+namespace simplerest\core\api\v1;
 
-use simplerest\core\ResourceController;
+use simplerest\libs\Debug;
 use simplerest\core\Request;
 use simplerest\libs\Factory;
-use simplerest\models\RolesModel;
-use simplerest\core\api\v1\AuthController; // no debería estar hardcodeada la version
+use simplerest\core\Acl;
+use simplerest\core\Controller;
+use simplerest\core\api\v1\AuthController;
+
 
 abstract class ResourceController extends Controller
 {
+    protected $acl;
     protected $auth;
-    protected $roles;
     protected $uid;
-    protected $is_admin;
-    protected $permissions = null;
-    
+    protected $roles = [];
+    protected $permissions = [];
+
+
     protected $headers = [
         'Access-Control-Allow-Headers' => 'Authorization,Content-Type', 
         'Access-Control-Allow-Origin' => '*',
@@ -25,7 +28,7 @@ abstract class ResourceController extends Controller
     ];
 
     function __construct()
-    {       
+    {   
         foreach ($this->headers as $key => $header){
             header("$key: $header");
         } 
@@ -34,51 +37,38 @@ abstract class ResourceController extends Controller
             Factory::response()->sendOK(); // no tocar !
         }
 
-        if (Factory::request()->header('Authorization') == NULL && Factory::request()->header('authorization') == NULL){
+        $this->acl = include CONFIG_PATH . 'acl.php';
+        
+        if (!Factory::request()->hasAuth()){
             $this->uid = null;
-            $this->is_admin = false;
-            $this->roles = ['guest'];
+            $this->roles = [$this->acl->getGuest()];
         }
 
         Factory::response()->asObject();
 
-        //var_dump(Factory::request()->headers());    
-        //var_dump($this->roles);
-
         // auth payload
         $this->auth = (new AuthController())->check();
 
+        //var_dump($this->roles);
         //var_dump($this->auth);
-            
-        if (!empty($this->auth)){
+        //Debug::dd($acl->getRoles());  ///// 
+        //exit;
+        
+        if (!empty($this->auth)) 
+        {
             $this->uid = $this->auth->uid; 
-            $this->permissions = $this->auth->permissions ?? NULL;
-
-            $r = new RolesModel();
-            $this->roles  = $this->auth->roles;              
-            
-            //var_dump($this->roles); ///
-
-            $this->is_admin = false;
-            foreach ($this->roles as $role){
-                if ($role != 'guest' && $r->is_admin($role)){
-                    $this->is_admin = true;
-                    break;
-                }
-            }                
+            $this->roles  = $this->auth->roles;
+            $this->permissions = $this->auth->permissions ?? NULL;                          
         }else{
             $this->uid = null;
-            $this->is_admin = false;
-            $this->roles = ['guest'];
+            $this->roles = [$this->acl->getGuest()];
+            $this->permissions = [];
         }
 
         //var_export($this->roles);
+        //var_export($this->permissions);
                     
         parent::__construct();
-    }
-
-    protected function is_admin(){
-        return $this->is_admin;
     }
 
     protected function getRoles(){
@@ -96,15 +86,11 @@ abstract class ResourceController extends Controller
     }
 
     protected function isGuest(){
-        return $this->roles == ['guest'];
+        return $this->roles == [$this->acl->getGuest()];
     }
 
     protected function isRegistered(){
         return !$this->isGuest();
-    }
-
-    protected function isAdmin(){
-        return $this->is_admin;
     }
 
     protected function hasRole(string $role){

@@ -66,6 +66,14 @@ class Request  implements \ArrayAccess, Arrayable
         return static::$headers[$key] ?? NULL;
     }
 
+    function getAuth(){
+        return static::$headers['Authorization'] ?? static::$headers['authorization'] ?? NULL;
+    }
+
+    function hasAuth(){
+        return static::getAuth() != NULL; 
+    }
+
     function gzip(){
         return in_array('gzip', explode(',', str_replace(' ', '',$this->header('Accept-Encoding'))));
     }

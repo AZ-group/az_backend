@@ -2,18 +2,18 @@
 
 namespace simplerest\core\api\v1;
 
-use simplerest\core\ResourceController;
 use simplerest\core\interfaces\IAuth;
 use simplerest\libs\Factory;
 use simplerest\libs\Arrays;
 use simplerest\libs\DB;
 use simplerest\libs\Debug;
 use simplerest\libs\Url;
+use simplerest\libs\Validator;
 use simplerest\models\FolderPermissionsModel;
 use simplerest\models\FolderOtherPermissionsModel;
 use simplerest\models\FoldersModel;
-use simplerest\models\RolesModel;
-use simplerest\libs\Validator;
+use simplerest\core\Acl;
+use simplerest\core\api\v1\ResourceController;
 use simplerest\core\exceptions\InvalidValidationException;
 
 
@@ -22,7 +22,7 @@ abstract class ApiController extends ResourceController
     static protected $folder_field;
     static protected $soft_delete = true;
 
-    protected $scope;
+    //protected $scope;
     protected $is_listable;
     protected $is_retrievable;
     protected $callable = [];
@@ -55,89 +55,109 @@ abstract class ApiController extends ResourceController
             $this->model_table = strtolower($matchs[1]);
         }   
 
-        $perms = $this->getPermissions($this->model_table);
-        //var_export($perms); exit; ///
-
-        $operations = [ 
-            'show'      => ['get'],
-            'list'      => ['get'],
-            'read'      => ['get'],
-            'create'    => ['post'],
-            'update'    => ['put', 'patch'],
-            'delete'    => ['delete'],
-            'write'     => ['post', 'put', 'patch', 'delete']
-        ];           
-
-        //var_export($this->is_admin);
-
-        // y si ya se que es admin....
-        if ($this->isAdmin()){
-            $this->callable = ['get', 'post', 'put', 'patch', 'delete'];
-        }else{
-            if ($perms !== NULL)
-            {
-                $list     = ($perms & 16) AND 1;
-                $show     = ($perms & 8 ) AND 1;
-                $create   = ($perms & 4 ) AND 1; 
-                $update   = ($perms & 2 ) AND 1; 
-                $delete   = ($perms & 1 ) AND 1;
+        $acl = $this->acl = include CONFIG_PATH . 'acl.php';
         
-                $this->is_listable = (bool) $list;
-                $this->is_retrievable = (bool) $show;
 
+        $perms = $this->getPermissions($this->model_table);
+        
+        if ($perms !== NULL)
+        {
+            $list     = ($perms & 16) AND 1;
+            $show     = ($perms & 8 ) AND 1;
+            $create   = ($perms & 4 ) AND 1; 
+            $update   = ($perms & 2 ) AND 1; 
+            $delete   = ($perms & 1 ) AND 1;
+    
+            $this->is_listable      = (bool) $list;
+            $this->is_retrievable   = (bool) $show;
 
-                // individual permissions *replaces* role permissions
+            // individual permissions *replaces* role permissions
 
-                if ($create)
-                    $this->callable = array_merge($this->callable, $operations['create']); 
+            if ($create)
+                $this->callable = array_merge($this->callable, $operations['create']); 
 
-                if ($show || $list)
-                    $this->callable = array_merge($this->callable, $operations['show']);    
+            if ($show || $list)
+                $this->callable = array_merge($this->callable, $operations['show']);    
 
-                if ($update)
-                    $this->callable = array_merge($this->callable, $operations['update']); 
+            if ($update)
+                $this->callable = array_merge($this->callable, $operations['update']); 
 
-                if ($delete)
-                    $this->callable = array_merge($this->callable, $operations['delete']); 
-            }else{
-                foreach ($this->roles as $role){
-                    if (empty($role))
-                        continue;
+            if ($delete)
+                $this->callable = array_merge($this->callable, $operations['delete']); 
+        }else{
 
-                    if (isset($this->scope[$role])){
-                        $cruds = $this->scope[$role];
-
-                        if (in_array('list', $cruds)   || in_array('read', $cruds)){
-                            $this->is_listable = true;
-                        }
-
-                        if (in_array('show', $cruds)   || in_array('read', $cruds)){
+            switch ($_SERVER['REQUEST_METHOD']) {
+                case 'GET':
+                    if ($this->acl->hasSpecialPermission('read_all', $this->roles)){
+                        $this->callable  = ['get'];
+                        $this->is_listable    = true;
+                        $this->is_retrievable = true;
+                    } else {
+                        if ($this->acl->hasResourcePermission('show', $this->roles, $this->model_table)){
+                            $this->callable  = ['get'];
                             $this->is_retrievable = true;
                         }
-        
-                        if (!empty($this->scope[$role])){
-                            foreach ($operations as $op => $verbs) {
-                                if (in_array($op, $cruds))
-                                    $this->callable = array_merge($this->callable, $verbs);
-                            }
-                        } 
-                    }                       
-                }  
-            }
+
+                        if ($this->acl->hasResourcePermission('list', $this->roles, $this->model_table)){
+                            $this->callable  = ['get'];
+                            $this->is_listable    = true;
+                        }
+                    }  
+                break;
+                
+                case 'POST':
+                    if ($this->acl->hasSpecialPermission('write_all', $this->roles)){
+                        $this->callable  = ['post', 'put', 'patch', 'delete'];;
+                    } else {
+                        if ($this->acl->hasResourcePermission('create', $this->roles, $this->model_table)){
+                            $this->callable  = ['post'];;
+                        }
+                    }  
+                break;    
+
+                case 'PUT':
+                    if ($this->acl->hasSpecialPermission('write_all', $this->roles)){
+                        $this->callable  = ['post', 'put', 'patch', 'delete'];;
+                    } else {
+                        if ($this->acl->hasResourcePermission('update', $this->roles, $this->model_table)){
+                            $this->callable  = ['put'];;
+                        }
+                    }  
+                case 'PATCH':
+                    if ($this->acl->hasSpecialPermission('write_all', $this->roles)){
+                        $this->callable  = ['post', 'put', 'patch', 'delete'];;
+                    } else {
+                        if ($this->acl->hasResourcePermission('update', $this->roles, $this->model_table)){
+                            $this->callable  = ['patch'];;
+                        }
+                    }  
+                break;    
+
+                case 'DELETE':
+                    if ($this->acl->hasSpecialPermission('write_all', $this->roles)){
+                        $this->callable  = ['post', 'put', 'patch', 'delete'];;
+                    } else {
+                        if ($this->acl->hasResourcePermission('delete', $this->roles, $this->model_table)){
+                            $this->callable  = ['delete'];;
+                        }
+                    }  
+                break;
+            } 
+              
         }
+    
 
         $this->impersonated_by = $this->auth->impersonated_by ?? null;
 
-        //var_dump($this->is_listable);
-        //var_dump($this->is_retrievable);
-        //var_dump($this->impersonated_by);
-        //var_export($this->is_admin);
-        //var_dump(['perms' => $perms]);
-        //var_export($this->scope);
-        //var_export($cruds);
-        //var_export($this->callable);
+    
+        //Debug::dump($perms, 'permissions');
+        //Debug::dump($this->roles, 'roles');    
+        //Debug::dump($this->is_listable, 'is_listable?');
+        //Debug::dump($this->is_retrievable, 'is_retrievable?');
+        //Debug::dump($this->callable, 'callables');
+        //Debug::dump($this->impersonated_by, 'impersonated_by);
         //exit;
-
+        
         if (empty($this->callable))
             Factory::response()->sendError("Forbidden", 403, "Operation is not permited");
 
@@ -213,14 +233,14 @@ abstract class ApiController extends ResourceController
     }
  
     /**
-     * hasPerm
+     * hasFolderPermission
      *
      * @param  int    $folder
      * @param  string $operation
      *
      * @return bool
      */
-    protected function hasPerm(int $folder, string $operation)
+    protected function hasFolderPermission(int $folder, string $operation)
     {
         if ($operation != 'r' && $operation != 'w')
             throw new \InvalidArgumentException("Invalid operation '$operation'. It should be 'r' or 'w'.");
@@ -233,8 +253,8 @@ abstract class ApiController extends ResourceController
         $w = $rows[0]['w'] ?? null;
 
         if ($this->isGuest()){
-            $r = $r && $rows[0]['guest'];
-            $w = $w && $rows[0]['guest'];
+            $r = $r && $rows[0][$this->acl->getGuest()];
+            $w = $w && $rows[0][$this->acl->getGuest()];
         }
 
         if (($operation == 'r' && $r) || ($operation == 'w' && $w)) {
@@ -274,7 +294,7 @@ abstract class ApiController extends ResourceController
 
         // Si el rol no le permite a un usuario ver un recurso aunque se le comparta un folder tampoco podrá listarlo
 
-        if (!$this->is_admin) {
+        if (!$this->acl->hasSpecialPermission('read_all', $this->roles)) {
 
             if ($id == null && !$this->is_listable)
                 Factory::response()->sendError('Unauthorized', 403, "You are not allowed to list");    
@@ -392,7 +412,7 @@ abstract class ApiController extends ResourceController
                 if (count($f_rows) == 0 || $f_rows[0]['tb'] != $this->model_table)
                     Factory::response()->sendError('Folder not found', 404);  
         
-                $folder_access = $this->is_admin || $f_rows[0]['belongs_to'] == $this->uid  || $this->hasPerm($folder, 'r');   
+                $folder_access = $this->acl->hasSpecialPermission('read_all_folders', $this->roles) || $f_rows[0]['belongs_to'] == $this->uid  || $this->hasFolderPermission($folder, 'r');   
 
                 if (!$folder_access)
                     Factory::response()->sendError("Forbidden", 403, "You don't have permission for the folder $folder");
@@ -407,8 +427,7 @@ abstract class ApiController extends ResourceController
                 if (empty($folder)){               
                     // root, by id          
                          
-                    if ($this->isGuest()){
-                        
+                    if ($this->isGuest()){                        
                         if ($instance->inSchema(['guest_access'])){
                             $_get[] = ['guest_access', 1];
                         } elseif (!empty(static::$folder_field)) {
@@ -416,7 +435,7 @@ abstract class ApiController extends ResourceController
                         } 
                                                 
                     } else {
-                        if (!$this->isAdmin() && $owned)
+                        if ($owned && !$this->acl->hasSpecialPermission('read_all', $this->roles))
                             $_get[] = ['belongs_to', $this->uid];
                     }
                        
@@ -616,7 +635,7 @@ abstract class ApiController extends ResourceController
 
                 if (empty($folder)){
                     // root, sin especificar folder ni id (lista)   // *             
-                    if (!$this->isGuest() && !$this->is_admin && $owned )
+                    if (!$this->isGuest() && $owned && !$this->acl->hasSpecialPermission('read_all', $this->roles) )
                         $_get[] = ['belongs_to', $this->uid];        
                 }else{
                     // folder, sin id
@@ -805,7 +824,8 @@ abstract class ApiController extends ResourceController
             $instance->setConn($conn);
 
             if ($instance->inSchema(['belongs_to'])){
-                if ($this->is_admin){
+                if ($this->acl->hasSpecialPermission('transfer', $this->roles)){
+                    // sino no digo de quien es, ... es mio 
                     if (!isset($data['belongs_to']))
                         $data['belongs_to'] = $this->uid;
                 }elseif (!$this->isGuest())
@@ -816,7 +836,7 @@ abstract class ApiController extends ResourceController
                 $data['created_by'] = $this->uid;
             }
 
-            if ($this->is_admin){               
+            if ($this->acl->hasSpecialPermission('fill_all', $this->roles)){               
                 $instance->fillAll();
             }
             
@@ -834,7 +854,7 @@ abstract class ApiController extends ResourceController
                 if (count($f_rows) == 0 || $f_rows[0]['tb'] != $this->model_table)
                     Factory::response()->sendError('Folder not found', 404); 
         
-                if ($f_rows[0]['belongs_to'] != $this->uid  && !$this->hasPerm($folder, 'w'))
+                if ($f_rows[0]['belongs_to'] != $this->uid  && !$this->hasFolderPermission($folder, 'w'))
                     Factory::response()->sendError("Forbidden", 403, "You have not permission for the folder $folder");
 
                 unset($data['folder']);    
@@ -885,7 +905,7 @@ abstract class ApiController extends ResourceController
             $model    = 'simplerest\\models\\'.$this->modelName;            
             $this->conn = $conn = DB::getConnection();       
 			
-			if (!$this->is_admin){
+			if (!$this->acl->hasSpecialPermission('lock', $this->roles)){
                 $instance0 = (new $model($conn))->setFetchMode('ASSOC');
                 $row = $instance0->where(['id', $id])->first();
 
@@ -900,7 +920,7 @@ abstract class ApiController extends ResourceController
             $owned = $instance->inSchema(['belongs_to']);
 
             // evito que cualquiera pueda cambiar la propiedad de un registro
-            if (!$this->is_admin){
+            if (!$this->acl->hasSpecialPermission('fill_all', $this->roles)){
                 if (isset($data['belongs_to']))
                     unset($data['belongs_to']);
 
@@ -925,7 +945,7 @@ abstract class ApiController extends ResourceController
                 if (count($f_rows) == 0 || $f_rows[0]['tb'] != $this->model_table)
                     Factory::response()->sendError('Folder not found', 404); 
         
-                if ($f_rows[0]['belongs_to'] != $this->uid  && !$this->hasPerm($folder, 'w'))
+                if ($f_rows[0]['belongs_to'] != $this->uid  && !$this->hasFolderPermission($folder, 'w') && !$this->acl->hasSpecialPermission('write_all_folders', $this->roles))
                     Factory::response()->sendError("You have not permission for the folder $folder", 403);
 
                 $folder_name = $f_rows[0]['name'];
@@ -940,6 +960,7 @@ abstract class ApiController extends ResourceController
                 unset($data['folder']);    
                 $data[static::$folder_field] = $f_rows[0]['name'];
                 $data['belongs_to'] = $f_rows[0]['belongs_to'];    
+                
             } else {
 
                 $instance2 = new $model();
@@ -951,7 +972,7 @@ abstract class ApiController extends ResourceController
                     Factory::response()->code(404)->sendError("Register for id=$id does not exists");
                 }
 
-                if  ($owned && !$this->is_admin && $rows[0]['belongs_to'] != $this->uid)
+                if  ($owned && !$this->acl->hasSpecialPermission('write_all', $this->roles) && $rows[0]['belongs_to'] != $this->uid)
                     Factory::response()->sendError('Forbidden', 403, 'You are not the owner');
                 
             }        
@@ -1059,7 +1080,7 @@ abstract class ApiController extends ResourceController
                 if (count($f_rows) == 0 || $f_rows[0]['tb'] != $this->model_table)
                     Factory::response()->sendError('Folder not found', 404); 
         
-                if ($f_rows[0]['belongs_to'] != $this->uid  && !$this->hasPerm($folder, 'w'))
+                if ($f_rows[0]['belongs_to'] != $this->uid  && !$this->hasFolderPermission($folder, 'w'))
                     Factory::response()->sendError("You have not permission for the folder $folder", 403);
 
                 $folder_name = $f_rows[0]['name'];
@@ -1075,14 +1096,14 @@ abstract class ApiController extends ResourceController
                 $data[static::$folder_field] = $f_rows[0]['name'];
                 $data['belongs_to'] = $f_rows[0]['belongs_to'];    
             } else {
-                if ($owned && !$this->is_admin && $rows[0]['belongs_to'] != $this->uid){
+                if ($owned && !$this->acl->hasSpecialPermission('write_all', $this->roles) && $rows[0]['belongs_to'] != $this->uid){
                     Factory::response()->sendError('Forbidden', 403, 'You are not the owner');
                 }
             }  
 
             $extra = [];
 
-            if ($this->is_admin){
+            if ($this->acl->hasSpecialPermission('lock', $this->roles)){
                 if ($instance->inSchema(['locked'])){
                     $extra = array_merge($extra, ['locked' => 1]);
                 }   
