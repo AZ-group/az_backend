@@ -261,7 +261,7 @@ class AuthController extends Controller implements IAuth
             if (!empty($impersonate_user)){ 
                 $uid = $impersonate_user;
 
-                $row = DB::table('users')
+                $row = DB::table('users')->setFetchMode('ASSOC')
                 ->where([ 'id' =>  $uid ] ) 
                 ->first();
 

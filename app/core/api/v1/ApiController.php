@@ -22,7 +22,6 @@ abstract class ApiController extends ResourceController
     static protected $folder_field;
     static protected $soft_delete = true;
 
-    //protected $scope;
     protected $is_listable;
     protected $is_retrievable;
     protected $callable = [];
@@ -55,35 +54,48 @@ abstract class ApiController extends ResourceController
             $this->model_table = strtolower($matchs[1]);
         }   
 
-        $acl = $this->acl = include CONFIG_PATH . 'acl.php';
-        
+        $this->acl = include CONFIG_PATH . 'acl.php';        
 
         $perms = $this->getPermissions($this->model_table);
         
         if ($perms !== NULL)
         {
-            $list     = ($perms & 16) AND 1;
-            $show     = ($perms & 8 ) AND 1;
-            $create   = ($perms & 4 ) AND 1; 
-            $update   = ($perms & 2 ) AND 1; 
-            $delete   = ($perms & 1 ) AND 1;
-    
-            $this->is_listable      = (bool) $list;
-            $this->is_retrievable   = (bool) $show;
-
             // individual permissions *replaces* role permissions
+            switch ($_SERVER['REQUEST_METHOD']) {
+                case 'GET': 
+                    $this->is_listable     = ($perms & 16) AND 1;
+                    $this->is_retrievable  = ($perms & 8 ) AND 1;
 
-            if ($create)
-                $this->callable = array_merge($this->callable, $operations['create']); 
+                    if ($this->is_listable || $this->is_retrievable){
+                        $this->callable = ['get'];
+                    }
+                break;
+                
+                case 'POST': 
+                    if (($perms & 4 ) AND 1){
+                        $this->callable = ['get'];
+                    }
+                break;    
 
-            if ($show || $list)
-                $this->callable = array_merge($this->callable, $operations['show']);    
+                case 'PUT':
+                    if (($perms & 2 ) AND 1){
+                        $this->callable = ['put'];
+                    }
+				break;
+                      
+                case 'PATCH':
+                    if (($perms & 2 ) AND 1){
+                        $this->callable = ['patch'];
+                    }                      
+                break;    
 
-            if ($update)
-                $this->callable = array_merge($this->callable, $operations['update']); 
-
-            if ($delete)
-                $this->callable = array_merge($this->callable, $operations['delete']); 
+                case 'DELETE': 
+                    if (($perms & 1 ) AND 1){
+                        $this->callable = ['delete'];
+                    }                    
+                break;
+            } 
+ 
         }else{
 
             switch ($_SERVER['REQUEST_METHOD']) {
@@ -123,6 +135,8 @@ abstract class ApiController extends ResourceController
                             $this->callable  = ['put'];;
                         }
                     }  
+                break;
+
                 case 'PATCH':
                     if ($this->acl->hasSpecialPermission('write_all', $this->roles)){
                         $this->callable  = ['post', 'put', 'patch', 'delete'];;

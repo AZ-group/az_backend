@@ -167,6 +167,8 @@ class Model {
 	/*
 		Es complicado hacerlo funcionar y falla cuando se selecciona un único registro
 		quizás por el FETCH_MODE
+
+		Está confirmado que si el FETCH_MODE no es ASSOC, va a fallar
 	*/
 	function applyOutputMutators(?array $rows){
 		if (empty($rows))
