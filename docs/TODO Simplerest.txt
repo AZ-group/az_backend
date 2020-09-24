@@ -4,9 +4,29 @@
 
 - Evitar escalamiento de privilegios !!!! 
 
-  Podría hacerse con un método restrictImpersonateTo() al ACL.
+	- Haciendo como "admin" un impersonate a "superadmin" por rol / uid
+	- Haciendo como "admin" un impersonate de otro "admin" con menos restricciones por uid
+	- Haciendo como "admin" un impersonate un "admin" por rol
+	- Haciendo uso de 'grant' 
+	- Manipulando las tablas de permisos
+	
+	<-- ningún usuario por admin que sea debe poder hacer un impersonate o por otro medio tener algún permiso que no tenga.
+	
 
-  Otra opción sería hacer que un usuario pueda hacer un impersonate a otros usuarios cuyos roles sean iguales o interiores al rol padre de quien usa el impersonate. Para eso necesito armar el árbol de genealógico de roles.
+	Podría hacerse con un método restrictImpersonateTo($roles) al ACL.
+
+	Otra opción sería hacer que un usuario pueda hacer un impersonate a otros usuarios cuyos roles sean iguales o interiores al rol padre de quien usa el impersonate. Para eso necesito armar el árbol de genealógico de roles.
+
+
+	{
+		"role": "superadmin"
+	}
+
+	o
+
+	{
+		"uid": "400"  <-- rol de un superadmin
+	}
 
 
 - Convertir 'permissions' en 'tb_permissions' y tener

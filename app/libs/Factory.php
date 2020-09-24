@@ -11,10 +11,14 @@ class Factory {
 		return \simplerest\core\Request::getInstance();
 	}
 
-	/*
-	static function check(){
-		$auth = new \simplerest\core\api\v1\AuthController();
-        return $auth->check();
+	static function acl(){
+		static $instance;
+
+		if ($instance == null){
+			$instance = new \simplerest\core\Acl();
+		}
+
+        return $instance;
 	}
-	*/
+	
 }

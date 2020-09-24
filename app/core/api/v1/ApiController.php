@@ -12,7 +12,6 @@ use simplerest\libs\Validator;
 use simplerest\models\FolderPermissionsModel;
 use simplerest\models\FolderOtherPermissionsModel;
 use simplerest\models\FoldersModel;
-use simplerest\core\Acl;
 use simplerest\core\api\v1\ResourceController;
 use simplerest\core\exceptions\InvalidValidationException;
 
