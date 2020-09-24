@@ -79,7 +79,7 @@ class AuthController extends Controller implements IAuth
     private function fetchRoles($uid) : Array {
         $rows = DB::table('user_roles')->setFetchMode('ASSOC')->where(['user_id', $uid])->select(['role_id as role'])->get();	
 
-        $acl = include CONFIG_PATH . 'acl.php';
+        $acl = Factory::acl();
 
         $roles = [];
         if (count($rows) != 0){
@@ -234,9 +234,9 @@ class AuthController extends Controller implements IAuth
 
             $roles = $this->fetchRoles($payload->uid);
 
-            $acl = include CONFIG_PATH . 'acl.php';
+            $acl = Factory::acl();
 
-            if (!$acl->hasSpecialPermission("impersonate", $roles) && !(isset($payload->impersonated_by) && !empty($payload->impersonated_by)) ){
+            if (!Factory::acl()->hasSpecialPermission("impersonate", $roles) && !(isset($payload->impersonated_by) && !empty($payload->impersonated_by)) ){
                 Factory::response()->sendError('Unauthorized!',401, 'Impersonate requires elevated privileges');
             }    
         

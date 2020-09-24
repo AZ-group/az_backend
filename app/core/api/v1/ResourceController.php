@@ -35,36 +35,28 @@ abstract class ResourceController extends Controller
         if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
             Factory::response()->sendOK(); // no tocar !
         }
-
-        $this->acl = include CONFIG_PATH . 'acl.php';
         
         if (!Factory::request()->hasAuth()){;
             $this->roles = [$this->acl->getGuest()];
+            $this->permissions = [];
+        } else {
+
+            $this->acl = Factory::acl();
+        
+            // auth payload
+            $this->auth = (new AuthController())->check();
+
+            $this->uid = $this->auth->uid; 
+            $this->roles  = $this->auth->roles;
+            $this->permissions = $this->auth->permissions ?? NULL;   
         }
+
+        //Debug::dump($acl->getRoles(), 'possible roles');  ///// 
+        //Debug::dump($this->roles, 'active roles');
+        //Debug::dump($this->permissions, 'permissions');
 
         Factory::response()->asObject();
 
-        // auth payload
-        $this->auth = (new AuthController())->check();
-
-        //var_dump($this->roles);
-        //var_dump($this->auth);
-        //Debug::dd($acl->getRoles());  ///// 
-        //exit;
-        
-        if (!empty($this->auth)) 
-        {
-            $this->uid = $this->auth->uid; 
-            $this->roles  = $this->auth->roles;
-            $this->permissions = $this->auth->permissions ?? NULL;                          
-        }else{
-            $this->roles = [$this->acl->getGuest()];
-            $this->permissions = [];
-        }
-
-        //var_export($this->roles);
-        //var_export($this->permissions);
-                    
         parent::__construct();
     }
 

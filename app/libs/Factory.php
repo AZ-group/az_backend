@@ -15,10 +15,9 @@ class Factory {
 		static $instance;
 
 		if ($instance == null){
-			$instance = new \simplerest\core\Acl();
+			$instance = include CONFIG_PATH . 'acl.php';
 		}
 
         return $instance;
 	}
-	
 }
