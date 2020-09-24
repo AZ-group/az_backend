@@ -16,7 +16,7 @@ return [
 	*/	
 	'REMOVE_API_SLUG' => false, 
 	'HTTPS' => 'Off',
-	'DEFAULT_CONTROLLER' => 'ProductsController',
+	'DEFAULT_CONTROLLER' => NULL,
 
 	'database' => [
 		'host' => 'localhost',

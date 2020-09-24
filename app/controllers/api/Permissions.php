@@ -11,12 +11,6 @@ use simplerest\libs\Debug;
 
 class Permissions extends MyApiController
 { 
-    protected $scope = [
-        'guest'      => [], 
-        'basic'      => [],
-        'regular'    => ['show', 'list']
-    ];
-
     function __construct()
     {       
         parent::__construct();

@@ -10,14 +10,11 @@ class Products extends MyApiController
 
     function __construct()
     {       
-        $this->scope['guest'] = ['read'];
-        $this->scope['basic'] = ['read'];
-        $this->scope['regular'] = ['read', 'write'];
-
         parent::__construct();
     }
 
     
+    /*
     function onReadingFolderBeforeAuth() {
         echo 'BEFORE AUTH';
         var_dump("Reading folder {$this->folder} with id={$this->id}");
@@ -26,11 +23,6 @@ class Products extends MyApiController
     function onReadingFolderAfterAuth() {
         echo 'AFTER AUTH ';
         var_dump("Reading folder {$this->folder} with id={$this->id}");
-    }
-
-    /*
-    function onWritingFolder() {
-        var_dump("Writing folder {$this->folder} with id={$this->id}");
     }
     */
     

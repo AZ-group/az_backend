@@ -77,7 +77,7 @@ class AuthController extends Controller implements IAuth
     }
 
     private function fetchRoles($uid) : Array {
-        $rows = DB::table('user_roles')->setFetchMode('ASSOC')->where(['belongs_to', $uid])->select(['role_id as role'])->get();	
+        $rows = DB::table('user_roles')->setFetchMode('ASSOC')->where(['user_id', $uid])->select(['role_id as role'])->get();	
 
         $acl = include CONFIG_PATH . 'acl.php';
 
@@ -234,20 +234,23 @@ class AuthController extends Controller implements IAuth
 
             $roles = $this->fetchRoles($payload->uid);
 
-            if (!in_array("admin",$roles) && !(isset($payload->impersonated_by) && !empty($payload->impersonated_by)) ){
-                Factory::response()->sendError('Unauthorized!',401, 'Impersonate requires you are admin');
+            $acl = include CONFIG_PATH . 'acl.php';
+
+            if (!$acl->hasSpecialPermission("impersonate", $roles) && !(isset($payload->impersonated_by) && !empty($payload->impersonated_by)) ){
+                Factory::response()->sendError('Unauthorized!',401, 'Impersonate requires elevated privileges');
             }    
-            
+        
+            $guest_role = $acl->getGuest();
+
             if (!empty($impersonate_role)){
-                if ($impersonate_role == 'guest'){
+                if ($impersonate_role == $guest_role){
                     $uid = -1;
-                    $roles = ['guest'];
+                    $roles = [$guest_role];
                     $perms = [];
                     $active = null;
                 } else {
-                    $r = new RolesModel();
 
-                    if ($r->get_role_id($impersonate_role) === NULL){
+                    if (!$acl->roleExists($impersonate_role)){
                         Factory::response()->sendError("Bad request", 400, "Role $impersonate_role is not valid");
                     }
 
@@ -257,6 +260,7 @@ class AuthController extends Controller implements IAuth
                     $active = 1; // asumo está activo
                 }    
             }
+
 
             if (!empty($impersonate_user)){ 
                 $uid = $impersonate_user;
@@ -282,7 +286,7 @@ class AuthController extends Controller implements IAuth
 
             $impersonated_by = $payload->impersonated_by ?? $payload->uid;
 
-            $access  = $this->gen_jwt(['uid' => $uid, 
+            $access  = $this->gen_jwt([ 'uid' => $uid, 
                                         'roles' => $roles, 
                                         'permissions' => $perms,
                                         'impersonated_by' => $impersonated_by,
@@ -348,7 +352,9 @@ class AuthController extends Controller implements IAuth
         }	
 
         $uid = $payload->impersonated_by;
-        $roles = ["admin"];
+        
+        $roles = $this->fetchRoles($uid);
+        $perms = $this->fetchPermissions($uid);
 
         //////
         
@@ -356,7 +362,7 @@ class AuthController extends Controller implements IAuth
             
             $access  = $this->gen_jwt([ 'uid' => $uid, 
                                         'roles' => $roles, 
-                                        'permissions' => [],
+                                        'permissions' => $perms,
                                         'active' => 1
             ], 'access_token');
 
@@ -541,11 +547,8 @@ class AuthController extends Controller implements IAuth
 
             if (!empty($roles))
             {
-                $r  = new RolesModel();
-                $ur = DB::table('userRoles');
-
                 foreach ($roles as $role) {
-                    $role_id = $r->get_role_id($role);
+                    $role_id = $this->acl->getRoleId($role);
 
                     if ($role_id == null){
                         throw new Exception("Role $role is invalid");

@@ -10,14 +10,7 @@ use simplerest\libs\Debug;
 
 class Files extends MyApiController
 { 
-    //static protected $owned = false;
     static protected $soft_delete = false;
-
-    protected $scope = [
-        'guest'      => ['show'],  
-        'basic'      => ['show', 'list', 'write'],
-        'regular'    => ['show', 'write']
-    ];
 
     function __construct()
     {   
@@ -45,7 +38,7 @@ class Files extends MyApiController
 
         $uploaded = [];
         foreach ($files as list($filename_ori, $filename_as_stored)){           
-            if ($this->isAdmin()){
+            if ($this->isAdmin()){ // transfer
                 if (isset($data['belongs_to']))
                     $belongs_to = $data['belongs_to'];    
             } else 

@@ -5,7 +5,6 @@ namespace simplerest\core\api\v1;
 use simplerest\libs\Debug;
 use simplerest\core\Request;
 use simplerest\libs\Factory;
-use simplerest\core\Acl;
 use simplerest\core\Controller;
 use simplerest\core\api\v1\AuthController;
 
@@ -39,8 +38,7 @@ abstract class ResourceController extends Controller
 
         $this->acl = include CONFIG_PATH . 'acl.php';
         
-        if (!Factory::request()->hasAuth()){
-            $this->uid = null;
+        if (!Factory::request()->hasAuth()){;
             $this->roles = [$this->acl->getGuest()];
         }
 
@@ -60,7 +58,6 @@ abstract class ResourceController extends Controller
             $this->roles  = $this->auth->roles;
             $this->permissions = $this->auth->permissions ?? NULL;                          
         }else{
-            $this->uid = null;
             $this->roles = [$this->acl->getGuest()];
             $this->permissions = [];
         }

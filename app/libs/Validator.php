@@ -62,7 +62,9 @@ class Validator implements IValidator
 		}elseif($tipo == 'alpha_num'){                                     
 			return (preg_match('/^[a-z0-9]+$/i',$dato) == 1);
 		}elseif($tipo == 'alpha_dash'){                                     
-			return (preg_match('/^[a-z\-_]+$/i',$dato) == 1); 
+			return (preg_match('/^[a-z\-_]+$/i',$dato) == 1);
+		}elseif($tipo == 'alpha_num_dash'){                                     
+			return (preg_match('/^[a-z0-9\-_]+$/i',$dato) == 1);
 		}elseif($tipo == 'alpha_spaces'){                                     
 			return (preg_match('/^[a-z ]+$/i',$dato) == 1);  
 		}elseif($tipo == 'alpha_utf8'){                                     

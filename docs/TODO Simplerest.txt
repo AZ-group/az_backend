@@ -2,16 +2,67 @@
 
 - Definir DB !!!
 
-- [ ACL ] Posiblemente convertir "admin" en "superadmin" y luego "admin" podría ser un rol más con limitaciones
+- Evitar escalamiento de privilegios !!!! 
 
-- [ ACL ] Nuevos roles
+  Podría hacerse con un método restrictImpersonateTo() al ACL.
 
-- Id opcionalmente no autoincrementales por seguridad !
+  Otra opción sería hacer que un usuario pueda hacer un impersonate a otros usuarios cuyos roles sean iguales o interiores al rol padre de quien usa el impersonate. Para eso necesito armar el árbol de genealógico de roles.
+
+
+- Convertir 'permissions' en 'tb_permissions' y tener
+
+  "permissions":[
+    "tb": [ ],
+    "sp": [ ]	
+  ]
+
+- Reparar 
+
+    MySelf / Me
+    Trashcan
+    Collections
+    DownloadController
+    FacebookController
+    GoogleController
+    LoginController
+    Roles     
+
+- Analizar en cada request (y en promedio) de cuánto tiempo es la ejecución de cada componente del sistema (FrontController, ApiController, AuthController, Model, DB, etc)
+
+- Hacer algo similar a Faker 
+https://github.com/fzaninotto/Faker
+https://anchetawern.github.io/blog/2016/01/28/generating-fake-data-in-php-with-faker/
+
+
+- Analizar la API con alguna herramineta cono jMeter
+
+https://medium.com/@chamikakasun/rest-api-load-testing-with-apache-jmeter-a4d25ea2b7b6
+https://www.blazemeter.com/blog/rest-api-testing-how-to-do-it-right
+https://developers.redhat.com/blog/2015/04/30/how-to-load-test-and-tune-performance-on-your-api/
+
+- Correr algún test de stress sobre la API Rest.
+
+- Como realizar pruebas de stress 
+
+https://www.sisense.com/blog/rest-api-testing-strategy-what-exactly-should-you-test/
+
+
+- Actualizar la documentación
+
+- Chequear phpFastCache
+https://www.phpfastcache.com/
+
+- Chequear que no sea posible el escalamiento de privilegios otorgando roles o permisos.
+
+- Chequear el acceso a tablas como permissions, folder_permissions y other_folder_permissions
+
+- Poseer el permiso 'grant' no debería habilitar a que quien lo sea lo otorgue a otros para lo cual haría falta el permiso 'super'.
+
+- Id opcionalmente no autoincrementales por seguridad ! usar UUID(s) en su lugar
+https://www.php.net/manual/en/function.uniqid.php <-- no este
 
 - [ ACL ] Implementar eventos beforeCheckAccess y afterCheckAccess 
 https://docs.phalcon.io/4.0/en/acl
-
-- En ResourceController hay un "use simplerest\core\api\v1\AuthController" pero no debería estar hardcodeada la version
 
 - [ Security ] ¿Qué puedo hacer si hay credenciales comprometidas de un usuario?
 
@@ -22,31 +73,6 @@ Se podría invalidar el access token del usuario y lo bueno es que solo es neces
 Aún sin implementar invalidación de tokens es posible expulsar a todos los usuarios y obligarlos a loguearse nuevamente cambiando las secret keys. Advertencia: si alguién se hubiera hecho con un access token podría haber cambiado la contraseña y si posee el refresh token puede volver a loguearse sin problemas. Obviamente si los tokens son de un usuario con elevados privilegios puede haber alterado permisos de mínima sobre registros y folders. 
 
 - Arreglar la falta de normalización de los folders.
-
--  [ Incoherente ] Un vendedor no podría ver los productos listados por otro vendedor si estuviera logueado siendo que un guest podría verlo. Esto es porque actualmente no hay herencia de roles pero todos los roles deberían heredar de guest (tener más permisos)
-
-guest
-registered
-A
-B
-...
-admin
-
-Herencia posible:
-
-guest <-- registered
-registered <-- A
-registered <-- B
-...
-
-
-Usar guest_access = 1 en cada registro de la tabla *tampoco* es la solución porque sería equivalente a el permiso "list" sobre la tabla.
-
-Soluciones:
-
-  * Herencia entre roles <-- complicado de implementar
-  * Que cada vendedor tenga un folder y lo comparta con "otros" incluido los "guest".  <-- poco eficiente
-  * root_access = true sobre todo el recurso. <-- suena a parche
 
 - Generar Modelos, Controladores y APIs via comando (sin sobre-escribir existente excepto que se especifique y posiblemente se confimre) basado en plantillas. ***
 
@@ -191,11 +217,13 @@ https://csapi.dev.claroshop.com/app/v1/product?page_size=5
         "currentPage": XXX,
         "totalPages": XXX,
 
-- Redis con API Rest ?
+- Redis con API Rest ? SI ! implementar serializacion del ACL y caché para todo incluidas las consultas 
+https://docs.phalcon.io/4.0/en/acl#serialization
+
 
 - Implementar notificaciones push o reverse API.
 
-- Reparar error en OutputMutator() 
+- Solucionar que applyOutputMutators() requiere que que el fetch mode sea ASSOC. Esto hace que falle first() por ejemplo si el modo es otro.
 
 - Usar Midlewares para evitar tener que hardcodear la clase Auth
 
@@ -236,10 +264,6 @@ Convertir a minúsculas como hace NodeJs.
 
 https://stackoverflow.com/questions/5258977/are-http-headers-case-sensitive
 
-- En el config.php colocar:
-
-'JWT_AUTH_CORS_ENABLE' => true
-
 
 - Incluir sub-Resources, ej:
 
@@ -278,6 +302,17 @@ Leer en detalle:
 https://www.sitepoint.com/php-fractal-make-your-apis-json-pretty-always/
 
 
+API Call	                              Action
+----------------------------------------------------------------------------
+GET /users	                            List all users 
+GET /users?name={username}  	          Get user by username
+GET /users/{id}	                        Get user by ID
+GET /users/{id}/configurations	        Get all configurations for user        *
+POST /users/{id}/configurations	        Create a new configuration for user    * 
+DELETE /users/{id}/configurations/{id}	Delete configuration for user          *
+PATCH /users/{id}/configuration/{id}	  Update configuration for user          * 
+
+
 - Usar métodos encadenados para simplificar la creación de reglas que actualmente se hace escribiendo directamente el array $rules en el modelo.
 
 protected $rules = [
@@ -310,6 +345,12 @@ Objetivo: poder crear recursos de nuestra propiedad en carpetas ajenas donde ló
 
 SI está en un folder y no es de mi propiedad ni soy el admin ni tengo permiso de escritura =>
 NO debebería poder restaurar el registro.***
+
+
+- Revisar estos enlaces:
+
+https://github.com/DamianGonzalez27/Ivy/blob/master/Packages/Charger.php
+
 
 - Revisar implementación de first() y hacer findOrFail() y firstOrFail()
 
@@ -444,11 +485,6 @@ Justificación: un caso de uso sería que un usuario con rol de gerente por ejem
 Más
 https://nordicapis.com/everything-you-need-to-know-about-api-pagination/
 https://www.moesif.com/blog/technical/api-design/REST-API-Design-Filtering-Sorting-and-Pagination/#
-
-
-- El framework podría migrarse a Phalcon
-
-https://www.toptal.com/phalcon/phalcon-php-restful-apis
 
 
 - Ante una excepción del modelo imprimir la consulta SQL

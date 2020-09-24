@@ -139,7 +139,7 @@ class GoogleController extends Controller
                 if (count($rows) > 0){         
                     $r = new RolesModel();           
                     foreach ($rows as $row){
-                        $roles[] = $r->getRoleName($row['role_id']);
+                        $roles[] = $r->get_role_name($row['role_id']);
                     }
                 }
                     

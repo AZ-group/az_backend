@@ -15,7 +15,7 @@ class UserRolesModel extends Model
 	*/
 	protected $schema = [
 		'id' => 'INT',
-		'belongs_to' => 'INT',
+		'user_id' => 'INT',
 		'role_id' => 'INT',
 		'created_at'  => 'STR',
 		'updated_at'  => 'STR'

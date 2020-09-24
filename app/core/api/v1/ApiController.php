@@ -54,8 +54,6 @@ abstract class ApiController extends ResourceController
             $this->model_table = strtolower($matchs[1]);
         }   
 
-        $this->acl = include CONFIG_PATH . 'acl.php';        
-
         $perms = $this->getPermissions($this->model_table);
         
         if ($perms !== NULL)

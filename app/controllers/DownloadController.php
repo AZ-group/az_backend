@@ -2,7 +2,7 @@
 
 namespace simplerest\controllers;
 
-use simplerest\core\ResourceController;
+use simplerest\core\api\v1\ResourceController;
 use simplerest\core\Request;
 use simplerest\libs\Factory;
 use simplerest\libs\DB;

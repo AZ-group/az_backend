@@ -9,15 +9,6 @@ class Acl
     protected $role_names = [];
     protected $current_role;
     protected $guest_name = 'guest';
-    protected $tb_permissions_allowed = [ 
-        'list',
-        'show',
-        'create',
-        'update',
-        'delete',
-        'read',
-        'write'
-    ];
     protected $sp_permissions_allowed = [
         'read_all',
         'write_all',
@@ -27,6 +18,7 @@ class Acl
         'write_all_trashcan',
         'lock',
         'transfer',
+        'impersonate',
         'fill_all',
         'grant'
     ]; 
@@ -193,7 +185,7 @@ class Acl
 
     
     /*
-        Static methods
+        Methods which could be static
     */
 
     public function setGuest(string $guest_name){
@@ -223,7 +215,7 @@ class Acl
         throw new \Exception("Undefined role with id '$role_name'");
     }
 
-    public function getRoleId($role_name){
+    public function getRoleId(string $role_name){
         if (isset($this->roles[$role_name])){
             return $this->roles[$role_name]['role_id'];
         }
@@ -231,6 +223,12 @@ class Acl
         throw new \Exception("Undefined role with name '$role_name'");
     }
 
+    public function roleExists(string $role_name){
+        return isset($this->roles[$role_name]);
+    }
+
+    // sería mucho más rápido si pudiea acceder como $sp_permissions['perm']['role']
+    // solo sería hacer un isset($sp_permissions['perm']['role'])
     public function hasSpecialPermission(string $perm, Array $role_names){
         if (!in_array($perm, $this->sp_permissions_allowed)){
             throw new \InvalidArgumentException("hasSpecialPermission : invalid permission '$perm'");    

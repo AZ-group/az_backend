@@ -15,20 +15,12 @@ class MyApiController extends ApiController
 {
     static protected $folder_field;
         
-    // ACL   
-    protected $scope = [
-        'guest'      => [],  
-        'basic'      => ['read'],
-        'regular'    => ['read', 'write']
-    ];
-
     function __construct()
     {
         // CORS
         $headers = [
             'access-control-allow-Origin' => '*'
-        ];
-   
+        ];   
         
         $auth = new \simplerest\controllers\AuthController();
         parent::__construct($headers, $auth);

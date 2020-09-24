@@ -30,6 +30,9 @@ if (!defined('CORE_PATH'))
 if (!defined('MODELS_PATH'))
     define('MODELS_PATH', APP_PATH . 'models'. DIRECTORY_SEPARATOR);    
 
+if (!defined('SECURITY_PATH'))
+    define('SECURITY_PATH', APP_PATH . 'security'. DIRECTORY_SEPARATOR);    
+
 if (!defined('VIEWS_PATH'))
     define('VIEWS_PATH', APP_PATH .  'views' . DIRECTORY_SEPARATOR);  
 

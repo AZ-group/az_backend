@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: localhost
--- Tiempo de generación: 19-09-2020 a las 00:15:43
+-- Tiempo de generación: 24-09-2020 a las 05:25:18
 -- Versión del servidor: 10.4.11-MariaDB
 -- Versión de PHP: 7.4.3
 
@@ -135,7 +135,7 @@ CREATE TABLE `folder_other_permissions` (
 --
 
 INSERT INTO `folder_other_permissions` (`id`, `folder_id`, `belongs_to`, `guest`, `r`, `w`) VALUES
-(1, 4, 90, 1, 0, 0),
+(1, 4, 90, 1, 1, 0),
 (2, 5, 87, 0, 1, 1),
 (4, 6, 90, 1, 1, 0),
 (5, 9, 4, 1, 1, 0);
@@ -162,7 +162,8 @@ CREATE TABLE `folder_permissions` (
 INSERT INTO `folder_permissions` (`id`, `folder_id`, `belongs_to`, `access_to`, `r`, `w`) VALUES
 (1, 1, 1, 4, 1, 1),
 (2, 2, 72, 79, 1, 1),
-(3, 4, 90, 87, 1, 1);
+(3, 4, 90, 87, 1, 1),
+(4, 5, 87, 360, 1, 1);
 
 -- --------------------------------------------------------
 
@@ -286,7 +287,7 @@ INSERT INTO `products` (`id`, `name`, `description`, `size`, `cost`, `created_at
 (122, 'Cerveza de malta', 'Pichu', '1L', 100, '2018-12-29 00:00:00', NULL, '2019-11-24 22:47:00', NULL, '2019-11-25 02:47:00', NULL, 1, 1, NULL, 90),
 (123, 'PesiLoca', 'x_x', '2L', 30, '2018-12-16 00:00:00', NULL, '2019-11-17 07:48:25', NULL, '2019-11-17 07:48:25', NULL, 1, 0, 'mylist', 90),
 (125, 'Vodka', '', '3L', 350, '2017-01-10 00:00:00', NULL, '2019-12-13 08:54:23', NULL, '2019-12-13 12:54:23', NULL, 1, 0, 'lista publica', 90),
-(126, 'Uvas fermentadas', 'Espectaculare', '5L', 52, '2019-06-24 00:00:00', NULL, '2020-09-16 10:01:02', 4, NULL, NULL, 1, 0, 'lista publica', 90),
+(126, 'Uvas ricas', 'Espectaculare', '5L', 52, '2019-06-24 00:00:00', NULL, '2020-09-22 16:05:08', 90, NULL, NULL, 1, 0, 'lista publica', 90),
 (131, 'Vodka', 'de Estados Unidos!', '1L', 499, '2019-06-04 00:00:00', NULL, '2020-01-03 21:18:16', 90, NULL, NULL, 1, 0, 'secreto', 4),
 (132, 'Ron venezolano', 'Rico rico', '1L', 100, '2019-10-03 00:00:00', NULL, '2019-12-22 10:11:31', NULL, '2019-12-22 14:11:31', NULL, 1, 0, NULL, 90),
 (133, 'Vodka venezolano', 'de Vzla', '1.15L', 100, '2019-09-19 00:00:00', NULL, '2020-01-03 21:18:00', 90, NULL, NULL, 1, 0, NULL, 90),
@@ -300,7 +301,7 @@ INSERT INTO `products` (`id`, `name`, `description`, `size`, `cost`, `created_at
 (155, 'Super-jugo', 'BBB', '12', 100, '2019-09-22 00:00:00', NULL, '2020-01-17 11:15:24', NULL, NULL, NULL, 1, 1, NULL, 5),
 (159, 'Agua minerale', 'x_x', '2L', 1150, '2019-10-14 18:08:45', NULL, '2020-09-09 19:09:55', 4, '2020-09-09 19:11:08', 4, 1, 0, NULL, 90),
 (160, 'Limonada', 'Rica', '500ML', 210, '2019-10-23 14:05:30', NULL, '2019-12-22 11:58:48', NULL, '2019-12-12 00:00:00', NULL, 1, 0, NULL, 90),
-(162, 'Juguito de Mabelita', 'de manzanas exprimidas', '2L', 250, '2019-10-25 08:36:26', NULL, '2019-11-12 12:49:52', NULL, NULL, NULL, 1, 0, NULL, 113),
+(162, 'Juguito de Mabelita', 'de manzanas exprimidas', '2L', 250, '2019-10-25 08:36:26', NULL, '2019-11-12 12:49:52', NULL, '2020-09-22 15:50:49', 9, 1, 0, NULL, 113),
 (163, 'ABC', 'XYZ', '6L', 600, '2019-10-26 10:05:00', NULL, '2019-11-07 00:29:25', NULL, NULL, NULL, 1, 1, NULL, 1),
 (164, 'Vodka', 'de Holanda', '33L', 333, '2019-10-26 19:48:26', NULL, '2019-10-29 18:33:57', NULL, NULL, NULL, 1, 0, NULL, 112),
 (165, 'Vodka', 'de Suecia', '0.5L', 105, '2019-10-26 22:38:39', NULL, '2020-01-17 22:47:48', 90, '2020-01-18 02:47:48', NULL, 1, 0, NULL, 90),
@@ -341,10 +342,10 @@ INSERT INTO `products` (`id`, `name`, `description`, `size`, `cost`, `created_at
 (205, 'Supreme jugooo', 'de manzanas exprimidas', '1L', 250, '2019-11-11 14:09:52', NULL, NULL, NULL, NULL, NULL, 1, 0, 'lista', 87),
 (206, 'Juguito de tomate de árbol', 'Ecuador', '1L', 200, '2019-11-11 15:14:36', NULL, '2019-11-11 16:26:34', NULL, NULL, NULL, 1, 0, 'lista publica', 90),
 (207, 'Juguito de tomate papaya', NULL, '1L', 150, '2019-11-11 15:15:05', NULL, '2019-11-11 15:41:32', NULL, NULL, NULL, 1, 0, 'lista', 87),
-(208, 'Juguito de tomate pitaya', NULL, '1L', 450, '2019-11-11 15:15:16', NULL, NULL, NULL, NULL, NULL, 1, 0, 'lista', 87),
+(208, 'Juguito de tomate pitaya', NULL, '1.1L', 450, '2019-11-11 15:15:16', NULL, '2020-09-18 23:12:54', 360, '2020-09-18 23:14:30', 360, 1, 0, 'lista', 87),
 (209, 'AAA', '', '', 0, '2019-11-12 12:50:01', NULL, '2019-11-12 12:50:04', NULL, '2019-11-12 12:50:04', NULL, 1, 0, NULL, 113),
 (211, 'EEEE', '', '', 50, '2019-11-27 17:06:24', NULL, '2019-11-30 23:22:41', NULL, '2019-12-01 03:22:41', NULL, 1, 0, NULL, 159),
-(212, 'RRR', '', '', 0, '2019-11-27 18:01:44', NULL, '2019-11-27 18:01:50', NULL, '2019-11-27 22:01:50', NULL, 1, 0, NULL, 160),
+(212, 'Uvas ricas 2', '', '', 0, '2019-11-27 18:01:44', NULL, '2020-09-22 22:59:36', 168, '2020-09-22 22:59:55', 168, 1, 0, NULL, 168),
 (213, 'E%$', '', '', 0, '2019-11-27 18:02:17', NULL, NULL, NULL, NULL, NULL, 1, 0, NULL, 160),
 (214, 'TTT', '', '', 0, '2019-11-28 00:01:02', NULL, NULL, NULL, NULL, NULL, 1, 0, NULL, 167),
 (215, 'Vino tinto', '', '', 100, '2019-11-30 11:13:05', NULL, '2019-11-30 11:26:13', NULL, NULL, NULL, 1, 0, NULL, 168),
@@ -367,7 +368,9 @@ INSERT INTO `products` (`id`, `name`, `description`, `size`, `cost`, `created_at
 (274, 'EEE4', NULL, '', 50, '2020-01-16 16:10:34', 4, '2020-01-18 19:32:19', 90, '2020-01-18 23:32:19', NULL, 1, 0, NULL, 90),
 (276, 'some product', NULL, '', 700, '2020-09-18 11:20:39', 360, NULL, NULL, NULL, NULL, 1, 0, NULL, 360),
 (277, 'other product', NULL, '', 750, '2020-09-18 11:20:50', 360, NULL, NULL, NULL, NULL, 1, 0, NULL, 360),
-(278, 'expensive product', NULL, '', 1000, '2020-09-18 11:21:27', 360, NULL, NULL, NULL, NULL, 1, 0, NULL, 360);
+(278, 'expensive product', NULL, '', 1000, '2020-09-18 11:21:27', 360, NULL, NULL, NULL, NULL, 1, 0, NULL, 360),
+(279, 'ssss', NULL, '', 110, '2020-09-19 19:44:15', 48, NULL, NULL, NULL, NULL, 1, 0, NULL, 48),
+(280, 'uuu', NULL, '', 770, '2020-09-19 19:44:28', 48, NULL, NULL, NULL, NULL, 1, 0, NULL, 48);
 
 -- --------------------------------------------------------
 
@@ -561,7 +564,9 @@ INSERT INTO `users` (`id`, `username`, `active`, `locked`, `email`, `confirmed_e
 (355, 'r500', NULL, 0, '500@mail.com', 1, NULL, NULL, '$2y$10$hYayobcJ/UW4UcZWR6GH1u2106o22Oz6R38ZVfZMLIm0P6MsFgjgO', NULL, 355),
 (356, 'rr500', NULL, 0, 'rr500@mail.com', 1, NULL, NULL, '$2y$10$NE/mGDJ22K3MwghbGcqqveh.K.5l1YvrwOhntCJG2Mq1TA9rsKF36', NULL, 356),
 (357, 'rr5000', NULL, 0, 'rr5000@mail.com', 1, NULL, NULL, '$2y$10$0yoHyh9CshfcX6FT2F6zGuZzzZfJdKtvNJqG/uByNau7xFMwzGsbq', NULL, 357),
-(360, 'rr5001', 1, 0, 'rr5001@mail.com', 1, NULL, NULL, '$2y$10$cGezyeUuRKB3BQYNzm/2A.COwInJKgM5Tb1QszWPwrw2z127o7Pom', NULL, 360);
+(360, 'rr5001', 1, 0, 'rr5001@mail.com', 1, NULL, NULL, '$2y$10$cGezyeUuRKB3BQYNzm/2A.COwInJKgM5Tb1QszWPwrw2z127o7Pom', NULL, 360),
+(361, 'super', 1, 0, 'super@gmail.com', 1, 'Kah', 'El', '$2y$10$gKCArzCICX5fPa9/xJDYvufbpguJh5QRnUdC2jmqTpOZtpb7uhnB6', NULL, 9),
+(400, 'master', 1, 0, 'master@gmail.com', 1, 'Peter', 'Parker', '$2y$10$vcuEqmFdcAlGm35JNLaUCe7saJMwl5mVAK82PLvMHGC.qDpoGE78i', NULL, 9);
 
 -- --------------------------------------------------------
 
@@ -571,7 +576,7 @@ INSERT INTO `users` (`id`, `username`, `active`, `locked`, `email`, `confirmed_e
 
 CREATE TABLE `user_roles` (
   `id` int(11) NOT NULL,
-  `belongs_to` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
   `role_id` int(11) NOT NULL,
   `created_at` datetime NOT NULL,
   `updated_at` datetime DEFAULT NULL
@@ -581,7 +586,7 @@ CREATE TABLE `user_roles` (
 -- Volcado de datos para la tabla `user_roles`
 --
 
-INSERT INTO `user_roles` (`id`, `belongs_to`, `role_id`, `created_at`, `updated_at`) VALUES
+INSERT INTO `user_roles` (`id`, `user_id`, `role_id`, `created_at`, `updated_at`) VALUES
 (1, 5, 2, '2019-10-18 21:58:10', '2019-10-18 21:58:10'),
 (2, 1, 100, '2019-10-18 21:58:10', '2019-10-18 21:58:10'),
 (3, 4, 100, '2019-10-18 21:58:10', '2019-10-18 21:58:10'),
@@ -667,7 +672,9 @@ INSERT INTO `user_roles` (`id`, `belongs_to`, `role_id`, `created_at`, `updated_
 (143, 356, 3, '2020-09-15 23:58:48', NULL),
 (144, 357, 3, '2020-09-16 00:03:25', NULL),
 (147, 360, 3, '2020-09-16 00:12:22', NULL),
-(148, 90, 2, '2020-09-16 09:58:40', NULL);
+(148, 90, 2, '2020-09-16 09:58:40', NULL),
+(149, 53, 2, '0000-00-00 00:00:00', NULL),
+(150, 400, 500, '2020-09-23 23:43:37', NULL);
 
 --
 -- Índices para tablas volcadas
@@ -748,6 +755,7 @@ ALTER TABLE `products`
 ALTER TABLE `users`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `username` (`username`),
+  ADD UNIQUE KEY `email_2` (`email`),
   ADD KEY `belongs_to` (`belongs_to`),
   ADD KEY `email` (`email`);
 
@@ -756,8 +764,8 @@ ALTER TABLE `users`
 --
 ALTER TABLE `user_roles`
   ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `user_id_2` (`belongs_to`,`role_id`),
-  ADD KEY `user_id` (`belongs_to`),
+  ADD UNIQUE KEY `user_id_2` (`user_id`,`role_id`),
+  ADD KEY `user_id` (`user_id`),
   ADD KEY `role_id` (`role_id`);
 
 --
@@ -792,7 +800,7 @@ ALTER TABLE `folder_other_permissions`
 -- AUTO_INCREMENT de la tabla `folder_permissions`
 --
 ALTER TABLE `folder_permissions`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT de la tabla `messages`
@@ -810,19 +818,19 @@ ALTER TABLE `permissions`
 -- AUTO_INCREMENT de la tabla `products`
 --
 ALTER TABLE `products`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=279;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=281;
 
 --
 -- AUTO_INCREMENT de la tabla `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=361;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=401;
 
 --
 -- AUTO_INCREMENT de la tabla `user_roles`
 --
 ALTER TABLE `user_roles`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=149;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=151;
 
 --
 -- Restricciones para tablas volcadas
@@ -835,10 +843,46 @@ ALTER TABLE `collections`
   ADD CONSTRAINT `collections_ibfk_1` FOREIGN KEY (`belongs_to`) REFERENCES `users` (`id`);
 
 --
+-- Filtros para la tabla `files`
+--
+ALTER TABLE `files`
+  ADD CONSTRAINT `files_ibfk_1` FOREIGN KEY (`belongs_to`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
 -- Filtros para la tabla `folders`
 --
 ALTER TABLE `folders`
   ADD CONSTRAINT `folders_ibfk_1` FOREIGN KEY (`belongs_to`) REFERENCES `users` (`id`);
+
+--
+-- Filtros para la tabla `folder_other_permissions`
+--
+ALTER TABLE `folder_other_permissions`
+  ADD CONSTRAINT `folder_other_permissions_ibfk_1` FOREIGN KEY (`belongs_to`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Filtros para la tabla `folder_permissions`
+--
+ALTER TABLE `folder_permissions`
+  ADD CONSTRAINT `folder_permissions_ibfk_1` FOREIGN KEY (`belongs_to`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Filtros para la tabla `permissions`
+--
+ALTER TABLE `permissions`
+  ADD CONSTRAINT `permissions_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Filtros para la tabla `products`
+--
+ALTER TABLE `products`
+  ADD CONSTRAINT `products_ibfk_1` FOREIGN KEY (`belongs_to`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Filtros para la tabla `user_roles`
+--
+ALTER TABLE `user_roles`
+  ADD CONSTRAINT `user_roles_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

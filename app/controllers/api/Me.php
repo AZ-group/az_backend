@@ -12,9 +12,5 @@ class_alias("\simplerest\core\api\\$api_version\MySelf", 'simplerest\controllers
 
 class Me extends MySelf
 { 
-    protected $scope = [
-        'guest'      => [], 
-        'basic'      => ['show', 'list'],
-        'regular'    => ['show', 'write', 'list']
-    ];    
+    // Por qué no extiende al parent::constructor() ?    
 }  

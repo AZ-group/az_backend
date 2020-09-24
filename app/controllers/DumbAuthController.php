@@ -2,10 +2,9 @@
 
 namespace simplerest\controllers;
 
-use simplerest\core\ResourceController;
 use simplerest\core\Request;
 use simplerest\libs\Factory;
-use simplerest\models\RolesModel;
+use simplerest\core\api\v1\ResourceController;
 
 class DumbAuthController extends ResourceController
 {
@@ -16,18 +15,19 @@ class DumbAuthController extends ResourceController
 
     function super_cool_action($a)
     {
+        var_dump($this->isGuest());    
         var_dump($this->getRoles());
         var_dump($this->isRegistered());
 
-        if (!$this->hasAnyRole(['cajero', 'gerente']))
+        if (!$this->hasAnyRole(['cajero', 'basic']))
             Factory::response()->sendError('Unauthorized', 401);
 
         // acción cualquiera:
         return ++$a;
     }     
     
-    function test(){
-
+    function test()
+    {
         $permissions = $this->getPermissions();
         foreach ($permissions as $tb => $perms){
             echo "[$tb]\n";

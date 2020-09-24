@@ -148,7 +148,7 @@ class AuthTest extends TestCase
 
         foreach ($role_ids as $role_id){
             $this->assertTrue(
-                in_array($rm->getRoleName($role_id), $rt_payload->roles)
+                in_array($rm->get_role_name($role_id), $rt_payload->roles)
             );
         }
 

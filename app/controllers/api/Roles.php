@@ -4,23 +4,16 @@ namespace simplerest\controllers\api;
 
 use simplerest\controllers\MyApiController; 
 use simplerest\libs\Factory;
-use simplerest\models\RolesModel;
 
 class Roles extends MyApiController
 {
-    protected $scope = [
-        'guest'      => [], 
-        'basic'      => ['show'],
-        'regular'    => ['show']
-    ];
-
     function __construct()
     {
         parent::__construct();
     }
         
     function get($id = null){
-        $roles_m = new RolesModel();
+        // re-hacer
 
         if ($id == NULL){
             $rows = [];
@@ -29,16 +22,22 @@ class Roles extends MyApiController
                 $rows[] = [
                     'id' => $idx,
                     'name' => $rol['name'],
-                    'is_admin' => $rol['is_admin']
-                ];
+                    'permissions' => [
+                        'sp_permissions' => [],
+                        'tb_permissions' => []
+                    ]
+                ]; 
             }
             return $rows;
         }else{
-            $row = $roles_m->get_roles()[$id];
+            //$row = ...[$id];
             return [
-                'id' => $id,
-                'name' => $row['name'],
-                'is_admin' => $row['is_admin']
+                'id' => $role_id,
+                'name' => $role_name,
+                'permissions' => [
+                    'sp_permissions' => [],
+                    'tb_permissions' => []
+                ]
             ];
         }
     }

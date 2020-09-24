@@ -994,6 +994,153 @@ protected $rules = [
 
 La implementación del ACL incluye "roles" y permisos individuales para cada usuario sobre cada tabla expuesta a través de la API.
 
+Se está implentando un ACL centralizado que se configurará en /config/acl.php y si bien es muy flexible una forma es la siguiente:
+
+	$acl = new Acl();
+
+	$acl->addRole('guest', -1)
+	->addResourcePermissions('products', ['read'])
+
+	->addRole('vendedor', 1)
+	->addInherit('guest')
+	->addResourcePermissions('products', ['write'])
+	->addResourcePermissions('foo', ['create', 'list'])
+
+	->addRole('admin', 100)
+	->addInherit('guest')
+	->addSpecialPermissions(['read_all', 'write_all'])
+
+	->addRole('superadmin', 500)
+	->addInherit('admin')
+	->addSpecialPermissions(['lock', 'fill_all']);
+
+
+Y equivale a:
+
+	$acl->addRoles([
+					'guest' => -1,
+					'vendedor' => 1,
+					'admin' => 100,
+					'superadmin' => 500
+	])	
+
+	->addResourcePermissions('products', ['read'], 'guest')	
+
+	->addInherit('guest', 'vendedor')
+	->addResourcePermissions('products', ['write'])	
+	->addResourcePermissions('foo', ['create', 'list'])	
+
+	->addInherit('guest', 'admin')
+	->addSpecialPermissions(['read_all', 'write_all'])
+
+
+	->addInherit('admin', 'superadmin')
+	->addSpecialPermissions(['lock', 'fill_all']);
+
+
+Cabe notar que los addInherit() deben ir *siempre* antes de los permisos que se quieran agregar al rol heredado. 
+
+El rol de 'guest' debe estar definido con ese nombre o con otro. En caso de que se decida cambiar el nombre del rol guest de 'guest' a otro se debe llamar al método estático setGuest() con el nombre alternativo:
+
+	Acl::setGuest('unregistered');
+
+Además de setear el nombre alternativo es su responsabilidad crear el rol correspondiente con el método addRole()
+
+El Acl genera algo como:
+
+	array(4) {
+	["guest"]=>
+	array(3) {
+		["role_id"]=>
+		int(-1)
+		["sp_permissions"]=>
+		array(0) {
+		}
+		["tb_permissions"]=>
+		array(1) {
+		["products"]=>
+		array(1) {
+			[0]=>
+			string(4) "read"
+		}
+		}
+	}
+	["vendedor"]=>
+	array(3) {
+		["role_id"]=>
+		int(1)
+		["sp_permissions"]=>
+		array(0) {
+		}
+		["tb_permissions"]=>
+		array(2) {
+		["products"]=>
+		array(2) {
+			[0]=>
+			string(4) "read"
+			[1]=>
+			string(5) "write"
+		}
+		["foo"]=>
+		array(2) {
+			[0]=>
+			string(6) "create"
+			[1]=>
+			string(4) "list"
+		}
+		}
+	}
+	["admin"]=>
+	array(3) {
+		["role_id"]=>
+		int(100)
+		["sp_permissions"]=>
+		array(2) {
+		[0]=>
+		string(8) "read_all"
+		[1]=>
+		string(9) "write_all"
+		}
+		["tb_permissions"]=>
+		array(1) {
+		["products"]=>
+		array(1) {
+			[0]=>
+			string(4) "read"
+		}
+		}
+	}
+	["superadmin"]=>
+	array(3) {
+		["role_id"]=>
+		int(500)
+		["sp_permissions"]=>
+		array(2) {
+		[0]=>
+		string(8) "read_all"
+		[1]=>
+		string(9) "write_all"
+		}
+		["tb_permissions"]=>
+		array(2) {
+		["products"]=>
+		array(1) {
+			[0]=>
+			string(4) "read"
+		}
+		["permissions"]=>
+		array(2) {
+			[0]=>
+			string(4) "read"
+			[1]=>
+			string(5) "write"
+		}
+		}
+	}
+	}
+
+
+
 ### Permisos
 
 Los permisos sobre los endpoints son en general del tipo CRUD + permiso para listar los recursos: ['show', 'list', 'create', 'update',  'delete']
