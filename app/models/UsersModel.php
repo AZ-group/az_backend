@@ -4,6 +4,8 @@ namespace simplerest\models;
 
 use simplerest\core\Model;
 use simplerest\libs\Factory;
+use simplerest\libs\DB;
+use simplerest\libs\Debug;
 
 class UsersModel extends Model
  { 
@@ -43,7 +45,7 @@ class UsersModel extends Model
 	}
 	
 	// Hooks
-	function onUpdating() {
+	function onUpdating($data) {
 		if ($this->isDirty('email')) {
 			$this->update(['confirmed_email' => 0]);
 		}

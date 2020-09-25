@@ -18,24 +18,27 @@ if (!$acl_cache || is_file($acl_file) !== true) {
     ->addResourcePermissions('products', ['show', 'list'])
     //->setGuest('guest')
 
-    ->addRole('basic', 2)
+    ->addRole('registered', 1)
     ->addInherit('guest')
+
+    ->addRole('basic', 2)
+    ->addInherit('registered')
     ->addResourcePermissions('products', ['write'])
     ->addResourcePermissions('foo', ['read'])
 
     ->addRole('regular', 3)
-    ->addInherit('guest')
+    ->addInherit('registered')
     ->addResourcePermissions('products', ['read', 'write'])
     ->addResourcePermissions('foo', ['read', 'update'])
 
     ->addRole('admin', 100)
-    ->addInherit('guest')
-    ->addSpecialPermissions(['read_all', 'write_all',  'lock', 'fill_all', 'impersonate'])
+    ->addInherit('registered')
+    ->addSpecialPermissions(['read_all', 'write_all', 'read_all_folders', 'lock', 'fill_all', 'impersonate'])
     //->restrictImpersonateTo(['guest', 'basic', 'regular'])
 
     ->addRole('superadmin', 500)
     ->addInherit('admin')
-    ->addSpecialPermissions(['read_all_folders',
+    ->addSpecialPermissions([
                              'write_all_folders', 
                              'read_all_trashcan',
                              'write_all_trashcan',

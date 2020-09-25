@@ -762,23 +762,21 @@ Por último tenemos los campos ocultos:
 
 Se definen varios event hooks sobre el modelo que se disparan ante una operación CRUD
 
-onReading() antes de leer un registro / lista 
-onRead() luego de leer
+	public function onReading() {	}
+	public function onRead(?int $count) { }
+	
+	public function onDeleting($soft_delete) { }
+	public function onDeleted(?int $count) { }
 
-onCreating() antes de que se cree un registro
-onCreated($last_inserted_id) luego de que se cree un registro
+	public function onCreating(Array $data) {	}
+	public function onCreated(Array $data, ?int $count) { }
 
-onUpdating() antes de que se actualice
-onUpdated($count) después de que se actualiza 
-
-onDeleting($soft_delete) antes del borrado
-onDeleted($count) después del borrado
-
-etc.
+	public function onUpdating(Array $data) { }
+	public function onUpdated(Array $data, ?int $count) { }
 
 Un uso práctico de estos eventos es para des-confirmar un email cuando se ha cambiado. En este caso se hace uso de la función isDirty() que acepta como parámetro el campo que necesitamos saber si ha cambiado.
 
-	function onUpdating() {
+	function onUpdating($data) {
 		if ($this->isDirty('email')) {
 			$this->update(['confirmed_email' => 0]);
 		}	
@@ -793,10 +791,27 @@ Otro uso práctico de event hooks es para ocultar registros basados en cierta co
 	}
 
 
-Es posible usar los event hooks de la API como Middlewares.
+Desde cualquier hook del modelo es posible acceder a propiedades útiles como $w_vars y $w_vals -entre otras- con las que es posible reconstruir el where.
 
 PD: Laravel también incluye los eventos onRestoring() y onRestored() para cuando existe un soft-delete
 
+
+Las APIs que extienden a ApiController también tienen varios event hooks
+
+	public function onGetting($id) { }
+    public function onGot($id, $count){ }
+
+    public function onDeleting($id){ }
+    public function onDeleted($id, $affected){ }
+
+    public function onPosting($id, $data){ }
+    public function onPost($data, $id){ }
+
+    public function onPutting($id, $data){ }
+    public function onPut($id, $data, $affected){ }
+
+
+Existen otros hooks en en ApiController relacionados con el acceso a folders.
 
 ### Validaciones
 
@@ -1368,43 +1383,34 @@ Nota: el acceso a los folders se chequea en base de datos cada vez que se hace u
 Similarmente a lo que sucede con Model, la clase ApiController también aporta event hooks en particular para los folders los siguientes:
 
 
-    function onReadingFolderBeforeAuth() {
+    public function onGettingFolderBeforeCheck($id, $folder){ } 
+    public function onGettingFolderAfterCheck($id, $folder){ }
+    public function onGotFolder($id, $total, $folder){ }
 
-    }	    
+    public function onDeletingFolderBeforeCheck($id, $folder){ }
+    public function onDeletingFolderAfterCheck($id, $folder){ }
+    public function onDeletedFolder($id, $affected, $folder)
 
-    function onReadingFolderAfterAuth() {
+    public function onPostingFolderBeforeCheck($id, $data, $folder){ }
+    public function onPostingFolderAfterCheck($id, $data, $folder){ }
+    public function onPostFolder($id, $data, $folder){ }
 
-    }	
-
-    function onReadFolder() {
-        
-    }
-
-    function onWritingFolderBeforeAuth() {
-
-    }
-
-    function onWritingFolderAfterAuth() {
-
-    }
-
-    function onWritedFolder() {
-        
-    }       
-    
+    public function onPuttingFolderBeforeCheck($id, $data, $folder){ }
+    public function onPuttingFolderAfterCheck($id, $data, $folder){ }
+    public function onPutFolder($id, $data, $folder, $affected){ }
        
 
 Desde cualquiera de esos métodos es obviamente posible acceder a métodos y propiedades de visibilidad por lo menos protected de la clase Model y en particular a folder y id (del registro). Ej:
 
-	function onReadingFolder() {
-        echo "Reading folder {$this->folder} with id={$this->id}";
+	function onGettingFolderBeforeCheck($id, $folder) {
+        echo "Reading folder {$folder} with id={$id}";
     }
 
-Un uso práctico de estos hooks sería con onReadingFolderBeforeAuth() implementar la funcionalidad de conceder acceso a un folder siguiendo un enlace que como parámetro puede tener un token. Si el token es válido se concede el acceso al usuario que sigue el enlace insertando el permiso correspondiente en la tabla folder_permissions.
+Un uso práctico de estos hooks sería con onGettingFolderBeforeCheck() implementar la funcionalidad de conceder acceso a un folder siguiendo un enlace que como parámetro puede tener un token. Si el token es válido se concede el acceso al usuario que sigue el enlace insertando el permiso correspondiente en la tabla folder_permissions.
 
 Ej: <pseudocódigo>
 
-	function onReadingFolderBeforeAuth() {
+	function onGettingFolderBeforeCheck() {
 
         if ($this->isGuest()){
             // Informar que debe estar "logueado"
@@ -1420,7 +1426,6 @@ Ej: <pseudocódigo>
         // decodificar token y si es válido proseguir
         
         $uid = $this->auth->uid;
-        $folder = $this->folder;
 
         // insertar en la tabla folder_permissions el permiso para el usuario con id $uid`
         // y el folder  $folder
@@ -1712,13 +1717,14 @@ With having
 
 Having with alias 
 
-	GET /api/v1/products?groupBy=size&fields=size&props=avg(cost) as c&having=c>=150
+	GET /api/v1/products?groupBy=size&fields=size&props=avg(cost) as avg&having=c>=150
 
 ### Pretty print 
 
     GET /api/v1/products?pretty
 
 By default pretty print can be enabled or disabled in config/config.php    
+
 
 ## POST <CREATE>
 
@@ -1738,6 +1744,7 @@ By default pretty print can be enabled or disabled in config/config.php
 A record can be effectly deleted in one shot from database or if soft-delete is enabled then be marked as deleted in which case it will be seen as deleted as well.
 
 When a record is softly deleted then it can be seen at trash_can where is posible to delete it permanently or to be recovered.
+
 
 ## PUT  <UPDATE>
 

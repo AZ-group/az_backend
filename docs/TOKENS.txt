@@ -112,3 +112,39 @@ get_role_id($role)  reemplazarlo por $this->acl->getRoleId($role);
     "error": "",
     "error_detail": ""
 }
+
+--
+
+{
+    "data": {
+        "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImlhdCI6MTYwMDk2Njc2MSwiZXhwIjoxNjA5OTY2NzYxLCJpcCI6IjEyNy4wLjAuMSIsInVpZCI6IjQwMCIsInJvbGVzIjpbInN1cGVyYWRtaW4iXSwicGVybWlzc2lvbnMiOltdLCJpbXBlcnNvbmF0ZWRfYnkiOiI5IiwiYWN0aXZlIjoiMSJ9.DwUtASNNZ-qUp20MAIT3JrjBY5fkChUS7wzP5P1lvEM",
+        "refresh_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImlhdCI6MTYwMDk2Njc2MSwiZXhwIjoxOTE2MzI2NzYxLCJpcCI6IjEyNy4wLjAuMSIsInVpZCI6IjQwMCIsImltcGVyc29uYXRlZF9ieSI6IjkifQ.6UtLWhBA65ypqAng_kAB6TtA5IgOtM08P8x_EpUJ-Nk",
+        "token_type": "bearer",
+        "expires_in": 9000000,
+        "roles": [
+            "superadmin"
+        ],
+        "uid": "400",
+        "impersonated_by": "9"
+    },
+    "status_code": 200,
+    "error": "",
+    "error_detail": ""
+}
+
+--
+
+{
+    "data": {
+        "uid": "403",
+        "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImlhdCI6MTYwMDk3Mzk5NSwiZXhwIjoxNjA5OTczOTk1LCJpcCI6IjEyNy4wLjAuMSIsInVpZCI6IjQwMyIsInJvbGVzIjpbXSwicGVybWlzc2lvbnMiOltdLCJhY3RpdmUiOm51bGx9.RnSb3qzRkxjg8_QMhozmn5r_c5cuM_9PdI-cr_qvA58",
+        "token_type": "bearer",
+        "expires_in": 9000000,
+        "refresh_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImlhdCI6MTYwMDk3Mzk5NSwiZXhwIjoxOTE2MzMzOTk1LCJpcCI6IjEyNy4wLjAuMSIsInVpZCI6IjQwMyJ9.WWepNTDsKyzpk3W_JxYM7ZSPwllL3WbfI29icQQeQmM",
+        "roles": [],
+        "email_confirmation_link": "http://az.lan/api/v1/auth/confirm_email/eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImlhdCI6MTYwMDk3Mzk5NSwiZXhwIjoxNjAxNTc4Nzk1LCJpcCI6IjEyNy4wLjAuMSIsImVtYWlsIjoibWFzbzlAZ21haWwuY29tIiwicm9sZXMiOltdLCJwZXJtaXNzaW9ucyI6W119.MdBMMUBM9GyzKRi8vwSYNsP8ScZGjm7SjTuFXr5aaPM/1601578795"
+    },
+    "status_code": 200,
+    "error": "",
+    "error_detail": ""
+}

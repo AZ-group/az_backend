@@ -94,9 +94,6 @@ class AuthController extends Controller implements IAuth
     private function fetchPermissions($uid) : Array {
         $_permissions = DB::table('permissions')->setFetchMode('ASSOC')->select(['tb', 'can_create as c', 'can_show as r', 'can_update as u', 'can_delete as d', 'can_list as l'])->where(['user_id' => $uid])->get();
 
-        //print_r($rows);
-        //exit; //
-
         $perms = [];
         foreach ((array) $_permissions as $p){
             $tb = $p['tb'];
@@ -206,9 +203,6 @@ class AuthController extends Controller implements IAuth
         if (!isset($data->uid) && !isset($data->role))
             Factory::response()->sendError('Bad request', 400, 'Nothing to impersonate');
 
-        $impersonate_user = $data->uid ?? null;
-        $impersonate_role = $data->role ?? null;
-
         $request = Factory::request();
 
         $headers = $request->headers();
@@ -234,14 +228,16 @@ class AuthController extends Controller implements IAuth
 
             $roles = $this->fetchRoles($payload->uid);
 
-            $acl = Factory::acl();
-
             if (!Factory::acl()->hasSpecialPermission("impersonate", $roles) && !(isset($payload->impersonated_by) && !empty($payload->impersonated_by)) ){
                 Factory::response()->sendError('Unauthorized!',401, 'Impersonate requires elevated privileges');
             }    
-        
+
+            $acl        = Factory::acl();
             $guest_role = $acl->getGuest();
 
+            $impersonate_user = $data->uid ?? null;
+            $impersonate_role = $data->role ?? null;
+            
             if (!empty($impersonate_role)){
                 if ($impersonate_role == $guest_role){
                     $uid = -1;
@@ -430,7 +426,7 @@ class AuthController extends Controller implements IAuth
                 if ($payload->uid == -1) 
                 {
                     $active = false;
-                    $roles = ["guest"];
+                    $roles = [Factory::acl()->getGuest()];
                     $permissions = [];
                 } else {
                     $impersonated_by_role = true;
@@ -548,17 +544,16 @@ class AuthController extends Controller implements IAuth
             if (!empty($roles))
             {
                 foreach ($roles as $role) {
-                    $role_id = $this->acl->getRoleId($role);
+                    $role_id = Factory::acl()->getRoleId($role);
 
                     if ($role_id == null){
                         throw new Exception("Role $role is invalid");
                     }
-
+                    
                     // Podrian crearse todos juntos con un Store Procedure ?
-                    $ur_id = $ur->create([ 
-                                        'belongs_to' => $uid, 
-                                        'role_id' => $role_id 
-                    ]);  
+                    $ur_id = DB::table('user_roles')
+                                                    ->where(['id' => $uid])
+                                                    ->create(['user_id' => $uid, 'role_id' => $role_id]);
 
                     if (empty($ur_id))
                         throw new Exception("Error registrating user role $role"); 
@@ -581,6 +576,7 @@ class AuthController extends Controller implements IAuth
                 $firstname = $data['firstname'] ?? null;
                 $lastname  = $data['lastname']  ?? null;
             }                
+            
 
             $access  = $this->gen_jwt([
                                         'uid' => $uid, 
@@ -660,6 +656,7 @@ class AuthController extends Controller implements IAuth
                 //exit;    
 
                 if (!isset($payload->active) && $payload->uid != -1){
+                    //var_dump($payload);
                     Factory::response()->sendError('Unauthorized', 401, 'Lacks active status');
                 }    
 
@@ -753,7 +750,6 @@ class AuthController extends Controller implements IAuth
             Factory::response()->sendError('Authorization jwt token not found',400);
         }     
 
-        /*
         $roles = $payload->roles ?? [];
         $perms = $payload->permissions ?? [];
 
@@ -775,9 +771,7 @@ class AuthController extends Controller implements IAuth
             'refresh_token' => $refresh,
             'roles' => $roles   
         ]);	
-        */
 
-        Factory::response()->send(['msg' => 'Email confirmed - thanks!']);
     }     
     
     function change_pass(){

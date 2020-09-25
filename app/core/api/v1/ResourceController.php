@@ -35,14 +35,14 @@ abstract class ResourceController extends Controller
         if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
             Factory::response()->sendOK(); // no tocar !
         }
-        
+
+        $this->acl = Factory::acl();
+
         if (!Factory::request()->hasAuth()){;
             $this->roles = [$this->acl->getGuest()];
             $this->permissions = [];
         } else {
 
-            $this->acl = Factory::acl();
-        
             // auth payload
             $this->auth = (new AuthController())->check();
 
@@ -51,7 +51,8 @@ abstract class ResourceController extends Controller
             $this->permissions = $this->auth->permissions ?? NULL;   
         }
 
-        //Debug::dump($acl->getRoles(), 'possible roles');  ///// 
+        //Debug::dump($this->uid, 'uid');
+        //Debug::dump($this->acl->getRoles(), 'possible roles');  ///// 
         //Debug::dump($this->roles, 'active roles');
         //Debug::dump($this->permissions, 'permissions');
 
@@ -94,6 +95,53 @@ abstract class ResourceController extends Controller
 
         return $authorized;        
     }
+
+      /**
+     * hasFolderPermission
+     *
+     * @param  int    $folder
+     * @param  string $operation
+     *
+     * @return bool
+     */
+    protected function hasFolderPermission(int $folder, string $operation)
+    {
+        if ($operation != 'r' && $operation != 'w')
+            throw new \InvalidArgumentException("Invalid operation '$operation'. It should be 'r' or 'w'.");
+
+        $o = (new FolderOtherPermissionsModel($this->conn))->setFetchMode('ASSOC');
+
+        $rows = $o->where(['folder_id', $folder])->get();
+
+        $r = $rows[0]['r'] ?? null;
+        $w = $rows[0]['w'] ?? null;
+
+        if ($this->isGuest()){
+            $guest_role = $this->acl->getGuest();
+            $r = $r && $rows[0][$guest_role];
+            $w = $w && $rows[0][$guest_role];
+        }
+
+        if (($operation == 'r' && $r) || ($operation == 'w' && $w)) {
+            return true;
+        }
+        
+        $g = (new FolderPermissionsModel($this->conn))->setFetchMode('ASSOC');
+        $rows = $g->where([
+                                    ['folder_id', $folder], 
+                                    ['access_to', $this->uid]
+        ])->get();
+
+        $r = $rows[0]['r'] ?? null;
+        $w = $rows[0]['w'] ?? null;
+
+        if (($operation == 'r' && $r) || ($operation == 'w' && $w)) {
+            return true;
+        }
+
+        return false;
+    } 
+    
     
     
 }  

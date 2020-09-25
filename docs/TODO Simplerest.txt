@@ -2,6 +2,35 @@
 
 - Definir DB !!!
 
+- Convertir 'permissions' en un Array y tener
+
+  "permissions":[
+    "tb": [ ],
+    "sp": [ ]	
+  ]
+
+
+- Corregir:
+
+  - Si el password es un camo oculto revienta el OutputMutator:
+
+    $this->registerOutputMutator('password', function($pass){ return '******'; } );
+
+  - Ante un orderBy mal formateado en la url se produce un error muy feo
+
+    http://az.lan/api/v1/products?orderBy=cost  <-- es incorrecto 
+
+    <b>Fatal error</b>:  Uncaught TypeError: Argument 1 passed to simplerest\core\Model: :orderBy() must be of the type array, string given, called in C:\xampp\htdocs\az\app\core\api\v1\ApiController.php on line 688 and defined in C:\xampp\htdocs\az\app\core\Model.php: 352
+    Stack trace:
+    #0 C:\xampp\htdocs\az\app\core\api\v1\ApiController.php(688): simplerest\core\Model-&gt;orderBy('cost')
+    #1 [internal function
+    ]: simplerest\core\api\v1\ApiController-&gt;get()
+    #2 C:\xampp\htdocs\az\app\core\FrontController.php(162): call_user_func_array(Array, Array)
+    #3 C:\xampp\htdocs\az\public\index.php(11): simplerest\core\FrontController: :resolve()
+    #4 {main
+    }
+      thrown in <b>C:\xampp\htdocs\az\app\core\Model.php</b> on line <b>352</b><br />
+
 - Evitar escalamiento de privilegios !!!! 
 
 	- Haciendo como "admin" un impersonate a "superadmin" por rol / uid
@@ -27,14 +56,6 @@
 	{
 		"uid": "400"  <-- rol de un superadmin
 	}
-
-
-- Convertir 'permissions' en 'tb_permissions' y tener
-
-  "permissions":[
-    "tb": [ ],
-    "sp": [ ]	
-  ]
 
 - Reparar 
 

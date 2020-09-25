@@ -38,13 +38,6 @@ abstract class ApiController extends ResourceController
     {        
         parent::__construct();
 
-        header('Access-Control-Allow-Origin: *');    
-        header('Access-Control-Allow-Headers: Authorization,Content-Type'); 
-        header('Access-Control-Allow-Credentials: True');        
-        header('Content-Type: application/json; charset=UTF-8');
-
-        $this->config = include CONFIG_PATH . 'config.php';
-
         if ($this->config['debug_mode'] == false)
             set_exception_handler([$this, 'exception_handler']);
         
@@ -243,51 +236,7 @@ abstract class ApiController extends ResourceController
     function options() {
     }
  
-    /**
-     * hasFolderPermission
-     *
-     * @param  int    $folder
-     * @param  string $operation
-     *
-     * @return bool
-     */
-    protected function hasFolderPermission(int $folder, string $operation)
-    {
-        if ($operation != 'r' && $operation != 'w')
-            throw new \InvalidArgumentException("Invalid operation '$operation'. It should be 'r' or 'w'.");
-
-        $o = (new FolderOtherPermissionsModel($this->conn))->setFetchMode('ASSOC');
-
-        $rows = $o->where(['folder_id', $folder])->get();
-
-        $r = $rows[0]['r'] ?? null;
-        $w = $rows[0]['w'] ?? null;
-
-        if ($this->isGuest()){
-            $r = $r && $rows[0][$this->acl->getGuest()];
-            $w = $w && $rows[0][$this->acl->getGuest()];
-        }
-
-        if (($operation == 'r' && $r) || ($operation == 'w' && $w)) {
-            return true;
-        }
-        
-        $g = (new FolderPermissionsModel($this->conn))->setFetchMode('ASSOC');
-        $rows = $g->where([
-                                    ['folder_id', $folder], 
-                                    ['access_to', $this->uid]
-        ])->get();
-
-        $r = $rows[0]['r'] ?? null;
-        $w = $rows[0]['w'] ?? null;
-
-        if (($operation == 'r' && $r) || ($operation == 'w' && $w)) {
-            return true;
-        }
-
-        return false;
-    } 
-    
+  
     /**
      * get
      *
@@ -314,6 +263,9 @@ abstract class ApiController extends ResourceController
                 Factory::response()->sendError('Unauthorized', 401, "You are not allowed to retrieve");  
 
         }
+
+        // event hook
+        $this->onGetting($id);
 
         try {            
 
@@ -415,7 +367,7 @@ abstract class ApiController extends ResourceController
             if ($folder !== null)
             {
                 // event hook
-                $this->onReadingFolderBeforeAuth();  
+                $this->onGettingFolderBeforeCheck($id, $folder);  
 
                 $f = DB::table('folders')->setFetchMode('ASSOC');
                 $f_rows = $f->where(['id' => $folder])->get();
@@ -668,7 +620,7 @@ abstract class ApiController extends ResourceController
 
                 if (!empty($folder)) {
                     // event hook
-                    $this->onReadingFolderAfterAuth();
+                    $this->onGettingFolderAfterCheck($id, $folder);
                 }
            
                 if (strtolower($pretty) == 'false' || $pretty === 0)
@@ -769,8 +721,8 @@ abstract class ApiController extends ResourceController
 
                 //  pagino solo sino hay funciones agregativas
                 if (!isset($ag_fn)){
-                    $total = (int) array_values((new $model($conn))->where($_get)->count())[0];
-               
+                    $total = (int) (new $model($conn))->where($_get)->setFetchMode('COLUMN')->count();
+                    
                     $page_count = ceil($total / $limit);
 
                     if ($page == NULL)
@@ -794,10 +746,17 @@ abstract class ApiController extends ResourceController
                         'nextUrl' => $next                                              
                     ];  
 
-                    $this->onReadFolder();
                     $res->setPaginator($pg);
                 }
-                                        
+                               
+                // event hooks
+                if ($folder){
+                    $this->onGotFolder($id, $total, $folder);
+                }
+
+                // event hook
+                $this->onGot($id, $total);
+                
                 $res->send($rows);       
             }
 
@@ -827,12 +786,16 @@ abstract class ApiController extends ResourceController
         
         $model    = '\\simplerest\\models\\'.$this->modelName;
         $instance = (new $model())->setFetchMode('ASSOC');
-
+        
+        $id = $data[$id_name] ?? null;
         $this->folder = $folder = $data['folder'] ?? null;
 
         try {
             $this->conn = $conn = DB::getConnection();
             $instance->setConn($conn);
+
+            // event hook             
+            $this->onPosting($id, $data);
 
             if ($instance->inSchema(['belongs_to'])){
                 if ($this->acl->hasSpecialPermission('transfer', $this->roles)){
@@ -857,7 +820,7 @@ abstract class ApiController extends ResourceController
                     Factory::response()->sendError("Forbidden", 403, "'folder_field' is undefined");
 
                 // event hook    
-                $this->onWritingFolderBeforeAuth();
+                $this->onPostingFolderBeforeCheck($id, $data, $folder);
 
                 $f = DB::table('folders');
                 $f_rows = $f->where(['id' => $folder])->get();
@@ -880,11 +843,14 @@ abstract class ApiController extends ResourceController
 
             if (!empty($folder)) {
                 // event hook    
-                $this->onWritingFolderAfterAuth();
+                $this->onPostingFolderAfterCheck($id, $data, $folder);
             }
 
             if ($instance->create($data)!==false){
-                $this->onWritedFolder();
+                // event hooks
+                $this->onPostFolder($instance->id, $data, $folder);
+                $this->onPost($instance->id, $data);
+
                 Factory::response()->send(['id' => $instance->id], 201);
             }	
             else
@@ -911,7 +877,9 @@ abstract class ApiController extends ResourceController
         $this->id = $id;    
         $this->folder = $folder = $data['folder'] ?? null; 
 
-
+        // event hook
+        $this->onPutting($id, $data);
+        
         try {
             $model    = 'simplerest\\models\\'.$this->modelName;            
             $this->conn = $conn = DB::getConnection();       
@@ -932,11 +900,13 @@ abstract class ApiController extends ResourceController
 
             // evito que cualquiera pueda cambiar la propiedad de un registro
             if (!$this->acl->hasSpecialPermission('fill_all', $this->roles)){
-                if (isset($data['belongs_to']))
-                    unset($data['belongs_to']);
-
                 if (isset($data['deleted_at']))
                     unset($data['deleted_at']);
+
+                if (!$this->acl->hasSpecialPermission('transfer', $this->roles)){    
+                    if (isset($data['belongs_to']))
+                    unset($data['belongs_to']);
+                }   
             }else{
                 //$instance->fill(['deleted_at']);
                 $instance->fillAll();
@@ -948,7 +918,7 @@ abstract class ApiController extends ResourceController
                     Factory::response()->sendError("'folder_field' is undefined", 403);
 
                 // event hook    
-                $this->onWritingFolderBeforeAuth();
+                $this->onPuttingFolderBeforeCheck($id, $data, $folder);
 
                 $f = DB::table('folders')->setFetchMode('ASSOC');
                 $f_rows = $f->where(['id' => $folder])->get();
@@ -1003,12 +973,17 @@ abstract class ApiController extends ResourceController
             }
 
             if (!empty($folder)) {
-                // event hook    
-                $this->onWritingFolderAfterAuth();
+                // event hook 
+                onPuttingFolderAfterCheck($id, $data, $folder);
             }
 
-            if ($instance->where(['id', $id])->update($data) !== false) {
-                $this->onWritedFolder();
+            $affected = $instance->where(['id', $id])->update($data);
+            if ($affected !== false) {
+
+                // even hooks        	    
+                $this->onPutFolder($id, $data, $folder, $affected);
+                $this->onPut($id, $data, $affected);
+                
                 Factory::response()->sendJson("OK");
             } else
                 Factory::response()->sendError("Error in PATCH",404);	
@@ -1061,9 +1036,11 @@ abstract class ApiController extends ResourceController
         $this->id = $id;
         $this->folder = $folder = $data['folder'] ?? null;
 
+        $this->onDeleting($id);
+
         try {    
             $this->conn = $conn = DB::getConnection();
-        
+
             $model    = 'simplerest\\models\\'.$this->modelName;
             
             $instance = (new $model($conn))->setFetchMode('ASSOC');
@@ -1083,7 +1060,7 @@ abstract class ApiController extends ResourceController
                     Factory::response()->sendError("'folder_field' is undefined", 403);
 
                 // event hook    
-                $this->onWritingFolderBeforeAuth();
+                $this->onDeletingFolderBeforeCheck($id, $folder);
 
                 $f = DB::table('folders')->setFetchMode('ASSOC');
                 $f_rows = $f->where(['id' => $folder])->get();
@@ -1130,11 +1107,18 @@ abstract class ApiController extends ResourceController
        
             if (!empty($folder)) {
                 // event hook    
-                $this->onWritingFolderAfterAuth();
+                $this->onDeletingFolderAfterCheck($id, $folder);
             }
 
-            if($instance->delete(static::$soft_delete && $instance->inSchema(['deleted_at']), $extra)){
-                $this->onWritedFolder();
+            $affected = $instance->delete(static::$soft_delete && $instance->inSchema(['deleted_at']), $extra);
+            if($affected){
+                
+                // event hooks
+                if ($folder !==  null){
+                    $this->onDeletedFolder($id, $affected, $folder);
+                }
+                $this->onDeleted($id, $affected);
+                
                 Factory::response()->sendJson("OK");
             }	
             else
@@ -1149,30 +1133,39 @@ abstract class ApiController extends ResourceController
 
     /*
         API event hooks
-    */
+    */    
 
-    function onReadingFolderBeforeAuth() {
+    public function onGetting($id) { }
+    public function onGot($id, ?int $count){ }
 
-    }	    
+    public function onDeleting($id){ }
+    public function onDeleted($id, ?int $affected){ }
 
-    function onReadingFolderAfterAuth() {
+    public function onPosting($id, Array $data){ }
+    public function onPost($id, Array $data){ }
 
-    }	
+    public function onPutting($id, Array $data){ }
+    public function onPut($id, Array $data, ?int $affected){ }
 
-    function onReadFolder() {
-        
-    }
+     /*
+        API event hooks for folder access
+    */  
 
-    function onWritingFolderBeforeAuth() {
+    public function onGettingFolderBeforeCheck($id, $folder){ } 
+    public function onGettingFolderAfterCheck($id, $folder){ }
+    public function onGotFolder($id, ?int $count, $folder){ }
 
-    }
+    public function onDeletingFolderBeforeCheck($id, $folder){ }
+    public function onDeletingFolderAfterCheck($id, $folder){ }
+    public function onDeletedFolder($id, ?int $affected, $folder){ }
 
-    function onWritingFolderAfterAuth() {
+    public function onPostingFolderBeforeCheck($id, Array $data, $folder){ }
+    public function onPostingFolderAfterCheck($id, Array $data, $folder){ }
+    public function onPostFolder($id, Array $data, $folder){ }
 
-    }
+    public function onPuttingFolderBeforeCheck($id, Array $data, $folder){ }
+    public function onPuttingFolderAfterCheck($id, Array $data, $folder){ }
+    public function onPutFolder($id, Array $data, $folder, ?int $affected){ }
 
-    function onWritedFolder() {
-        
-    }       
     
 }  

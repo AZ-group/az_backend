@@ -284,16 +284,16 @@ class DumbController extends Controller
     function exists(){
        
         Debug::dd(DB::table('products')->where(['belongs_to' => 103])->exists());
-        var_dump(DB::  getQueryLog());
+        //Debug::dd(DB::getQueryLog());
 
         Debug::dd(DB::table('products')->where([ 
             ['cost', 200, '<'],
             ['name', 'CocaCola'] 
         ])->exists());
-        var_dump(DB::  getQueryLog());
+        //Debug::dd(DB::  getQueryLog());
 		
         Debug::dd(DB::table('users')->where(['username' => 'boctulus'])->exists());
-        var_dump(DB::  getQueryLog());
+        //Debug::dd(DB::  getQueryLog());
     }
            
     function first(){
@@ -346,7 +346,7 @@ class DumbController extends Controller
         ->where([ 'belongs_to'=> 90] )
         ->count('*', 'count');
 
-        var_dump($c);
+        Debug::dd($c);
         Debug::dd(DB::getQueryLog());
     }
 
@@ -382,6 +382,17 @@ class DumbController extends Controller
         ->count('description', 'count');
 
         Debug::dd($res);
+        Debug::dd(DB::getQueryLog());
+    }
+
+    function count3(){
+        $uid = 415;
+
+        $count = (int) DB::table('user_roles')
+		->where(['user_id' => $uid])->setFetchMode('COLUMN')
+		->count();
+		
+        var_dump($count);
         Debug::dd(DB::getQueryLog());
     }
 
@@ -480,6 +491,7 @@ class DumbController extends Controller
     function select_group_count(){
         Debug::dd(DB::table('products')->showDeleted()
         ->groupBy(['size'])->select(['size'])->count());
+		Debug::dd(DB::getQueryLog());
     }
 
     /*

@@ -1,4 +1,5 @@
 <?php
+
 namespace simplerest\core;
 
 use simplerest\libs\Debug;
@@ -170,7 +171,7 @@ class Model {
 
 		Está confirmado que si el FETCH_MODE no es ASSOC, va a fallar
 	*/
-	function applyOutputMutators(?array $rows){
+	function applyOutputMutators($rows){
 		if (empty($rows))
 			return;
 		
@@ -196,7 +197,7 @@ class Model {
 		return $rows;
 	}
 	
-	function applyTransformer(?array $rows){
+	function applyTransformer($rows){
 		if (empty($rows))
 			return;
 		
@@ -1047,12 +1048,12 @@ class Model {
 
 		if (empty($this->group)){
 			if ($this->exec && $st->execute())
-				return $this->applyTransformer($this->applyOutputMutators($st->fetch(\PDO::FETCH_ASSOC)));
+				return $st->fetch($this->fetch_mode);
 			else
 				return false;	
 		}else{
 			if ($this->exec && $st->execute())
-				return $this->applyTransformer($this->applyOutputMutators($st->fetchAll(\PDO::FETCH_ASSOC)));
+				return $st->fetchAll($this->fetch_mode);
 			else
 				return false;
 		}	
@@ -1064,12 +1065,12 @@ class Model {
 
 		if (empty($this->group)){
 			if ($this->exec && $st->execute())
-				return $this->applyTransformer($this->applyOutputMutators($st->fetch(\PDO::FETCH_ASSOC)));
+				return $st->fetch($this->fetch_mode);
 			else
 				return false;	
 		}else{
 			if ($this->exec && $st->execute())
-				return $this->applyTransformer($this->applyOutputMutators($st->fetchAll(\PDO::FETCH_ASSOC)));
+				return $st->fetchAll($this->fetch_mode);
 			else
 				return false;
 		}	
@@ -1081,12 +1082,12 @@ class Model {
 
 		if (empty($this->group)){
 			if ($this->exec && $st->execute())
-				return $this->applyTransformer($this->applyOutputMutators($st->fetch(\PDO::FETCH_ASSOC)));
+				return $st->fetch($this->fetch_mode);
 			else
 				return false;	
 		}else{
 			if ($this->exec && $st->execute())
-				return $this->applyTransformer($this->applyOutputMutators($st->fetchAll(\PDO::FETCH_ASSOC)));
+				return $st->fetchAll($this->fetch_mode);
 			else
 				return false;
 		}	
@@ -1098,12 +1099,12 @@ class Model {
 
 		if (empty($this->group)){
 			if ($this->exec && $st->execute())
-				return $this->applyTransformer($this->applyOutputMutators($st->fetch(\PDO::FETCH_ASSOC)));
+				return $st->fetch($this->fetch_mode);
 			else
 				return false;	
 		}else{
 			if ($this->exec && $st->execute())
-				return $this->applyTransformer($this->applyOutputMutators($st->fetchAll(\PDO::FETCH_ASSOC)));
+				return $st->fetchAll($this->fetch_mode);
 			else
 				return false;
 		}	
@@ -1115,12 +1116,12 @@ class Model {
 
 		if (empty($this->group)){
 			if ($this->exec && $st->execute()){
-				return $this->applyTransformer($this->applyOutputMutators($st->fetch(\PDO::FETCH_ASSOC)));
+				return $st->fetch($this->fetch_mode);
 			}else
 				return false;	
 		}else{
 			if ($this->exec && $st->execute()){
-				return $this->applyTransformer($this->applyOutputMutators($st->fetchAll(\PDO::FETCH_ASSOC)));
+				return $st->fetchAll($this->fetch_mode);
 			}else
 				return false;
 		}	
@@ -1429,7 +1430,7 @@ class Model {
 		else 
 			$count = false;
 			
-		$this->onUpdated($count);
+		$this->onUpdated($data, $count);
 		return $count;
 	}
 
@@ -1543,7 +1544,7 @@ class Model {
 		}
 
 		// Event hook
-		$this->onCreating();
+		$this->onCreating($data);
 
 		$str_vars = implode(', ',$vars);
 
@@ -1587,7 +1588,7 @@ class Model {
 		}else
 			$last_inserted_id = false;
 
-		$this->onCreated($last_inserted_id);	
+		$this->onCreated($data, $last_inserted_id);	
 		return $last_inserted_id;	
 	}
 	
@@ -1638,17 +1639,17 @@ class Model {
 		Even hooks -podrían estar definidos en clase abstracta o interfaz-
 	*/
 
-	function onReading() {	}
-	function onRead($count) { }
+	public function onReading() { }
+	public function onRead(?int $count) { }
+	
+	public function onDeleting($soft_delete) { }
+	public function onDeleted(?int $count) { }
 
-	function onCreating() {	}
-	function onCreated($count) { }
+	public function onCreating(Array $data) {	}
+	public function onCreated(Array $data, ?int $count) { }
 
-	function onUpdating() { }
-	function onUpdated($count) { }
-
-	function onDeleting($soft_delete) { }
-	function onDeleted($count) { }
+	public function onUpdating(Array $data) { }
+	public function onUpdated(Array $data, ?int $count) { }
 
 	/*
 		'''Reflection'''
