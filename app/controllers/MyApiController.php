@@ -22,8 +22,7 @@ class MyApiController extends ApiController
             'access-control-allow-Origin' => '*'
         ];   
         
-        $auth = new \simplerest\controllers\AuthController();
-        parent::__construct($headers, $auth);
+        parent::__construct($headers);
     }
 
 }

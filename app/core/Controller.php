@@ -3,6 +3,7 @@
 namespace simplerest\core;
 
 use simplerest\libs\DB;
+use simplerest\libs\Factory;
 
 abstract class Controller
 {
@@ -10,6 +11,10 @@ abstract class Controller
 
     function __construct() {
         $this->config = include CONFIG_PATH . 'config.php';
+
+        if ($this->config['error_handling']) {
+            set_exception_handler([$this, 'exception_handler']);
+        }
     }
 
     function view(string $view_path, array $vars_to_be_passed  = null, $layout = 'app_layout.php'){
@@ -23,4 +28,18 @@ abstract class Controller
     function getCallable(){
         return $this->callable;
     }
+
+    
+    /**
+     * exception_handler
+     *
+     * @param  mixed $e
+     *
+     * @return void
+     */
+    function exception_handler($e) {
+        $error_detail = $this->config['debug'] ? 'Error on line number '.$e->getLine().' in file - '.$e->getFile() : '';
+        Factory::response()->sendError($e->getMessage(), 500, $error_detail);
+    }
+
 }

@@ -343,6 +343,7 @@ class DumbController extends Controller
 
     function count1(){
         $c = DB::table('products')
+        //->setFetchMode('ASSOC')
         ->where([ 'belongs_to'=> 90] )
         ->count('*', 'count');
 

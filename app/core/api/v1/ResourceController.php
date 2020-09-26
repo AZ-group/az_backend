@@ -7,6 +7,8 @@ use simplerest\core\Request;
 use simplerest\libs\Factory;
 use simplerest\core\Controller;
 use simplerest\core\api\v1\AuthController;
+use simplerest\models\FolderPermissionsModel;
+use simplerest\models\FolderOtherPermissionsModel;
 
 
 abstract class ResourceController extends Controller
@@ -96,7 +98,7 @@ abstract class ResourceController extends Controller
         return $authorized;        
     }
 
-      /**
+    /**
      * hasFolderPermission
      *
      * @param  int    $folder

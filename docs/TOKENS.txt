@@ -14,6 +14,8 @@
     "error_detail": ""
 }
 
+<-- ojo con permisos que restringen sobre foo y products !
+
 --
 
 {
@@ -148,3 +150,46 @@ get_role_id($role)  reemplazarlo por $this->acl->getRoleId($role);
     "error": "",
     "error_detail": ""
 }
+
+
+--
+
+{
+    "data": {
+        "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImlhdCI6MTYwMTA3NDg5NywiZXhwIjoxNjEwMDc0ODk3LCJpcCI6IjEyNy4wLjAuMSIsInVpZCI6IjkiLCJyb2xlcyI6WyJyZWd1bGFyIl0sInBlcm1pc3Npb25zIjpbXSwiaW1wZXJzb25hdGVkX2J5IjoiOSIsImFjdGl2ZSI6MX0.VfZjCvSYaoZ22QgjBqlmHYO_L_U8TN8g2QVsQpxF47Y",
+        "refresh_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImlhdCI6MTYwMTA3NDg5NywiZXhwIjoxOTE2NDM0ODk3LCJpcCI6IjEyNy4wLjAuMSIsInVpZCI6IjkiLCJpbXBlcnNvbmF0ZWRfYnkiOiI5In0.DPP_tmUrzm6NXTz1zaaTqLN96z58RSQvxXWXNc-raBY",
+        "token_type": "bearer",
+        "expires_in": 9000000,
+        "roles": [
+            "regular"
+        ],
+        "uid": "9",
+        "impersonated_by": "9"
+    },
+    "status_code": 200,
+    "error": "",
+    "error_detail": ""
+}
+
+<-- rol puro "regular"
+
+
+
+{
+    "data": {
+        "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImlhdCI6MTYwMTA3NTczOCwiZXhwIjoxNjEwMDc1NzM4LCJpcCI6IjEyNy4wLjAuMSIsInVpZCI6IjQ4Iiwicm9sZXMiOlsiYmFzaWMiLCJyZWd1bGFyIl0sInBlcm1pc3Npb25zIjpbXSwiaW1wZXJzb25hdGVkX2J5IjoiOSIsImFjdGl2ZSI6IjEifQ.3zsy1rdagHc9Wz1xOfkYBWlN2lfo3y_18aYfKsZnwno",
+        "refresh_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImlhdCI6MTYwMTA3NTczOCwiZXhwIjoxOTE2NDM1NzM4LCJpcCI6IjEyNy4wLjAuMSIsInVpZCI6IjQ4IiwiaW1wZXJzb25hdGVkX2J5IjoiOSJ9.pSNPuEvf8NQauhurEvohGwtrAbX0FlWib72fED3E6GE",
+        "token_type": "bearer",
+        "expires_in": 9000000,
+        "roles": [
+            "basic",
+            "regular"
+        ],
+        "uid": "48",
+        "impersonated_by": "9"
+    },
+    "status_code": 200,
+    "error": "",
+    "error_detail": ""
+}
+

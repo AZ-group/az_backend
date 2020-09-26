@@ -12,5 +12,8 @@ class_alias("\simplerest\core\api\\$api_version\MySelf", 'simplerest\controllers
 
 class Me extends MySelf
 { 
-    // Por qué no extiende al parent::constructor() ?    
+    function __construct(){
+        parent::__construct();  
+    }
+     
 }  

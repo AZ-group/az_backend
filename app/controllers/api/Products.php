@@ -12,19 +12,6 @@ class Products extends MyApiController
     {       
         parent::__construct();
     }
-
-    
-    /*
-    function onReadingFolderBeforeAuth() {
-        echo 'BEFORE AUTH';
-        var_dump("Reading folder {$this->folder} with id={$this->id}");
-    }
-
-    function onReadingFolderAfterAuth() {
-        echo 'AFTER AUTH ';
-        var_dump("Reading folder {$this->folder} with id={$this->id}");
-    }
-    */
     
         
 } // end class

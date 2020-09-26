@@ -2,13 +2,42 @@
 
 - Definir DB !!!
 
+- Reparar 
+
+    MySelf / Me  -- ok
+    Trashcan
+    Collections
+    DownloadController
+    FacebookController
+    GoogleController
+    LoginController
+    Roles     
+
+
+- Inconcistencia: un rol "puro" tiene id y por tanto al filtrar por id puede tener menos visibilidad que un Guest !
+
+- Usar Whoops y Monolog. La desventaja de mi exception handler es que no estoy guardando el stack de excepciones previas (con sus códigos de error, # de línea, etc) en caso de ser re-lanzadas.
+
+https://github.com/filp/whoops
+https://filp.github.io/whoops/
+https://stackoverflow.com/questions/59472960/using-monolog-and-whoops  
+https://scoutapm.com/blog/php-advanced-exceptions-tutorial
+
+- Los booleans deben devolverse como true / false sin comillado e igualmente sin comillado los números <-- ver API de ClaroShop
+
+- Usar Midlewares para evitar tener que hardcodear la clase Auth
+
+https://phil.tech/2016/why-care-about-php-middleware/
+http://esbenp.github.io/2015/07/31/implementing-before-after-middleware/
+https://www.sourcefuse.com/blog/rest-api-best-practices/
+
+
 - Convertir 'permissions' en un Array y tener
 
   "permissions":[
     "tb": [ ],
     "sp": [ ]	
   ]
-
 
 - Corregir:
 
@@ -57,16 +86,6 @@
 		"uid": "400"  <-- rol de un superadmin
 	}
 
-- Reparar 
-
-    MySelf / Me
-    Trashcan
-    Collections
-    DownloadController
-    FacebookController
-    GoogleController
-    LoginController
-    Roles     
 
 - Analizar en cada request (y en promedio) de cuánto tiempo es la ejecución de cada componente del sistema (FrontController, ApiController, AuthController, Model, DB, etc)
 
@@ -217,6 +236,101 @@ DELETE  \
 - Investigar API de Claro que tiene hasta relaciones polimorficas mostradas como "atributos"
 https://csapi.dev.claroshop.com/app/v1/product?page_size=5
 
+Sino encuentra el ApiController:
+
+{
+    "errors": [
+        {
+            "message": "An error occurred during execution; please try again later.",
+            "error": "error-controller-not-found",
+            "exception": []
+        }
+    ]
+}
+
+Ante un fallo regresa información de la excepción:
+
+{
+    "errors": [
+        {
+            "message": "An error occurred during execution; please try again later.",
+            "error": "error-exception",
+            "exception": {
+                "class": "Zend\\View\\Exception\\RuntimeException",
+                "file": "/var/www/sites/app-api.dev.claroshop-services.io/vendor/zendframework/zend-view/src/Renderer/PhpRenderer.php",
+                "line": 498,
+                "message": "Zend\\View\\Renderer\\PhpRenderer::render: Unable to render template \"api-manager/v1/product/update\"; resolver could not resolve to a file"... Zend\\Mvc\\Application->run()\n#10 {main}"
+            }
+        }
+    ]
+}
+
+
+En caso de éxito:
+
+{
+    "metadata": {
+        "is_error": false,
+        "http_status": "OK",
+        "http_status_phrase": 200,
+        "time": 1601043305,
+        "message": "Products found"
+    },
+    "data": [
+        {
+            "id": 8308292,
+            "title": "Crema Dental Complete 4 en 1 Crest",
+            "store": {
+                "id": 3496,
+                "name": "Sanborns",
+                "logo": "http://medios.plazavip.com/publicidad/5c3cd792844b8_sanbornssjpeg.jpg"
+            },
+            "images": [
+                {
+                    "order": 1,
+                    "url": "https://www.claroshop.com/imagenes-sanborns-ii/1200/7506195100233.jpg",
+                    "thumbnail": "https://www.claroshop.com/imagenes-sanborns-ii/1200/7506195100233.jpg"
+                }
+            ],
+            "isfree": false,
+            ...
+            ...
+        },          
+        {
+            "id": 8308291,
+            ...
+        }
+    ],
+    "pagination": {
+        "total_items": 791695,
+        "total_pages": 395848,
+        "current_page": 1,
+        "items_per_page": 2
+    }
+}
+
+Algo interesante es que cuando se piden más registros por página del límite utiliza los campos is_error y message para indicar que no hubo error pero que no se pudo cumplir con el requisito de paginación mostrando solo lo una cantidad pre-determinada. 
+
+{
+    "metadata": {
+        "is_error": false,
+        "http_status": "OK",
+        "http_status_phrase": 200,
+        "time": 1601043488,
+        "message": "Can't get more than 500 items!. I return only one :)"
+    },
+    "data": [
+    ...
+    ],
+    "pagination": {
+        "total_items": ....,
+        "total_pages": ....,
+        "current_page": 1,
+        "items_per_page": 1
+    }
+}
+
+
 - Corregir JSON en /v1/files
 
 "failures": [
@@ -265,10 +379,6 @@ https://docs.phalcon.io/4.0/en/acl#serialization
 - Implementar notificaciones push o reverse API.
 
 - Solucionar que applyOutputMutators() requiere que que el fetch mode sea ASSOC. Esto hace que falle first() por ejemplo si el modo es otro.
-
-- Usar Midlewares para evitar tener que hardcodear la clase Auth
-
-https://www.sourcefuse.com/blog/rest-api-best-practices/
 
 - Considerar utlizar fastcgi_finish_request (requiere módulo FPM de Apache o similar para NGINX)
 

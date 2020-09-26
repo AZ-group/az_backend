@@ -22,7 +22,7 @@ class Permissions extends MyApiController
         if (empty($data))
             Factory::response()->sendError('Invalid JSON',400);
         
-        $model    = '\\simplerest\\models\\'.$this->modelName;
+        $model    = '\\simplerest\\models\\'.$this->model_name;
         $instance = DB::table('permissions')->setFetchMode('ASSOC');
 
         try {

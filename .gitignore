@@ -11,3 +11,4 @@ DATOS.txt
 phpmyadmin/
 public/phpmyadmin/
 .phpunit.result.cache
+app/security/acl.cache

@@ -63,9 +63,10 @@ class Model {
 	protected $transformer;
 	protected $controller;
 	protected $exec = true;
-	protected $fetch_mode = \PDO::FETCH_OBJ;
+	protected $fetch_mode;
+	protected $fetch_mode_default = \PDO::FETCH_OBJ;
 	protected $data = []; 
-	
+
 	
 	function __construct(\PDO $conn = null){
 
@@ -184,11 +185,11 @@ class Model {
 			if (!in_array($field, $this->getProperties()))
 				throw new \Exception("Invalid transformer: $field field is not present in " . $this->table_name); 
 
-			if ($this->fetch_mode == \PDO::FETCH_ASSOC){
+			if ($this->getFetchMode() == \PDO::FETCH_ASSOC){
 				foreach ($rows as $k => $row){
 					$rows[$k][$field] = $fn($row[$field]);
 				}
-			}elseif ($this->fetch_mode == \PDO::FETCH_OBJ){
+			}elseif ($this->getFetchMode() == \PDO::FETCH_OBJ){
 				foreach ($rows as $k => $row){
 					$rows[$k]->$field = $fn($row->$field);
 				}
@@ -220,6 +221,18 @@ class Model {
 	function setFetchMode($mode){
 		$this->fetch_mode = constant("PDO::FETCH_{$mode}");
 		return $this;
+	}
+
+	protected function getFetchMode($mode_wished = null){
+		if ($this->fetch_mode == NULL){
+			if ($mode_wished != NULL) {
+				return constant("PDO::FETCH_{$mode_wished}");
+			} else {
+				return $this->fetch_mode_default;
+			}
+		} else {
+			return $this->fetch_mode;
+		}
 	}
 
 	function setValidator(IValidator $validator){
@@ -963,7 +976,7 @@ class Model {
 
 		$count = null;
 		if ($this->exec && $st->execute()){
-			$output = $st->fetchAll($this->fetch_mode);
+			$output = $st->fetchAll($this->getFetchMode());
 			$count = $st->rowCount();
 
 			if (empty($output)) {
@@ -986,7 +999,7 @@ class Model {
 
 		$count = null;
 		if ($this->exec && $st->execute()){
-			$output = $st->fetch($this->fetch_mode);
+			$output = $st->fetch($this->getFetchMode());
 			$count = $st->rowCount();
 
 			if (empty($output)) {
@@ -1036,7 +1049,7 @@ class Model {
 		$st = $this->bind($q);
 	
 		if ($this->exec && $st->execute()) {
-			$res = $this->applyTransformer($this->applyOutputMutators($st->fetchAll($this->fetch_mode)));
+			$res = $this->applyTransformer($this->applyOutputMutators($st->fetchAll($this->getFetchMode())));
 			return $res[0] ?? NULL;
 		} else
 			return false;	
@@ -1048,12 +1061,12 @@ class Model {
 
 		if (empty($this->group)){
 			if ($this->exec && $st->execute())
-				return $st->fetch($this->fetch_mode);
+				return $st->fetch($this->getFetchMode());
 			else
 				return false;	
 		}else{
 			if ($this->exec && $st->execute())
-				return $st->fetchAll($this->fetch_mode);
+				return $st->fetchAll($this->getFetchMode());
 			else
 				return false;
 		}	
@@ -1065,12 +1078,12 @@ class Model {
 
 		if (empty($this->group)){
 			if ($this->exec && $st->execute())
-				return $st->fetch($this->fetch_mode);
+				return $st->fetch($this->getFetchMode());
 			else
 				return false;	
 		}else{
 			if ($this->exec && $st->execute())
-				return $st->fetchAll($this->fetch_mode);
+				return $st->fetchAll($this->getFetchMode());
 			else
 				return false;
 		}	
@@ -1082,12 +1095,12 @@ class Model {
 
 		if (empty($this->group)){
 			if ($this->exec && $st->execute())
-				return $st->fetch($this->fetch_mode);
+				return $st->fetch($this->getFetchMode());
 			else
 				return false;	
 		}else{
 			if ($this->exec && $st->execute())
-				return $st->fetchAll($this->fetch_mode);
+				return $st->fetchAll($this->getFetchMode());
 			else
 				return false;
 		}	
@@ -1099,12 +1112,12 @@ class Model {
 
 		if (empty($this->group)){
 			if ($this->exec && $st->execute())
-				return $st->fetch($this->fetch_mode);
+				return $st->fetch($this->getFetchMode());
 			else
 				return false;	
 		}else{
 			if ($this->exec && $st->execute())
-				return $st->fetchAll($this->fetch_mode);
+				return $st->fetchAll($this->getFetchMode());
 			else
 				return false;
 		}	
@@ -1116,12 +1129,12 @@ class Model {
 
 		if (empty($this->group)){
 			if ($this->exec && $st->execute()){
-				return $st->fetch($this->fetch_mode);
+				return $st->fetch($this->getFetchMode('COLUMN'));
 			}else
 				return false;	
 		}else{
 			if ($this->exec && $st->execute()){
-				return $st->fetchAll($this->fetch_mode);
+				return $st->fetchAll($this->getFetchMode('COLUMN'));
 			}else
 				return false;
 		}	

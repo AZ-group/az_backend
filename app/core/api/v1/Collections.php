@@ -41,10 +41,10 @@ class Collections extends MyApiController
         try {            
             $entity = Strings::toCamelCase($entity);    
            
-            $modelName   = ucfirst($entity) . 'Model';
+            $model_name   = ucfirst($entity) . 'Model';
             $model_table = strtolower($entity);
 
-            $model    = 'simplerest\\models\\'. $modelName;
+            $model    = 'simplerest\\models\\'. $model_name;
             $api_ctrl = '\simplerest\\controllers\\api\\' . ucfirst($entity);
 
             if (!class_exists($model))
@@ -105,10 +105,10 @@ class Collections extends MyApiController
                                
                 $entity = Strings::toCamelCase($row['entity']);    
            
-                $modelName   = ucfirst($entity) . 'Model';
+                $model_name   = ucfirst($entity) . 'Model';
                 $model_table = strtolower($entity);
 
-                $model    = 'simplerest\\models\\'. $modelName;
+                $model    = 'simplerest\\models\\'. $model_name;
                 $api_ctrl = '\simplerest\\controllers\\api\\' . ucfirst($entity);
 
                 if (!class_exists($model))
@@ -171,10 +171,10 @@ class Collections extends MyApiController
 
             $entity = Strings::toCamelCase($row['entity']);    
            
-            $modelName   = ucfirst($entity) . 'Model';
+            $model_name   = ucfirst($entity) . 'Model';
             $model_table = strtolower($entity);
 
-            $model    = 'simplerest\\models\\'. $modelName;
+            $model    = 'simplerest\\models\\'. $model_name;
             $api_ctrl = '\simplerest\\controllers\\api\\' . ucfirst($entity);
 
             if (!class_exists($model))
