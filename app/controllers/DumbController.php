@@ -69,7 +69,6 @@ class DumbController extends Controller
         Debug::dd(DB::table('products')->where(['size', '2L'])->get());
     }
 
-
     function create_p(){
 
         $name = '';
@@ -82,7 +81,29 @@ class DumbController extends Controller
             'size' => '1L',
             'cost' => 66,
             'belongs_to' => 90
-        ]);    
+        ]);   
+        
+        var_dump($id);
+    }
+
+    function create_baz($id = null){
+
+        $name = '';
+        for ($i=0;$i<20;$i++)
+            $name .= chr(rand(97,122));
+
+        $data = [ 
+            'name' => $name,
+            'cost' => 100
+        ];
+
+        if ($id != null){
+            $data['id'] = $id;
+        }
+
+        $id = DB::table('baz')->create($data);    
+
+        Debug::dd($id, 'las_inserted_id');
     }
 
     // implementada y funcionando en register() 
@@ -1057,7 +1078,7 @@ class DumbController extends Controller
 
     function del_user($id){
         $u = DB::table('users');
-        $ok = (bool) $u->where(['id' => $id])->delete(false);
+        $ok = (bool) $u->where(['id' => $id])->setSoftDelete(false)->delete();
         
         Debug::dd($ok);
     }

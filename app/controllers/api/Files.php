@@ -10,7 +10,7 @@ use simplerest\libs\Debug;
 
 class Files extends MyApiController
 { 
-    static protected $soft_delete = false;
+    static protected $soft_delete = true;
 
     function __construct()
     {   
@@ -38,7 +38,7 @@ class Files extends MyApiController
 
         $uploaded = [];
         foreach ($files as list($filename_ori, $filename_as_stored)){           
-            if ($this->isAdmin()){ // transfer
+            if (Factory::acl()->hasSpecialPermission('transfer', $this->roles)){ 
                 if (isset($data['belongs_to']))
                     $belongs_to = $data['belongs_to'];    
             } else 
@@ -84,35 +84,35 @@ class Files extends MyApiController
         if($id == NULL)
             Factory::response()->sendError("Lacks id in request", 400);
 
-        if (!ctype_digit($id))
-            Factory::response()->sendError('Bad request', 400, 'Id should be an integer');
-
         $data = Factory::request()->getBody();        
 
         try {    
-            $instance = DB::table('files');
-            $instance->fill(['deleted_at']); 
+            $instance = DB::table('files')
+            ->setFetchMode('ASSOC')
+            ->fill(['deleted_at']); 
 
-            $owned = static::get_owned() && $instance->inSchema(['belongs_to']);
+            $owned = $instance->inSchema(['belongs_to']);
             $row   = $instance->where(['id', $id])->first();
             
             if (empty($row)){
                 Factory::response()->code(404)->sendError("File with id=$id does not exists");
             }
             
-            if ($owned && !$this->is_admin && $row['belongs_to'] != $this->uid){
+            $acl = Factory::acl();
+
+            if ($owned && !$acl->hasSpecialPermission('write_all', $this->roles) && $row['belongs_to'] != $this->uid){
                 Factory::response()->sendError('Forbidden', 403, 'You are not the owner');
             }
             
             $extra = [];
 
-            if ($this->is_admin){
+            if (!$acl->hasSpecialPermission('lock', $this->roles)){
                 if ($instance->inSchema(['locked'])){
                     $extra = array_merge($extra, ['locked' => 1]);
                 }   
             }else {
                 if (isset($row['locked']) && $row['locked'] == 1){
-                    Factory::response()->sendError("Locked by Admin", 403);
+                    Factory::response()->sendError("Locked by an admin", 403);
                 }
             }
 
@@ -126,7 +126,7 @@ class Files extends MyApiController
                 $path = UPLOADS_PATH . $row['filename_as_stored'];
 
                 if (!file_exists($path)){
-                    //var_dump($path);
+                    $instance->update(['broken' => 1]);
                     Factory::response()->sendError("File not found",404, $path); 
                 }
 
@@ -137,7 +137,7 @@ class Files extends MyApiController
                 }
             }
 
-            if($instance->delete($soft_delete, $extra)){
+            if($instance->setSoftDelete(true)->delete($extra)){
                 Factory::response()->sendJson("OK");
             }	
             //else

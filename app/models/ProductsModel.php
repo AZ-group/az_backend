@@ -9,7 +9,6 @@ use simplerest\core\Model;
 */
 class ProductsModel extends Model 
 {
-	protected $nullable = ['description', 'size', 'active', 'locked', 'workspace', 'created_at', 'updated_at', 'deleted_at', 'deleted_by' ];
  
 	/*
 		Types are INT, STR and BOOL among others
@@ -32,6 +31,17 @@ class ProductsModel extends Model
 		'locked' => 'INT',		 
 		'belongs_to' => 'INT' 
 	];
+
+	/*
+		(1) Por defecto el Id es requerido -por el validator- excepto que se especifique que es nullable.
+
+		(2) Si el Id tiene AUTOINCREMENT debe ser nullable tanto en la DB como en el modelo y ya que por (1) el id es requerido. 
+		
+		(3) Advertencia: si existe el campo 'belongs_to' en la DB y en el modelo => debe ser nullable porque el ApiController lo va a intentar rellenar.   <-- hay solución?
+	*/
+	
+	protected $nullable = ['id', 'description', 'size', 'active', 'locked', 'workspace', 'created_at', 'updated_at', 'deleted_at', 'deleted_by' ];
+
 
 	protected $rules = [
         'name' 			=> ['min'=>3, 'max'=>40],

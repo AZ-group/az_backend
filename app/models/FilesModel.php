@@ -15,6 +15,7 @@ class FilesModel extends Model
 		'belongs_to' => 'INT',
 		'guest_access' => 'INT',
 		'locked' => 'INT',
+		'broken' => 'INT',
 		'created_at' => 'STR',
 		'deleted_at' => 'STR',
 	];
@@ -25,6 +26,7 @@ class FilesModel extends Model
 	protected $rules = [
 		'filename'	=> ['max'=> 255],
 		'locked' 	=> ['type' => 'bool'],
+		'broken' 	=> ['type' => 'bool'],
 		'guest_access' 	=> ['type' => 'bool']
 	];
 

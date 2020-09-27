@@ -2,7 +2,6 @@
 
 namespace simplerest\core;
 
-use simplerest\libs\Debug;
 use simplerest\libs\Arrays;
 use simplerest\libs\Strings;
 use simplerest\libs\Validator;
@@ -18,6 +17,7 @@ class Model {
 	protected $id_name = 'id';
 	protected $schema   = [];
 	protected $nullable = [];
+	protected $not_nullable = [];
 	protected $fillable = [];
 	protected $not_fillable = [];
 	protected $hidden   = [];
@@ -64,6 +64,8 @@ class Model {
 	protected $controller;
 	protected $exec = true;
 	protected $fetch_mode;
+	protected $soft_delete;
+	protected $last_inserted_id;
 	protected $fetch_mode_default = \PDO::FETCH_OBJ;
 	protected $data = []; 
 
@@ -78,7 +80,7 @@ class Model {
 		$this->config = include CONFIG_PATH . 'config.php';
 
 		$this->properties = array_keys($this->schema);
-
+		
 		if (empty($this->table_name)){
 			$class_name = get_class($this);
 			$class_name = substr($class_name, strrpos($class_name, '\\')+1);
@@ -88,12 +90,11 @@ class Model {
 
 		if ($this->fillable == NULL){
 			$this->fillable = $this->properties;
-			$this->unfill([$this->id_name, 'locked', 'created_at', 'created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by']);
+			$this->unfill(['locked', 'created_at', 'created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by']);
 		}
 
 		$this->unfill($this->not_fillable);
 
-		$this->nullable[] = $this->id_name;
 		$this->nullable[] = 'locked';
 		$this->nullable[] = 'belongs_to';
 		$this->nullable[] = 'created_at';
@@ -103,12 +104,25 @@ class Model {
 		$this->nullable[] = 'updated_by';
 		$this->nullable[] = 'deleted_by';
 
-		$this->fillable[] = 'created_by';
-		$this->fillable[] = 'updated_by';
+		$to_fill = [$this->id_name];
 
+		if ($this->inSchema(['created_by'])){
+			$to_fill[] = 'created_by';
+		}
 
-		// Validations
+		if ($this->inSchema(['updated_by'])){
+			$to_fill[] = 'updated_by';
+		}
+
+		$this->fill($to_fill);				
+		//Debug::dd($this->fillable, 'fillables');
+
 		
+		$this->soft_delete = $this->inSchema(['deleted_at']);
+
+		/*
+		 Validations
+		*/
 		if (!empty($this->rules)){
 			foreach ($this->rules as $field => $rule){
 				if (!isset($this->rules[$field]['type']) || empty($this->rules[$field]['type'])){
@@ -245,10 +259,21 @@ class Model {
 		return $this;
 	}
 
+	// debe remover cualquier condición que involucre a 'deleted_at' en el WHERE !!!!
 	function showDeleted($state = true){
 		$this->show_deleted = $state;
 		return $this;
 	}
+
+	function setSoftDelete(bool $status) {
+		if (!$this->inSchema(['deleted_at'])){
+			throw new SqlException("There is no 'deleted_at' for table '".$this->from()."' in the schema");
+		} 
+		
+		$this->soft_delete = $status;
+		return $this;
+	}
+	
 
 	/*
 		Don't execute the query
@@ -1450,11 +1475,10 @@ class Model {
 	/**
 	 * delete
 	 *
-	 * @param  bool  $soft_delete 
 	 * @param  array $data (aditional fields in case of soft-delete)
 	 * @return mixed
 	 */
-	function delete($soft_delete = true, array $data = [])
+	function delete(array $data = [])
 	{
 		if ($this->conn == null)
 			throw new SqlException('No conection');
@@ -1467,13 +1491,9 @@ class Model {
 			} 
 		}
 
-		$this->onDeleting($soft_delete);
+		$this->onDeleting();
 
-		if ($soft_delete){
-			if (!$this->inSchema(['deleted_at'])){
-				throw new SqlException("There is no 'deleted_at' for ".$this->from(). ' schema');
-			} 
-
+		if ($this->soft_delete){
 			$d = new \DateTime(NULL, new \DateTimeZone($this->config['DateTimeZone']));
 			$at = $d->format('Y-m-d G:i:s');
 
@@ -1594,15 +1614,23 @@ class Model {
 		$this->last_bindings = $vals;
 		$this->last_pre_compiled_query = $q;
 
+		//var_dump($q);
+		//var_export($vals);
+		//exit;
+
 		$result = $st->execute();
 
 		if ($result){
-			$last_inserted_id = $this->{$this->id_name} = $this->conn->lastInsertId();
+			if (isset($data[$this->id_name])){
+				$this->last_inserted_id =	$data[$this->id_name];
+			} else {
+				$this->last_inserted_id = $this->conn->lastInsertId();
+			}
 		}else
-			$last_inserted_id = false;
+			$this->last_inserted_id = false;
 
-		$this->onCreated($data, $last_inserted_id);	
-		return $last_inserted_id;	
+		$this->onCreated($data, $this->last_inserted_id);	
+		return $this->last_inserted_id;	
 	}
 	
 	/*
@@ -1655,7 +1683,7 @@ class Model {
 	public function onReading() { }
 	public function onRead(?int $count) { }
 	
-	public function onDeleting($soft_delete) { }
+	public function onDeleting() { }
 	public function onDeleted(?int $count) { }
 
 	public function onCreating(Array $data) {	}
@@ -1679,7 +1707,7 @@ class Model {
 
 		if (empty($props))
 			throw new \InvalidArgumentException("Properties not found!");
-		
+
 		foreach ($props as $prop)
 			if (!in_array($prop, $this->properties)){
 				return false; 
@@ -1726,6 +1754,18 @@ class Model {
 
 	function getFillables(){
 		return $this->fillable;
+	}
+
+	function setNullables(Array $arr){
+		$this->nullable = $arr;
+	}
+
+	function addNullables(Array $arr){
+		$this->nullable = array_merge($this->nullable, $arr);
+	}
+
+	function removeNullables(Array $arr){
+		$this->nullable = array_diff($this->nullable, $arr);
 	}
 
 	function getNullables(){

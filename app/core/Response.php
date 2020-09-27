@@ -210,7 +210,9 @@ class Response
         else
             echo $res;
         
-        if (static::$quit)
-            exit; 
+        //if (static::$quit){
+            exit;
+        //}
+             
     }
 }

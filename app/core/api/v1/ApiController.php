@@ -31,7 +31,6 @@ abstract class ApiController extends ResourceController
 
     protected $id;
     protected $folder;
-    protected $get;
 
 
     function __construct(array $headers = []) 
@@ -234,9 +233,10 @@ abstract class ApiController extends ResourceController
         global $api_version;
 
         $this->id     = $id;
-        $this->_get   = Factory::request()->getQuery();   
-        $this->folder = Arrays::shift($this->_get,'folder');
+        $this->folder = Arrays::shift($_get,'folder');
 
+        $_get   = Factory::request()->getQuery();   
+        
         // event hook
         $this->onGettingBeforeCheck($id);
 
@@ -267,13 +267,13 @@ abstract class ApiController extends ResourceController
 
             if ($id == null) {            
                 foreach (['created_by', 'updated_by', 'deleted_by', 'belongs_to', 'user_id'] as $f){
-                    if (isset($this->_get[$f])){
-                        if ($this->_get[$f] == 'me')
-                            $this->_get[$f] = $this->uid;
-                        elseif (is_array($this->_get[$f])){
-                            foreach ($this->_get[$f] as $op => $idx){                            
+                    if (isset($_get[$f])){
+                        if ($_get[$f] == 'me')
+                            $_get[$f] = $this->uid;
+                        elseif (is_array($_get[$f])){
+                            foreach ($_get[$f] as $op => $idx){                            
                                 if ($idx == 'me'){
-                                    $this->_get[$f][$op] = $this->uid;
+                                    $_get[$f][$op] = $this->uid;
                                 }else{      
                                     $p = explode(',',$idx);
                                     if (count($p)>1){
@@ -282,43 +282,43 @@ abstract class ApiController extends ResourceController
                                             $p[$ix] = $this->uid;
                                         }
                                     }
-                                    $this->_get[$f][$op] = implode(',',$p);
+                                    $_get[$f][$op] = implode(',',$p);
                                 }
                             }
                         }else{
-                            $p = explode(',',$this->_get[$f]);
+                            $p = explode(',',$_get[$f]);
                             if (count($p)>1){
                             foreach ($p as $ix => $idx){
                                 if ($idx == 'me')
                                     $p[$ix] = $this->uid;
                                 }
                             }
-                            $this->_get[$f] = implode(',',$p);
+                            $_get[$f] = implode(',',$p);
                         }
                     }
                 }
         
-                //var_export($this->_get);
+                //var_export($_get);
                 //exit; ////
 
-                if (isset($this->_get['created_by']) && $this->_get['created_by'] == 'me')
-                    $this->_get['created_by'] = $this->uid;
+                if (isset($_get['created_by']) && $_get['created_by'] == 'me')
+                    $_get['created_by'] = $this->uid;
 
-                foreach ($this->_get as $f => $v){
+                foreach ($_get as $f => $v){
                     if (!is_array($v) && strpos($v, ',')=== false)
                         $data[$f] = $v;
                 } 
             }
 
-            //var_export($this->_get);
+            //var_export($_get);
             //exit;
                 
             $owned = $instance->inSchema(['belongs_to']);
 
-            $_q      = Arrays::shift($this->_get,'q'); /* search */
+            $_q      = Arrays::shift($_get,'q'); /* search */
             
             
-            $fields  = Arrays::shift($this->_get,'fields');
+            $fields  = Arrays::shift($_get,'fields');
             $fields  = $fields != NULL ? explode(',',$fields) : NULL;
 
             $properties = $instance->getProperties();
@@ -328,7 +328,7 @@ abstract class ApiController extends ResourceController
                     Factory::response()->sendError("Unknown field '$field'", 400);
             }
 
-            $exclude = Arrays::shift($this->_get,'exclude');
+            $exclude = Arrays::shift($_get,'exclude');
             $exclude = $exclude != NULL ? explode(',',$exclude) : NULL;
 
             foreach ((array) $exclude as $field){
@@ -341,15 +341,15 @@ abstract class ApiController extends ResourceController
             if ($exclude != null)
                 $instance->hide($exclude);
                        
-            $pretty  = Arrays::shift($this->_get,'pretty');
+            $pretty  = Arrays::shift($_get,'pretty');
 
-            foreach ($this->_get as $key => $val){
+            foreach ($_get as $key => $val){
                 if ($val == 'NULL' || $val == 'null'){
-                    $this->_get[$key] = NULL;
+                    $_get[$key] = NULL;
                 }               
             }
 
-            //var_dump($this->_get);
+            //var_dump($_get);
             //exit;
 
             if ($this->folder !== null)
@@ -371,7 +371,7 @@ abstract class ApiController extends ResourceController
 
             if ($id != null)
             {
-                $this->_get = [
+                $_get = [
                     ['id', $id]
                 ];  
 
@@ -380,14 +380,14 @@ abstract class ApiController extends ResourceController
                          
                     if ($this->isGuest()){                        
                         if ($instance->inSchema(['guest_access'])){
-                            $this->_get[] = ['guest_access', 1];
+                            $_get[] = ['guest_access', 1];
                         } elseif (!empty(static::$folder_field)) {
-                            $this->_get[] = [static::$folder_field, NULL, 'IS'];
+                            $_get[] = [static::$folder_field, NULL, 'IS'];
                         } 
                                                 
                     } else {
                         if ($owned && !$this->acl->hasSpecialPermission('read_all', $this->roles))
-                            $this->_get[] = ['belongs_to', $this->uid];
+                            $_get[] = ['belongs_to', $this->uid];
                     }
                        
                     
@@ -396,13 +396,13 @@ abstract class ApiController extends ResourceController
                     if (empty(static::$folder_field))
                         Factory::response()->sendError("Forbidden", 403, "folder_field is undefined");    
                                            
-                    $this->_get[] = [static::$folder_field, $f_rows[0]['name']];
-                    $this->_get[] = ['belongs_to', $f_rows[0]['belongs_to']];
+                    $_get[] = [static::$folder_field, $f_rows[0]['name']];
+                    $_get[] = ['belongs_to', $f_rows[0]['belongs_to']];
                 }
 
-                //var_export($this->_get);
+                //var_export($_get);
 
-                $rows = $instance->where($this->_get)->get($fields); 
+                $rows = $instance->where($_get)->get($fields); 
                 if (empty($rows))
                     Factory::response()->sendError('Not found', 404, $id != null ? "Registry with id=$id in table '{$this->model_table}' was not found" : '');
                 else{
@@ -414,9 +414,9 @@ abstract class ApiController extends ResourceController
             }else{    
                 // "list
                 
-                $props    = Arrays::shift($this->_get,'props');
-                $group_by = Arrays::shift($this->_get,'groupBy');
-                $having   = Arrays::shift($this->_get,'having');
+                $props    = Arrays::shift($_get,'props');
+                $group_by = Arrays::shift($_get,'groupBy');
+                $having   = Arrays::shift($_get,'having');
              
                 $get_limit = function(&$limit){
                     if ($limit == NULL)
@@ -429,8 +429,8 @@ abstract class ApiController extends ResourceController
                     } 
                 };
    
-                $page  = Arrays::shift($this->_get,'page');
-                $page_size = Arrays::shift($this->_get,'pageSize');
+                $page  = Arrays::shift($_get,'page');
+                $page_size = Arrays::shift($_get,'pageSize');
 
                 if ($page != null)
                     $page = (int) $page;
@@ -449,31 +449,31 @@ abstract class ApiController extends ResourceController
 
                     //var_export(['limit' =>$limit, 'offset' => $offset]);
                 }else{
-                    $limit  = Arrays::shift($this->_get,'limit');
-                    $offset = Arrays::shift($this->_get,'offset',0);                    
+                    $limit  = Arrays::shift($_get,'limit');
+                    $offset = Arrays::shift($_get,'offset',0);                    
 
                     $get_limit($limit);
                     $page_size = $limit;
                 }
 
-                $order  = Arrays::shift($this->_get,'orderBy');
+                $order  = Arrays::shift($_get,'orderBy');
 
                 
                 // event hook
                 $this->onGettingAfterCheck2($id);
                 
-                //var_export($this->_get);
+                //var_export($_get);
 
                 // Importante:
-                $this->_get = Arrays::nonassoc($this->_get);
+                $_get = Arrays::nonassoc($_get);
 
                 $allops = ['eq', 'gt', 'gteq', 'lteq', 'lt', 'neq'];
                 $eqops  = ['=',  '>' , '>=',   '<=',   '<',  '!=' ];
 
-                //var_export($this->_get);
+                //var_export($_get);
                 //exit;
 
-                foreach ($this->_get as $key => $val){
+                foreach ($_get as $key => $val){
                     if (is_array($val)){
 
                         $campo = $val[0];                       
@@ -488,39 +488,39 @@ abstract class ApiController extends ResourceController
                                  
                                 switch ($op) {
                                     case 'contains':
-                                        $this->_get[$key] = [$campo, '%'.$v.'%', 'like'];
+                                        $_get[$key] = [$campo, '%'.$v.'%', 'like'];
                                         $ignored[] = $campo;
                                         $data[$campo][] = $v;
                                     break;
                                     case 'notContains':
-                                        $this->_get[$key] = [$campo, '%'.$v.'%', 'not like'];
+                                        $_get[$key] = [$campo, '%'.$v.'%', 'not like'];
                                         $ignored[] = $campo;
                                         $data[$campo][] = $v;
                                     break;
                                     case 'startsWith':
-                                        $this->_get[$key] = [$campo, $v.'%', 'like'];
+                                        $_get[$key] = [$campo, $v.'%', 'like'];
                                         $ignored[] = $campo;
                                         $data[$campo][] = $v;
                                     break;
                                     case 'notStartsWith':
-                                        $this->_get[$key] = [$campo, $v.'%', 'not like'];
+                                        $_get[$key] = [$campo, $v.'%', 'not like'];
                                         $ignored[] = $campo;
                                         $data[$campo][] = $v;
                                     break;
                                     case 'endsWith':
-                                        $this->_get[$key] = [$campo, '%'.$v, 'like'];
+                                        $_get[$key] = [$campo, '%'.$v, 'like'];
                                         $ignored[] = $campo;
                                         $data[$campo][] = $v;
                                     break;
                                     case 'notEndsWith':
-                                        $this->_get[$key] = [$campo, '%'.$v, 'not like'];
+                                        $_get[$key] = [$campo, '%'.$v, 'not like'];
                                         $ignored[] = $campo;
                                         $data[$campo][] = $v;
                                     break;
                                     case 'in':                                    
                                         if (strpos($v, ',')!== false){    
                                             $vals = explode(',', $v);
-                                            $this->_get[$key] = [$campo, $vals, 'IN']; 
+                                            $_get[$key] = [$campo, $vals, 'IN']; 
 
                                             foreach ($vals as $_v){
                                                 $data[$campo][] = $_v;
@@ -530,7 +530,7 @@ abstract class ApiController extends ResourceController
                                     case 'notIn':
                                         if (strpos($v, ',')!== false){    
                                             $vals = explode(',', $v);
-                                            $this->_get[$key] = [$campo, $vals, 'NOT IN'];
+                                            $_get[$key] = [$campo, $vals, 'NOT IN'];
 
                                             foreach ($vals as $_v){
                                                 $data[$campo][] = $_v;
@@ -540,13 +540,13 @@ abstract class ApiController extends ResourceController
                                     case 'between':
                                         if (substr_count($v, ',') == 1){    
                                             $vals = explode(',', $v);
-                                            unset($this->_get[$key]);
+                                            unset($_get[$key]);
 
                                             $min = min($vals[0],$vals[1]);
                                             $max = max($vals[0],$vals[1]);
 
-                                            $this->_get[] = [$campo, $min, '>='];
-                                            $this->_get[] = [$campo, $max, '<='];
+                                            $_get[] = [$campo, $min, '>='];
+                                            $_get[] = [$campo, $max, '<='];
 
                                             $data[$campo][] = $min;
                                             $data[$campo][] = $max;
@@ -559,8 +559,8 @@ abstract class ApiController extends ResourceController
                                         foreach ($allops as $ko => $oo){
                                             if ($op == $oo){
                                                 $op = $eqops[$ko];
-                                                unset($this->_get[$key]);
-                                                $this->_get[] = [$campo, $v, $op];
+                                                unset($_get[$key]);
+                                                $_get[] = [$campo, $v, $op];
                                                 $data[$campo][] = $v; // 
                                                 $found = true;                            
                                                 break;                                    
@@ -579,7 +579,7 @@ abstract class ApiController extends ResourceController
                             $v = $val[1];
                             if (strpos($v, ',')!== false){    
                                 $vals = explode(',', $v);
-                                $this->_get[$key] = [$campo, $vals];    
+                                $_get[$key] = [$campo, $vals];    
                                 
                                 foreach ($vals as $_v){
                                    $data[$campo][] = $_v;
@@ -591,7 +591,7 @@ abstract class ApiController extends ResourceController
                 }
                                 
                 // Si se pide algo que involucra un campo no está en el schema lanzar error
-                foreach ($this->_get as $arr){
+                foreach ($_get as $arr){
                     if (!in_array($arr[0],$properties))
                         Factory::response()->sendError("Unknown field '$arr[0]'", 400);
                 }
@@ -600,17 +600,17 @@ abstract class ApiController extends ResourceController
                 if (empty($this->folder)){
                     // root, sin especificar folder ni id (lista)   // *             
                     if (!$this->isGuest() && $owned && !$this->acl->hasSpecialPermission('read_all', $this->roles) ){
-                        $this->_get[] = ['belongs_to', $this->uid];     
+                        $_get[] = ['belongs_to', $this->uid];     
                     }       
                 }else{
                     // folder, sin id
 
                     if (empty(static::$folder_field)){
-                        Factory::response()->sendError("Forbidden", 403, "'folder_field' is undefined!!!!!!!!");   
+                        Factory::response()->sendError("Forbidden", 403, "'folder_field' is undefined");   
                     }    
 
-                    $this->_get[] = [static::$folder_field, $f_rows[0]['name']];
-                    $this->_get[] = ['belongs_to', $f_rows[0]['belongs_to']];
+                    $_get[] = [static::$folder_field, $f_rows[0]['name']];
+                    $_get[] = ['belongs_to', $f_rows[0]['belongs_to']];
                 }
                 
                 if ($id == null){
@@ -631,7 +631,7 @@ abstract class ApiController extends ResourceController
                 else
                     $pretty = true;   
 
-                //var_export($this->_get); ////
+                //var_export($_get); ////
                 //var_export($_SERVER["QUERY_STRING"]);
 
                 $query = Factory::request()->getQuery();
@@ -663,8 +663,8 @@ abstract class ApiController extends ResourceController
                 }
 
                 // WHERE
-                $instance->where($this->_get);
-                //var_export($this->_get);
+                $instance->where($_get);
+                //var_export($_get);
 
                 // GROUP BY
                 if ($group_by != NULL){
@@ -726,7 +726,7 @@ abstract class ApiController extends ResourceController
 
                 //  pagino solo sino hay funciones agregativas
                 if (!isset($ag_fn)){
-                    $total = (int) (new $model($conn))->where($this->_get)->setFetchMode('COLUMN')->count();
+                    $total = (int) (new $model($conn))->where($_get)->setFetchMode('COLUMN')->count();
                     
                     $page_count = ceil($total / $limit);
 
@@ -802,13 +802,11 @@ abstract class ApiController extends ResourceController
             // event hook             
             $this->onPostingBeforeCheck($id, $data);
 
-            if ($instance->inSchema(['belongs_to'])){
-                if ($this->acl->hasSpecialPermission('transfer', $this->roles)){
-                    // sino no digo de quien es, ... es mio 
-                    if (!isset($data['belongs_to']))
-                        $data['belongs_to'] = $this->uid;
-                }elseif (!$this->isGuest())
-                    $data['belongs_to'] = $this->uid; 
+            // *
+            if (isset($data['belongs_to'])){
+                if (!$this->acl->hasSpecialPermission('transfer', $this->roles)){
+                    $data['belongs_to'] = $this->uid;
+                } 
             }   
 
             if ($instance->inSchema(['created_by'])){
@@ -854,12 +852,15 @@ abstract class ApiController extends ResourceController
             // event hook             
             $this->onPostingAfterCheck($id, $data);
 
-            if ($instance->create($data)!==false){
-                // event hooks
-                $this->onPostFolder($instance->id, $data, $this->folder);
-                $this->onPost($instance->id, $data);
+           // var_dump($data);
 
-                Factory::response()->send(['id' => $instance->id], 201);
+            $last_inserted_id = $instance->create($data);
+            if ($last_inserted_id !==false){
+                // event hooks
+                $this->onPostFolder($last_inserted_id, $data, $this->folder);
+                $this->onPost($last_inserted_id, $data);
+
+                Factory::response()->send(['id' => $last_inserted_id], 201);
             }	
             else
                 Factory::response()->sendError("Error: creation of resource fails!");
@@ -884,7 +885,7 @@ abstract class ApiController extends ResourceController
         
         $this->id = $id;    
         $this->folder = $this->folder = $data['folder'] ?? null;
-        $this->_get = ['id' => $id];
+
         
         try {
             $model    = 'simplerest\\models\\'.$this->model_name;            
@@ -892,8 +893,6 @@ abstract class ApiController extends ResourceController
             
             // event hook
             $this->onPuttingBeforeCheck($id, $data);
-
-            //var_dump($this->_get);
 
 			if (!$this->acl->hasSpecialPermission('lock', $this->roles)){
                 $instance0 = (new $model($conn))->setFetchMode('ASSOC');
@@ -919,7 +918,6 @@ abstract class ApiController extends ResourceController
                     unset($data['belongs_to']);
                 }   
             }else{
-                //$instance->fill(['deleted_at']);
                 $instance->fillAll();
             }
 
@@ -946,8 +944,7 @@ abstract class ApiController extends ResourceController
                 $instance2 = new $model();
                 $instance2->setConn($conn)->setFetchMode('ASSOC');
 
-                // *
-                if (count($instance2->where(  array_merge($this->_get, [static::$folder_field => $this->folder_name]) )->get()) == 0)
+                if (count($instance2->where(['id => $id', static::$folder_field => $this->folder_name])->get()) == 0)
                     Factory::response()->code(404)->sendError("Register for id=$id does not exists");
 
                 unset($data['folder']);    
@@ -956,21 +953,22 @@ abstract class ApiController extends ResourceController
                 
             } else {
 
-                $instance2 = new $model();
-                $instance2->setConn($conn)->setFetchMode('ASSOC'); 
+                $this->instance2 = new $model();
+                $this->instance2->setConn($conn)->setFetchMode('ASSOC'); 
 
-                $rows = $instance2->where($this->_get)->get();
+                // event hook    
+                $this->onPuttingBeforeCheck2($id, $data);
 
-                //var_dump($this->_get); /////////////
+                $rows = $this->instance2->where(['id' => $id])->get();
 
                 if (count($rows) == 0){
-                    Debug::dump($instance2->getLastPrecompiledQuery(), 'SQL');
                     Factory::response()->code(404)->sendError("Register for id=$id does not exists!");
                 }
 
-                if  ($owned && !$this->acl->hasSpecialPermission('write_all', $this->roles) && $rows[0]['belongs_to'] != $this->uid)
+                if  ($owned && !$this->acl->hasSpecialPermission('write_all', $this->roles) && $rows[0]['belongs_to'] != $this->uid){
                     Factory::response()->sendError('Forbidden', 403, 'You are not the owner');
-                
+                }
+                    
             }        
 
             foreach ($data as $k => $v){
@@ -996,11 +994,9 @@ abstract class ApiController extends ResourceController
 
             // event hook
             $this->onPuttingAfterCheck($id, $data);
-
-            $affected = $instance->where($this->_get)->update($data);
+          
+            $affected = $instance->where(['id' => $id])->update($data);
             if ($affected !== false) {
-
-                //Debug::dump($instance->getLastPrecompiledQuery(), 'SQL');
 
                 // even hooks        	    
                 $this->onPutFolder($id, $data, $affected, $this->folder);
@@ -1069,15 +1065,17 @@ abstract class ApiController extends ResourceController
 
             $owned = $instance->inSchema(['belongs_to']);
 
-            $rows  = $instance->where(['id', $id])->get();
+            $rows  = $instance->where(['id', $id]);
+        
+            // event hook
+            $this->onDeletingBeforeCheck($id);
+
+            $rows = $instance->get();
+            Debug::dump($instance->getLastPrecompiledQuery(), 'SQL');
             
             if (count($rows) == 0){
                 Factory::response()->code(404)->sendError("Register for id=$id does not exists");
             }
-
-            // event hook
-            $this->onDeletingBeforeCheck($id);
-
 
             if ($this->folder !== null)
             {
@@ -1171,19 +1169,20 @@ abstract class ApiController extends ResourceController
 
     public function onGettingBeforeCheck($id) { }
     public function onGettingAfterCheck($id) { }
-    public function onGettingAfterCheck2($id) { }
+    public function onGettingAfterCheck2($id) { }  ///
     public function onGot($id, ?int $count){ }
 
     public function onDeletingBeforeCheck($id){ }
     public function onDeletingAfterCheck($id){ }
     public function onDeleted($id, ?int $affected){ }
 
-    public function onPostingBeforeCheck($id, Array $data){ }
-    public function onPostingAfterCheck($id, Array $data){ }
+    public function onPostingBeforeCheck($id, Array &$data){ }
+    public function onPuttingBeforeCheck2($id, Array &$data){ }  ///
+    public function onPostingAfterCheck($id, Array &$data){ }
     public function onPost($id, Array $data){ }
 
-    public function onPuttingBeforeCheck($id, Array $data){ }
-    public function onPuttingAfterCheck($id, Array $data){ }
+    public function onPuttingBeforeCheck($id, Array &$data){ }
+    public function onPuttingAfterCheck($id, Array &$data){ }
     public function onPut($id, Array $data, ?int $affected){ }
 
      /*
@@ -1198,12 +1197,12 @@ abstract class ApiController extends ResourceController
     public function onDeletingFolderAfterCheck($id, $folder){ }
     public function onDeletedFolder($id, ?int $affected, $folder){ }
 
-    public function onPostingFolderBeforeCheck($id, Array $data, $folder){ }
-    public function onPostingFolderAfterCheck($id, Array $data, $folder){ }
+    public function onPostingFolderBeforeCheck($id, Array &$data, $folder){ }
+    public function onPostingFolderAfterCheck($id, Array &$data, $folder){ }
     public function onPostFolder($id, Array $data, $folder){ }
 
-    public function onPuttingFolderBeforeCheck($id, Array $data, $folder){ }
-    public function onPuttingFolderAfterCheck($id, Array $data, $folder){ }
+    public function onPuttingFolderBeforeCheck($id, Array &$data, $folder){ }
+    public function onPuttingFolderAfterCheck($id, Array &$data, $folder){ }
     public function onPutFolder($id, Array $data, ?int $affected, $folder){ }
 
     

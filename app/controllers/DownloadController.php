@@ -15,15 +15,7 @@ class DownloadController extends ResourceController
 
     function __construct()
     {
-        $this->headers['Access-Control-Allow-Methods'] = 'GET,OPTIONS';
-
-        parent::__construct();
-     
-        if ($this->isGuest()){
-            if (!static::$guest_access){
-                Factory::response()->sendError('Unauthorized!',403, 'There is no guest access');
-            }
-        }        
+        parent::__construct();        
     }
 
     function get($id = null) {
@@ -35,7 +27,7 @@ class DownloadController extends ResourceController
 
         $_get = [];    
         
-        if (!$this->is_admin){
+        if (!Factory::acl()->hasSpecialPermission('read_all', $this->roles)){
             if ($this->isGuest()){                
                 $instance = DB::table('files');
                 
@@ -55,7 +47,7 @@ class DownloadController extends ResourceController
         if (empty($row))
             Factory::response()->sendError('File not found', 404);
       
-        $file = UPLOADS_PATH . $row['filename_as_stored'];
+        $file = UPLOADS_PATH . $row->filename_as_stored;
 
         if (file_exists($file)) {
             header('Content-Description: File Transfer');

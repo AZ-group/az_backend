@@ -5,16 +5,18 @@
 - Reparar 
 
     MySelf / Me  -- ok
-    Trashcan
+    Trashcan -- ok
     Collections
-    DownloadController
+    Files -- ok
+    DownloadController -- ok
     FacebookController
     GoogleController
     LoginController
     Roles     
 
-
 - Inconcistencia: un rol "puro" tiene id y por tanto al filtrar por id puede tener menos visibilidad que un Guest !
+
+- Cuando el tiempo de expiración restante de un access_token sea superior a 15 minutos chequear directamente desde base de datos: si el usuario está activo, tb_permissions y sp_permissions <-- con esto me evito tener que invalidar tokens de larga duración que pudieran haber sido usados en desarrollo.
 
 - Usar Whoops y Monolog. La desventaja de mi exception handler es que no estoy guardando el stack de excepciones previas (con sus códigos de error, # de línea, etc) en caso de ser re-lanzadas.
 

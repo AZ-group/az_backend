@@ -16,10 +16,12 @@ if (!$acl_cache || is_file($acl_file) !== true) {
     $acl
     ->addRole('guest', -1)
     ->addResourcePermissions('products', ['show', 'list'])
+    ->addResourcePermissions('baz', ['read'])
     //->setGuest('guest')
 
     ->addRole('registered', 1)
     ->addInherit('guest')
+    ->addResourcePermissions('baz', ['write'])
 
     ->addRole('basic', 2)
     ->addInherit('registered')
