@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: localhost
--- Tiempo de generación: 24-09-2020 a las 05:25:18
+-- Tiempo de generación: 27-09-2020 a las 04:11:53
 -- Versión del servidor: 10.4.11-MariaDB
 -- Versión de PHP: 7.4.3
 
@@ -20,6 +20,46 @@ SET time_zone = "+00:00";
 --
 -- Base de datos: `az`
 --
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `baz`
+--
+
+CREATE TABLE `baz` (
+  `id` int(11) NOT NULL,
+  `name` varchar(45) NOT NULL,
+  `cost` decimal(5,2) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- Volcado de datos para la tabla `baz`
+--
+
+INSERT INTO `baz` (`id`, `name`, `cost`) VALUES
+(0, 'xxxy', '105.00'),
+(4, 'jmsvmhgtqgeijdjqfzwd', '100.00'),
+(8, 'waliiqkaknxhvvnqhewd', '100.00'),
+(10, 'asdf', '345.45'),
+(45, 'aptvunrsbcgqjviuucyh', '100.00'),
+(64, 'cupbexalludnjtemnbsv', '100.00'),
+(66, 'ndxrywhsjwlkrfjrokkg', '100.00'),
+(77, 'asdf gg', '345.44'),
+(79, 'asdf gg', '345.44'),
+(99, 'fff', '55.00'),
+(434, 'jtpbmnpsxevxjqgjylbd', '100.00'),
+(500, 'xxxy', '105.00'),
+(555, 'ixkqjlihkajsssqoqacj', '100.00'),
+(556, 'odeysprgwvvqiimaboch', '100.00'),
+(708, 'asdf gggg', '345.44'),
+(790, 'asdf gg', '345.44'),
+(4345, 'sxafueecvpgrbngyiewo', '100.00'),
+(5060, 'xxxy', '105.00'),
+(5061, 'xxxy', '0.00'),
+(7900, 'asdf gg', '345.44'),
+(43450, 'rwizixwbnqokdrebkfrx', '100.00'),
+(79050, 'asdf gg', '345.44');
 
 -- --------------------------------------------------------
 
@@ -71,6 +111,7 @@ CREATE TABLE `files` (
   `belongs_to` int(11) DEFAULT NULL,
   `guest_access` tinyint(4) DEFAULT NULL,
   `locked` tinyint(4) NOT NULL DEFAULT 0,
+  `broken` tinyint(4) DEFAULT NULL,
   `created_at` datetime NOT NULL,
   `deleted_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -79,12 +120,17 @@ CREATE TABLE `files` (
 -- Volcado de datos para la tabla `files`
 --
 
-INSERT INTO `files` (`id`, `filename`, `file_ext`, `filename_as_stored`, `belongs_to`, `guest_access`, `locked`, `created_at`, `deleted_at`) VALUES
-(240, '65394374_10158090117128840_7189038881361100800_o.jpg', 'jpg', '90-5f5bb828cb06c3.52751786.jpg', 90, 1, 0, '2020-09-11 14:47:20', NULL),
-(242, '79528120_1205478162980483_7100254245131124736_n.jpg', 'jpg', '87-5f63d609a595c2.69295215.jpg', 87, 0, 0, '2020-09-17 18:32:57', NULL),
-(243, '1_dF7xdJ8zEOx4z1jPkr52-Q.png', 'png', '87-5f63d609aad343.97437503.png', 87, 0, 0, '2020-09-17 18:32:57', NULL),
-(244, '79528120_1205478162980483_7100254245131124736_n.jpg', 'jpg', '87-5f63d635043929.14699523.jpg', 87, 1, 0, '2020-09-17 18:33:41', NULL),
-(245, '1_dF7xdJ8zEOx4z1jPkr52-Q.png', 'png', '87-5f63d6350461c0.12545473.png', 87, 0, 0, '2020-09-17 18:33:41', NULL);
+INSERT INTO `files` (`id`, `filename`, `file_ext`, `filename_as_stored`, `belongs_to`, `guest_access`, `locked`, `broken`, `created_at`, `deleted_at`) VALUES
+(240, '65394374_10158090117128840_7189038881361100800_o.jpg', 'jpg', '90-5f5bb828cb06c3.52751786.jpg', 90, 1, 0, NULL, '2020-09-11 14:47:20', NULL),
+(242, '79528120_1205478162980483_7100254245131124736_n.jpg', 'jpg', '87-5f63d609a595c2.69295215.jpg', 87, 0, 0, NULL, '2020-09-17 18:32:57', NULL),
+(243, '1_dF7xdJ8zEOx4z1jPkr52-Q.png', 'png', '87-5f63d609aad343.97437503.png', 87, 0, 0, NULL, '2020-09-17 18:32:57', NULL),
+(244, '79528120_1205478162980483_7100254245131124736_n.jpg', 'jpg', '87-5f63d635043929.14699523.jpg', 87, 1, 0, NULL, '2020-09-17 18:33:41', NULL),
+(245, '1_dF7xdJ8zEOx4z1jPkr52-Q.png', 'png', '87-5f63d6350461c0.12545473.png', 87, 0, 0, 1, '2020-09-17 18:33:41', NULL),
+(247, '1_dF7xdJ8zEOx4z1jPkr52-Q.png', 'png', '9-5f6fe37c268a63.40979105.png', 9, 0, 0, NULL, '0000-00-00 00:00:00', NULL),
+(248, '977604_10152409748463840_189162970_o.jpg', 'jpg', '9-5f6ff16a8eb7f3.28854283.jpg', 9, 0, 0, NULL, '2020-09-26 22:56:58', '2020-09-26 22:57:44'),
+(249, '1486130_10152856320498840_1063104767_o.jpg', 'jpg', '9-5f6ff16a8eef79.76828284.jpg', 9, 0, 0, NULL, '2020-09-26 22:56:59', '2020-09-26 22:58:24'),
+(250, '977604_10152409748463840_189162970_o.jpg', 'jpg', '9-5f6ff17d3905a2.42507190.jpg', 9, 0, 0, NULL, '2020-09-26 22:57:17', NULL),
+(251, '1486130_10152856320498840_1063104767_o.jpg', 'jpg', '9-5f6ff17d393680.92701475.jpg', 9, 0, 0, NULL, '2020-09-26 22:57:17', NULL);
 
 -- --------------------------------------------------------
 
@@ -185,7 +231,7 @@ CREATE TABLE `foo` (
 INSERT INTO `foo` (`id`, `bar`, `hide`, `deleted_at`) VALUES
 (2, 'EEE', 0, NULL),
 (5, 'J', 1, NULL),
-(6, 'fooo', 0, NULL),
+(6, 'foooooooo', 0, NULL),
 (7, '200', 0, NULL);
 
 -- --------------------------------------------------------
@@ -243,7 +289,7 @@ CREATE TABLE `permissions` (
 
 INSERT INTO `permissions` (`id`, `tb`, `can_create`, `can_show`, `can_update`, `can_delete`, `can_list`, `user_id`, `created_at`, `updated_at`) VALUES
 (2, 'products', 0, 1, 1, 1, 0, 168, '0000-00-00 00:00:00', NULL),
-(3, 'foo', 0, 1, 0, 1, 0, 90, '2020-01-14 00:00:00', NULL),
+(3, 'foo', 0, 1, 0, 1, 1, 90, '2020-01-14 00:00:00', NULL),
 (37, 'foo', 0, 1, 1, 1, 0, 168, '2020-01-14 23:09:37', '2020-01-15 06:30:55');
 
 -- --------------------------------------------------------
@@ -267,7 +313,7 @@ CREATE TABLE `products` (
   `active` tinyint(11) DEFAULT 1,
   `locked` tinyint(4) DEFAULT 0,
   `workspace` varchar(40) DEFAULT NULL,
-  `belongs_to` int(11) NOT NULL
+  `belongs_to` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 --
@@ -295,7 +341,7 @@ INSERT INTO `products` (`id`, `name`, `description`, `size`, `cost`, `created_at
 (143, 'Agua ', '--', '1L', 100, '2019-06-03 00:00:00', NULL, '2019-11-27 16:51:42', NULL, '2019-11-27 20:51:42', NULL, 1, 0, NULL, 90),
 (145, 'Juguito XII', 'de manzanas exprimidas', '1L', 350, '2019-02-09 00:00:00', NULL, '2020-01-16 21:27:43', 168, NULL, NULL, 1, 0, 'lista24', 168),
 (146, 'Wisky', '', '2L', 230, '2019-08-31 00:00:00', NULL, '2019-11-27 16:57:21', NULL, NULL, NULL, 1, 0, 'lista24', 90),
-(147, 'Aqua fresh', 'Rico', '1L', 105, '2019-03-20 00:00:00', NULL, '2019-11-30 19:21:07', NULL, '2019-11-30 23:21:07', NULL, 1, 0, 'comparto', 90),
+(147, 'Aqua fresh', 'Rico', '1L', 105, '2019-03-20 00:00:00', NULL, '2019-11-30 19:21:07', NULL, NULL, NULL, 1, 0, 'otralista', 72),
 (148, 'Alcohol etílico', '', '1L', 100, '2019-04-21 00:00:00', NULL, '2019-11-03 21:37:48', NULL, NULL, NULL, 1, 0, 'comparto', 90),
 (151, 'Juguito XIII', 'Rico', '1L', 355, '2019-10-03 00:00:00', NULL, '2019-10-15 17:00:58', NULL, NULL, NULL, 1, 0, 'lista24', 90),
 (155, 'Super-jugo', 'BBB', '12', 100, '2019-09-22 00:00:00', NULL, '2020-01-17 11:15:24', NULL, NULL, NULL, 1, 1, NULL, 5),
@@ -316,49 +362,49 @@ INSERT INTO `products` (`id`, `name`, `description`, `size`, `cost`, `created_at
 (175, 'Caja de herramientas', 'plastico', 'M', 30, '2019-11-02 20:43:14', NULL, '2019-12-07 00:39:18', NULL, NULL, NULL, 1, 0, NULL, 125),
 (176, 'Alambre', 'Precio por kilo', '1 mm', 400, '2019-11-02 20:44:28', NULL, NULL, NULL, NULL, NULL, 1, 0, NULL, 125),
 (177, 'Cable de 2 hilos telefónico', 'Por metro', '', 10, '2019-11-02 20:45:10', NULL, '2019-12-07 10:32:49', NULL, NULL, NULL, 1, 0, 'electricos', 125),
-(178, 'Agua destilada', '', '1L', 0, '2019-11-02 20:46:05', NULL, '2019-12-07 10:32:07', NULL, NULL, NULL, 1, 0, NULL, 125),
+(178, 'Agua destilada', '', '1L', 50, '2019-11-02 20:46:05', NULL, '2019-12-07 10:32:07', NULL, NULL, NULL, 1, 0, NULL, 125),
 (179, 'Agua mineral', '', '1L', 10, '2019-11-02 20:46:20', NULL, '2019-11-03 20:46:12', NULL, NULL, NULL, 1, 0, NULL, 125),
 (180, 'Pintura blanca exteriores', '', '5L', 200, '2019-11-02 21:19:06', NULL, NULL, NULL, NULL, NULL, 1, 0, NULL, 125),
 (181, 'Pintura blanca exteriores', '', '2L', 100, '2019-11-02 21:19:22', NULL, '2019-11-03 20:46:12', NULL, NULL, NULL, 1, 0, NULL, 125),
 (182, 'Pintura blanca interiores', NULL, '2L', 80, '2019-11-02 21:20:00', NULL, '2019-11-03 20:46:12', NULL, NULL, NULL, 1, 0, NULL, 125),
-(183, 'Tuercas', '', '', 0, '2019-11-03 21:33:20', NULL, NULL, NULL, NULL, NULL, 1, 0, NULL, 125),
-(185, 'ABC', '', '', 0, '2019-11-03 23:55:18', NULL, NULL, NULL, NULL, NULL, 1, 0, NULL, 132),
+(183, 'Tuercas', '', '', 50, '2019-11-03 21:33:20', NULL, NULL, NULL, NULL, NULL, 1, 0, NULL, 125),
+(185, 'ABC', '', '', 50, '2019-11-03 23:55:18', NULL, NULL, NULL, NULL, NULL, 1, 0, NULL, 132),
 (186, 'Toma-corrientes hembra pared', 'color: blanco', '', 20, '2019-11-04 09:26:55', NULL, NULL, NULL, NULL, NULL, 1, 0, 'electricos', 125),
 (187, 'Crush', 'x_x', '1L', 20, '2019-11-04 13:06:04', NULL, '2019-11-11 13:15:58', NULL, NULL, NULL, 1, 1, NULL, 90),
-(189, 'AAAAAAAAAAAAAaaaaa', '', '', 0, '2019-11-04 17:04:51', NULL, '2019-11-04 17:05:00', NULL, NULL, NULL, 1, 0, NULL, 87),
+(189, 'AAAAAAAAAAAAAaaaaa', '', '', 50, '2019-11-04 17:04:51', NULL, '2019-11-04 17:05:00', NULL, NULL, NULL, 1, 0, NULL, 87),
 (191, 'Wisky', '', '1.15L', 100, '2019-11-05 21:36:40', NULL, '2019-12-22 19:56:57', 90, NULL, NULL, 1, 0, NULL, 113),
 (192, 'Jugo Naranjin', 'Delicious juicEEEE', '1 L', 350, '2019-11-06 23:45:29', NULL, NULL, NULL, NULL, NULL, 1, 0, NULL, 4),
 (193, 'Re-Jugo', 'Delicious juicEEEEXXX', '1 L', 350, '2019-11-07 00:18:25', NULL, NULL, NULL, NULL, NULL, 1, 0, NULL, 4),
 (194, 'Re-Jugo', 'Delicious juicEEEEXXXYZ', '1 L', 350, '2019-11-07 00:20:53', NULL, NULL, NULL, NULL, NULL, 1, 0, NULL, 135),
 (195, 'Boo', 'Delicious juicEEEEXXXYZ4444444444444444444444444', '1 L', 350, '2019-11-07 01:31:43', NULL, NULL, NULL, NULL, NULL, 1, 0, NULL, 4),
-(196, 'NaranjAAAAAAA', 'OK', '', 0, '2019-11-07 22:58:51', NULL, '2019-11-24 17:49:34', NULL, NULL, NULL, 1, 0, NULL, 137),
-(197, 'HEYYYYYY', '', '', 0, '2019-11-10 00:57:51', NULL, NULL, NULL, NULL, NULL, 1, 0, NULL, 150),
+(196, 'NaranjAAAAAAA', 'OK', '', 50, '2019-11-07 22:58:51', NULL, '2019-11-24 17:49:34', NULL, NULL, NULL, 1, 0, NULL, 137),
+(197, 'HEYYYYYY', '', '', 50, '2019-11-10 00:57:51', NULL, NULL, NULL, NULL, NULL, 1, 0, NULL, 150),
 (198, 'AAAAA', 'x_x', '', 99, '2019-11-11 10:38:19', NULL, '2020-09-11 11:50:52', 4, '2020-09-11 11:51:46', NULL, 1, 0, NULL, 90),
 (199, 'cuzbgmbhiudjqvrmzwqf', 'x_x', '1L', 99, '2019-11-11 10:42:57', NULL, '2020-09-11 11:50:52', 4, '2020-09-11 11:51:46', NULL, 1, 0, 'lista publica', 90),
 (200, 'AAA', '', '', 99, '2019-11-11 11:44:51', NULL, '2020-09-11 11:50:52', 4, '2020-09-11 11:51:46', NULL, 1, 0, NULL, 156),
 (201, 'vzukvnjjhzintijexhjd', 'x_x', '1L', 66, '2019-11-11 11:48:37', NULL, '2019-11-11 13:15:58', NULL, NULL, NULL, 1, 0, NULL, 90),
-(202, 'VVVBBB', '', '', 0, '2019-11-11 11:59:23', NULL, '2019-11-11 13:10:30', NULL, NULL, NULL, 1, 0, NULL, 148),
+(202, 'VVVBBB', '', '', 50, '2019-11-11 11:59:23', NULL, '2019-11-11 13:10:30', NULL, NULL, NULL, 1, 0, NULL, 148),
 (203, 'Super-gas', '', '2L', 50, '2019-11-11 14:00:47', NULL, NULL, NULL, NULL, NULL, 1, 0, NULL, 87),
 (205, 'Supreme jugooo', 'de manzanas exprimidas', '1L', 250, '2019-11-11 14:09:52', NULL, NULL, NULL, NULL, NULL, 1, 0, 'lista', 87),
 (206, 'Juguito de tomate de árbol', 'Ecuador', '1L', 200, '2019-11-11 15:14:36', NULL, '2019-11-11 16:26:34', NULL, NULL, NULL, 1, 0, 'lista publica', 90),
 (207, 'Juguito de tomate papaya', NULL, '1L', 150, '2019-11-11 15:15:05', NULL, '2019-11-11 15:41:32', NULL, NULL, NULL, 1, 0, 'lista', 87),
 (208, 'Juguito de tomate pitaya', NULL, '1.1L', 450, '2019-11-11 15:15:16', NULL, '2020-09-18 23:12:54', 360, '2020-09-18 23:14:30', 360, 1, 0, 'lista', 87),
-(209, 'AAA', '', '', 0, '2019-11-12 12:50:01', NULL, '2019-11-12 12:50:04', NULL, '2019-11-12 12:50:04', NULL, 1, 0, NULL, 113),
+(209, 'AAA', '', '', 50, '2019-11-12 12:50:01', NULL, '2019-11-12 12:50:04', NULL, '2019-11-12 12:50:04', NULL, 1, 0, NULL, 113),
 (211, 'EEEE', '', '', 50, '2019-11-27 17:06:24', NULL, '2019-11-30 23:22:41', NULL, '2019-12-01 03:22:41', NULL, 1, 0, NULL, 159),
-(212, 'Uvas ricas 2', '', '', 0, '2019-11-27 18:01:44', NULL, '2020-09-22 22:59:36', 168, '2020-09-22 22:59:55', 168, 1, 0, NULL, 168),
-(213, 'E%$', '', '', 0, '2019-11-27 18:02:17', NULL, NULL, NULL, NULL, NULL, 1, 0, NULL, 160),
-(214, 'TTT', '', '', 0, '2019-11-28 00:01:02', NULL, NULL, NULL, NULL, NULL, 1, 0, NULL, 167),
+(212, 'Uvas ricas 2', '', '', 50, '2019-11-27 18:01:44', NULL, '2020-09-22 22:59:36', 168, '2020-09-22 22:59:55', 168, 1, 0, NULL, 168),
+(213, 'E%$', '', '', 50, '2019-11-27 18:02:17', NULL, NULL, NULL, NULL, NULL, 1, 0, NULL, 160),
+(214, 'TTT', '', '', 50, '2019-11-28 00:01:02', NULL, NULL, NULL, NULL, NULL, 1, 0, NULL, 167),
 (215, 'Vino tinto', '', '', 100, '2019-11-30 11:13:05', NULL, '2019-11-30 11:26:13', NULL, NULL, NULL, 1, 0, NULL, 168),
-(216, 'BBB', '', '', 0, '2019-11-30 23:23:29', NULL, NULL, NULL, NULL, NULL, 1, 0, NULL, 159),
+(216, 'BBB', '', '', 50, '2019-11-30 23:23:29', NULL, NULL, NULL, NULL, NULL, 1, 0, NULL, 159),
 (218, 'Caja organizadora', 'plastico', 'M', 100, '2019-12-07 10:25:46', NULL, NULL, NULL, NULL, NULL, 1, 0, NULL, 125),
 (219, 'Vodka', 'de Canada', '2L', 250, '2019-12-13 08:29:11', NULL, '2019-12-13 08:29:28', NULL, NULL, NULL, 1, 0, NULL, 90),
-(220, 'Agua', 'sabor limón', '', 0, '2019-12-13 18:35:19', NULL, NULL, NULL, NULL, NULL, 1, 0, NULL, 90),
+(220, 'Agua', 'sabor limón', '', 50, '2019-12-13 18:35:19', NULL, NULL, NULL, NULL, NULL, 1, 0, NULL, 90),
 (221, 'Agua', 'sabor lima', '', 20, '2019-12-13 18:35:35', NULL, NULL, NULL, NULL, NULL, 1, 0, NULL, 90),
-(222, 'Agua', 'mineral', '', 15, '2019-12-13 18:35:49', NULL, '2020-01-17 22:28:02', NULL, '2020-01-18 02:28:02', NULL, 1, 0, NULL, 90),
-(223, 'Agua', 'sabor pomelo', '', 20, '2019-12-13 18:36:21', NULL, '2019-12-13 18:36:39', NULL, '2019-12-13 22:36:39', NULL, 1, 0, NULL, 90),
-(224, 'Ron', 'caribeño', '', 0, '2019-12-13 18:37:16', NULL, '2019-12-13 18:38:05', NULL, '2019-12-13 22:38:05', NULL, 1, 0, NULL, 90),
-(225, 'Ron', 'de Trinidad', '', 0, '2019-12-13 18:37:34', NULL, '2019-12-13 18:38:02', NULL, '2019-12-13 22:38:02', NULL, 1, 0, NULL, 90),
-(226, 'Ron', 'de Cuba', '', 0, '2019-12-13 18:37:47', NULL, '2019-12-13 18:37:54', NULL, '2019-12-13 22:37:54', NULL, 1, 0, NULL, 90),
+(222, 'Agua', 'mineral', '', 15, '2019-12-13 18:35:49', NULL, '2020-01-17 22:28:02', NULL, '2020-01-18 02:28:02', NULL, 1, 0, NULL, 9),
+(223, 'Agua', 'sabor pomelo', '', 20, '2019-12-13 18:36:21', NULL, '2019-12-13 18:36:39', NULL, '2019-12-13 22:36:39', NULL, 1, 0, NULL, 9),
+(224, 'Ron', 'caribeño', '', 50, '2019-12-13 18:37:16', NULL, '2019-12-13 18:38:05', NULL, '2019-12-13 22:38:05', NULL, 1, 0, NULL, 9),
+(225, 'Ron', 'de Trinidad', '', 50, '2019-12-13 18:37:34', NULL, '2019-12-13 18:38:02', NULL, '2019-12-13 22:38:02', NULL, 1, 0, NULL, 9),
+(226, 'Ron', 'de Cuba', '', 50, '2019-12-13 18:37:47', NULL, '2019-12-13 18:37:54', NULL, '2019-12-13 22:37:54', NULL, 1, 0, NULL, 9),
 (256, 'XXX', NULL, '', 10, '2019-12-22 19:51:19', 90, NULL, NULL, NULL, NULL, 1, 0, NULL, 90),
 (257, 'Koke', 'Rica', '0.5L', 20, '2020-01-03 21:27:41', 90, '2020-01-03 21:28:45', 90, NULL, NULL, 1, 0, NULL, 90),
 (259, 'Wiksy', 'from Bielorussia', '1L', 100, '2020-01-04 01:31:42', 90, NULL, NULL, NULL, NULL, 1, 0, NULL, 90),
@@ -370,7 +416,27 @@ INSERT INTO `products` (`id`, `name`, `description`, `size`, `cost`, `created_at
 (277, 'other product', NULL, '', 750, '2020-09-18 11:20:50', 360, NULL, NULL, NULL, NULL, 1, 0, NULL, 360),
 (278, 'expensive product', NULL, '', 1000, '2020-09-18 11:21:27', 360, NULL, NULL, NULL, NULL, 1, 0, NULL, 360),
 (279, 'ssss', NULL, '', 110, '2020-09-19 19:44:15', 48, NULL, NULL, NULL, NULL, 1, 0, NULL, 48),
-(280, 'uuu', NULL, '', 770, '2020-09-19 19:44:28', 48, NULL, NULL, NULL, NULL, 1, 0, NULL, 48);
+(280, 'uuu', NULL, '', 770, '2020-09-19 19:44:28', 48, NULL, NULL, '2020-09-25 20:20:07', 9, 1, 0, NULL, 48),
+(281, 'Uvas cool', 'Frescas', '', 500, '2020-09-25 20:11:50', 9, NULL, NULL, NULL, NULL, 1, 0, NULL, 9),
+(300, 'Uvas coolllll', 'Frescasssss', '', 600, '2020-09-25 20:12:51', 400, NULL, NULL, NULL, NULL, 1, 0, NULL, 400),
+(301, 'Pepinitos', 'Frescosssss', 'indef.', 70, '2020-09-25 22:17:25', 48, '2020-09-25 23:47:25', 9, NULL, NULL, 1, 0, NULL, 48),
+(302, 'Pepinitos super', 'Super Frescosssss', 'INDEF', 78, '2020-09-25 22:17:38', 48, '2020-09-26 02:00:18', 9, NULL, 9, 1, 0, NULL, 48),
+(303, 'Pepinitos Ultra', 'Ultra Frescosssss', '', 108, '2020-09-25 22:17:56', 48, NULL, NULL, '2020-09-26 11:12:17', 9, 1, 0, NULL, 48),
+(304, 'Pepinitos Ultra 222', 'Ultra Frescosssss', '', 108, '2020-09-26 11:55:30', 48, NULL, NULL, NULL, NULL, 1, 0, NULL, 48),
+(666, 'Pepinitos Ultra 222', 'Ultra Frescosssss', '', 108, '2020-09-26 11:56:12', 400, NULL, NULL, NULL, NULL, 1, 0, NULL, 400),
+(669, 'auawkgyrysbpgoushcjn', 'Esto es una prueba', '1L', 66, NULL, NULL, NULL, NULL, NULL, NULL, 1, 0, NULL, 90),
+(670, 'pwrbvbkskvmanpdxskvq', 'Esto es una prueba', '1L', 66, NULL, NULL, NULL, NULL, NULL, NULL, 1, 0, NULL, 90),
+(671, 'quiefkvfitegpiaamsea', 'Esto es una prueba', '1L', 66, NULL, NULL, NULL, NULL, NULL, NULL, 1, 0, NULL, 90),
+(672, 'gkydabrgmjftbwkkwwsl', 'Esto es una prueba', '1L', 66, NULL, NULL, NULL, NULL, NULL, NULL, 1, 0, NULL, 90),
+(673, 'vdcorgzjkpunvxicthcz', 'Esto es una prueba', '1L', 66, NULL, NULL, NULL, NULL, NULL, NULL, 1, 0, NULL, 90),
+(5000, 'xxxy', NULL, '', 105, NULL, NULL, NULL, NULL, NULL, NULL, 1, 0, NULL, 0),
+(5008, 'xxxy', NULL, '', 105, NULL, NULL, NULL, NULL, NULL, NULL, 1, 0, NULL, 0),
+(5009, 'xxxyiiii', NULL, '', 105, NULL, NULL, NULL, NULL, NULL, NULL, 1, 0, NULL, 0),
+(5010, 'xxxyiiii', NULL, '', 105, NULL, NULL, NULL, NULL, NULL, NULL, 1, 0, NULL, 0),
+(5011, 'xxxyiiii', NULL, '', 105, NULL, NULL, NULL, NULL, NULL, NULL, 1, 0, NULL, 0),
+(5012, 'xxxyiiii', NULL, '', 105, NULL, NULL, NULL, NULL, NULL, NULL, 1, 0, NULL, 0),
+(5014, 'xxxyiiii', NULL, '', 105, NULL, NULL, NULL, NULL, NULL, NULL, 1, 0, NULL, NULL),
+(5015, 'xxxyiiii', NULL, '', 105, NULL, NULL, NULL, NULL, NULL, NULL, 1, 0, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -400,7 +466,7 @@ INSERT INTO `users` (`id`, `username`, `active`, `locked`, `email`, `confirmed_e
 (1, 'sss1', 1, 0, 'boctu.l.us@gmail.com', 0, 'P', 'bzz578000', '$2y$10$/ehgjdS8p8IbRKMW4AVVOuX38p8yMIZinciIWsj79rDUfRfKH6/56', NULL, 1),
 (4, 'pbozzolo', 1, 0, 'pbozzolo@gmail.com', 1, 'Paulinoxxxy', 'Bozzoxxxy', '$2y$10$jAKcStnGqtcOslt1Std7ceYqq3mMIh6Lis/Ug4Z6IDQV65tyyP2Xe', NULL, 4),
 (5, 'pepe', 1, 0, 'pepe@gmail.com', 1, 'Pepe', 'Gonzalez', '$2y$10$J.KPjyFukfxcKg83TvQGaeCTrLN9XyYXTgtTDZdZ91DJTdE73VIDK', NULL, 5),
-(9, 'dios', 1, 0, 'dios@gmail.com', 1, 'Paulino', 'Bozzoxx000555zZ', '$2y$10$/ehgjdS8p8IbRKMW4AVVOuX38p8yMIZinciIWsj79rDUfRfKH6/56', NULL, 9),
+(9, 'dios', 0, 0, 'dios@gmail.com', 1, 'Paulino', 'Bozzo', '$2y$10$/ehgjdS8p8IbRKMW4AVVOuX38p8yMIZinciIWsj79rDUfRfKH6/56', NULL, 9),
 (11, 'diosdado', 1, 0, 'diosdado@gmail.com', 1, 'Sr', 'Z', '$2y$10$/ehgjdS8p8IbRKMW4AVVOuX38p8yMIZinciIWsj79rDUfRfKH6/56', NULL, 11),
 (13, 'diosdado2', 1, 0, 'diosdado2@gmail.com', 1, 'Sr', 'D', '$2y$10$/ehgjdS8p8IbRKMW4AVVOuX38p8yMIZinciIWsj79rDUfRfKH6/56', NULL, 13),
 (14, 'juancho', 1, 0, 'juancho@aaa.com', 1, 'Juan', 'Perez', '$2y$10$/ehgjdS8p8IbRKMW4AVVOuX38p8yMIZinciIWsj79rDUfRfKH6/56', NULL, 14),
@@ -415,7 +481,6 @@ INSERT INTO `users` (`id`, `username`, `active`, `locked`, `email`, `confirmed_e
 (41, 'ymcshlekdzh', 1, 0, 'ymcshlekdzhugvmwbjpipeter@abc.com', 1, 'Nicos', 'Buzzi', '$2y$10$/ehgjdS8p8IbRKMW4AVVOuX38p8yMIZinciIWsj79rDUfRfKH6/56', NULL, 41),
 (43, 'vydqkgqszpn', 1, 0, 'vydqkgqszpncijwhxeiapeter@abc.com', 1, 'Nicos', 'Buzzi', '$2y$10$/ehgjdS8p8IbRKMW4AVVOuX38p8yMIZinciIWsj79rDUfRfKH6/56', NULL, 43),
 (44, 'itbrknzsfna', 1, 0, 'itbrknzsfnawnhxgmockpeter@abc.com', 1, 'Nicos', 'Buzzi', '$2y$10$/ehgjdS8p8IbRKMW4AVVOuX38p8yMIZinciIWsj79rDUfRfKH6/56', NULL, 44),
-(45, 'cproifnsfxv', 1, 0, 'cproifnsfxvkxtppbgdupeter@abc.com', 1, 'Nicos', 'Buzzi', '$2y$10$/ehgjdS8p8IbRKMW4AVVOuX38p8yMIZinciIWsj79rDUfRfKH6/56', NULL, 45),
 (46, 'xxxxxxxxxxx', 1, 0, 'xxxxxxxxxxxxxxxxyz@abc.com', 1, 'Nicolayyyy', 'Buzzi', '$2y$10$/ehgjdS8p8IbRKMW4AVVOuX38p8yMIZinciIWsj79rDUfRfKH6/56', NULL, 46),
 (48, 'gates', 1, 0, 'gates@outlook.com', 1, 'Bill', 'Gates', '$2y$10$/ehgjdS8p8IbRKMW4AVVOuX38p8yMIZinciIWsj79rDUfRfKH6/56', NULL, 48),
 (51, 'kkk', 1, 0, 'kkk@bbbbbb.com', 1, 'Sr K', 'NS/NC', '$2y$10$/ehgjdS8p8IbRKMW4AVVOuX38p8yMIZinciIWsj79rDUfRfKH6/56', NULL, 51),
@@ -566,7 +631,38 @@ INSERT INTO `users` (`id`, `username`, `active`, `locked`, `email`, `confirmed_e
 (357, 'rr5000', NULL, 0, 'rr5000@mail.com', 1, NULL, NULL, '$2y$10$0yoHyh9CshfcX6FT2F6zGuZzzZfJdKtvNJqG/uByNau7xFMwzGsbq', NULL, 357),
 (360, 'rr5001', 1, 0, 'rr5001@mail.com', 1, NULL, NULL, '$2y$10$cGezyeUuRKB3BQYNzm/2A.COwInJKgM5Tb1QszWPwrw2z127o7Pom', NULL, 360),
 (361, 'super', 1, 0, 'super@gmail.com', 1, 'Kah', 'El', '$2y$10$gKCArzCICX5fPa9/xJDYvufbpguJh5QRnUdC2jmqTpOZtpb7uhnB6', NULL, 9),
-(400, 'master', 1, 0, 'master@gmail.com', 1, 'Peter', 'Parker', '$2y$10$vcuEqmFdcAlGm35JNLaUCe7saJMwl5mVAK82PLvMHGC.qDpoGE78i', NULL, 9);
+(400, 'master', 1, 0, 'master@gmail.com', 1, 'Peter', 'Parker', '$2y$10$vcuEqmFdcAlGm35JNLaUCe7saJMwl5mVAK82PLvMHGC.qDpoGE78i', NULL, 9),
+(403, 'maso9', NULL, 0, 'maso9@gmail.com', 0, NULL, NULL, '$2y$10$y58qXewSVi.3oc6YGwK2Tu2wnhPOBditu0QnPUm.PYk4XXeqvRhBK', NULL, 403),
+(404, 'maso99', NULL, 0, 'maso99@gmail.com', 0, NULL, NULL, '$2y$10$enRfSTawRi01bHbRACdG5.z6NU8FZNZzDNgvOnP0N6iqOBkHn46Ca', NULL, 404),
+(406, 'maso999', NULL, 0, 'maso999@gmail.com', 0, NULL, NULL, '$2y$10$gOE9emZlsaU/uKU5VPBufOXNbpZsLxNl1vwxNhSq/fPGlVjkWhL/2', NULL, 406),
+(408, 'maso9993', NULL, 0, 'maso9993@gmail.com', 0, NULL, NULL, '$2y$10$rtxNkcFEPhfRYqIq/dZ2/eJAC.h45Sg0fnVyH1pUnETFfnuk7V0TC', NULL, 408),
+(409, 'maso99935', NULL, 0, 'maso99935@gmail.com', 0, NULL, NULL, '$2y$10$VlBILSeSPpxgGNGw7str.OnH6Q8oRyXJXlIEw0GadS6V8fBP7vEmm', NULL, 409),
+(410, 'maso999350', NULL, 0, 'maso999350@gmail.com', 0, NULL, NULL, '$2y$10$wMnwEDCrZNTd9uuZ2xLerucB.1yfLCIXX9Ma2ctufZ.lJoKt42diC', NULL, 410),
+(411, 'maso99935000', NULL, 0, 'maso99935000@gmail.com', 0, NULL, NULL, '$2y$10$gdORtSJ6E05g3hc31wN06.R7tbUqhzwxBx3wiLtZMq743o1bjqcj2', NULL, 411),
+(412, 'maso000000', NULL, 0, 'maso9993500000@gmail.com', 0, NULL, NULL, '$2y$10$51IOae3wLsrPAj9K12Cscu1Ry1c0UejY1icfAJIxq9QTBtWIRECg2', NULL, 412),
+(413, 'yymaso000000', NULL, 0, 'yyy@gmail.com', 0, NULL, NULL, '$2y$10$OwiOMLoPQ98VVxmDlGb0PO9TKklFzAAJLoPcEVP1So49.56p8PXwW', NULL, 413),
+(415, 'y7ymaso000000', NULL, 0, 'yyy7@gmail.com', 0, NULL, NULL, '$2y$10$tfqM3a27XcYs2hAxApLTVukgy153akgfXj2iLuQJIVIpVRQhgReQm', NULL, 415),
+(416, 'y7ym0000', NULL, 0, 'yyyff7@gmail.com', 0, NULL, NULL, '$2y$10$bxYA0tLO0CwY3BhUkIKkhuJFFV7kS3lSChmteVQyAtk46Ec6c8QGO', NULL, 416),
+(417, 'y7yym0000', NULL, 0, 'yyyyff7@gmail.com', 0, NULL, NULL, '$2y$10$CLTU4FL5/K4CKKiuHtNZ5u1HQ/LJYCIBX8Z8OnnYtXOc.RwsXIenS', NULL, 417),
+(419, 'y7yffffym0000', NULL, 0, 'f@gmail.com', 0, NULL, NULL, '$2y$10$79eAU3KAL8ZQSAGtyQPLnu9jPnV.CzrvbQHXZYY36Xltm1xhy2JR6', NULL, 419),
+(420, 'y7yuffffym0000', NULL, 0, 'fu@gmail.com', 0, NULL, NULL, '$2y$10$EArW4r7DXtyWsvHkRpePQuBi1Bol8LIrSREEx2v9N6rAIJdLAy3Ce', NULL, 420),
+(421, 'y78yym0000', NULL, 0, 'fttuutu99@gmail.com', 0, NULL, NULL, '$2y$10$S4QEdwA6DB0gytGAULM/huZw5ki.dZm1qbQeu5Y2oT4rswbh0KEua', NULL, 421),
+(423, 'y78yymi0000', NULL, 0, 'fttuutiu99@gmail.com', 0, NULL, NULL, '$2y$10$DQPVUGZrHAIx894xS1EjdOC0r793pCV5eWNHWR1spMrpr1ZrlMtDS', NULL, 423),
+(430, 'y78yym8i0000', NULL, 0, 'fttuu8tiu99@gmail.com', 0, NULL, NULL, '$2y$10$fAj8BEHQNTSndjXljDb/tuPo.NmOfN/nViJ.zVBfN6IPYDbH.iAFC', NULL, 430),
+(433, 'y78yy7i0000', NULL, 0, 'fttuu8799@gmail.com', 0, NULL, NULL, '$2y$10$AwzGIyRbJ3LmznmeRungDuNEcHzUn7YLqL/Hd8/6ewg4uvsZ1C/M6', NULL, 433),
+(434, 'uuuuuu', NULL, 0, 'rrruuu99@gmail.com', 0, NULL, NULL, '$2y$10$nasfgZqK9w44BbjYSsEnuu/MEOLRw/uvuAIA3B9L7/ZkHtg.3ykSK', NULL, 434),
+(435, 'uuuuuu7', NULL, 0, 'rrruuu997@gmail.com', 0, NULL, NULL, '$2y$10$ToVcr4ZVKXhwLAa.65edVua3KhWnNr3MxH8iV9VLFFi1WeQA/efBO', NULL, 435),
+(436, 'uuuuiuu7', NULL, 0, 'rrriuuu997@gmail.com', 0, NULL, NULL, '$2y$10$UAKRyMfKsc5ur8CgUORxbO/70K.UPVdGdkECMpVjdwEnYlZYJO9vK', NULL, 436),
+(437, 'uuouuiuu7', NULL, 0, 'rrriouuu997@gmail.com', 0, NULL, NULL, '$2y$10$3N4h7/aECTj9VZCZRxpw/u1.4IWRcHGwj8JLWODGI8jkv2cpk8PCq', NULL, 437),
+(438, '8uuiuu7', NULL, 0, 'rrr8ouuu997@gmail.com', 0, NULL, NULL, '$2y$10$qXdfVoZcRxXWvw7JksaPdOeaPqtf5aWMjwpUGV5wj4Mzo4hMh691i', NULL, 438),
+(439, '8uuiy7', NULL, 0, 'rrr8yuu997@gmail.com', 0, NULL, NULL, '$2y$10$eU0nwMgsydfQv/DQ60J6keRSi/tYlbgfIaYGMucEtXBzIIfBOSsYS', NULL, 439),
+(440, '8uuuiy7', NULL, 0, 'rrru8yuu997@gmail.com', 0, NULL, NULL, '$2y$10$uOz.x7S/VHNjTFjfywcvcuhdcmhrsAxmVJEgTsNvRYM2wO/guY6.O', NULL, 440),
+(441, 'tiuu7', NULL, 0, 'rrtouuu997@gmail.com', 0, NULL, NULL, '$2y$10$hYPZefgfOvBo0ISyb901ce1bmndcdy.bVcbqiOzjWSRMVUw2ML61G', NULL, 441),
+(446, 'tu77', NULL, 0, 'rruuu9797@gmail.com', 0, NULL, NULL, '$2y$10$VI1056RsYiAVS0oEi/RXb.CHP7B/JVMoId.EUsL.bkDHkTI2enXLi', NULL, 446),
+(447, 'tutt77', NULL, 0, 'rruttuu9797@gmail.com', 0, NULL, NULL, '$2y$10$aLzXlZ5fz2YgJxPw/bUWaOP4nGfpXfg4uVg4IpQmkOq6d.eh6Km8W', NULL, 447),
+(448, 'tutt771', NULL, 0, 'rruttuu97971@gmail.com', 1, NULL, NULL, '$2y$10$DaVHIBbtbklYUn6hKBKuMO6mHHW.4j4D6ChwZTR6Lt.deCfHMljlC', NULL, 448),
+(450, 'tutt7712', NULL, 0, 'rruttuu979712@gmail.com', 0, NULL, NULL, '$2y$10$nt6SqgvuS3OveoQ5kB6o.Ohm7btBtatZvkYg1HrBDC4hE2RPJasXe', NULL, 450),
+(451, 'tt7712', NULL, 0, 'rrut979712@gmail.com', 0, NULL, NULL, '$2y$10$V9YHsQ0dF0uzKcY7a83oa.nKHH56XLlQzkY.q7MoqFoC0LtylCYAa', NULL, 451);
 
 -- --------------------------------------------------------
 
@@ -674,11 +770,44 @@ INSERT INTO `user_roles` (`id`, `user_id`, `role_id`, `created_at`, `updated_at`
 (147, 360, 3, '2020-09-16 00:12:22', NULL),
 (148, 90, 2, '2020-09-16 09:58:40', NULL),
 (149, 53, 2, '0000-00-00 00:00:00', NULL),
-(150, 400, 500, '2020-09-23 23:43:37', NULL);
+(150, 400, 500, '2020-09-23 23:43:37', NULL),
+(151, 411, 1, '2020-09-24 16:49:42', NULL),
+(152, 412, 1, '2020-09-24 16:50:22', NULL),
+(153, 413, 1, '2020-09-24 16:51:17', NULL),
+(155, 415, 1, '2020-09-24 17:04:14', NULL),
+(156, 415, 2, '2020-09-24 17:04:14', NULL),
+(157, 415, 3, '2020-09-24 17:04:14', NULL),
+(158, 433, 1, '2020-09-24 17:48:12', NULL),
+(159, 434, 1, '2020-09-24 17:49:10', NULL),
+(160, 435, 1, '2020-09-24 17:49:57', NULL),
+(161, 435, 2, '2020-09-24 17:49:57', NULL),
+(162, 436, 1, '2020-09-24 17:50:55', NULL),
+(163, 436, 2, '2020-09-24 17:50:55', NULL),
+(164, 437, 1, '2020-09-24 17:51:14', NULL),
+(165, 437, 2, '2020-09-24 17:51:14', NULL),
+(166, 438, 1, '2020-09-24 17:58:47', NULL),
+(167, 438, 2, '2020-09-24 17:58:47', NULL),
+(168, 439, 1, '2020-09-24 17:59:05', NULL),
+(169, 440, 1, '2020-09-24 18:00:17', NULL),
+(170, 441, 1, '2020-09-24 18:00:35', NULL),
+(171, 441, 2, '2020-09-24 18:00:35', NULL),
+(172, 446, 2, '2020-09-24 18:04:33', NULL),
+(173, 446, 3, '2020-09-24 18:04:33', NULL),
+(174, 447, 1, '2020-09-24 18:05:49', NULL),
+(175, 447, 2, '2020-09-24 18:05:49', NULL),
+(176, 447, 3, '2020-09-24 18:05:49', NULL),
+(177, 448, 1, '2020-09-24 18:06:18', NULL),
+(178, 451, 3, '2020-09-24 21:58:21', NULL);
 
 --
 -- Índices para tablas volcadas
 --
+
+--
+-- Indices de la tabla `baz`
+--
+ALTER TABLE `baz`
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Indices de la tabla `collections`
@@ -782,7 +911,7 @@ ALTER TABLE `collections`
 -- AUTO_INCREMENT de la tabla `files`
 --
 ALTER TABLE `files`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=246;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=252;
 
 --
 -- AUTO_INCREMENT de la tabla `folders`
@@ -818,19 +947,19 @@ ALTER TABLE `permissions`
 -- AUTO_INCREMENT de la tabla `products`
 --
 ALTER TABLE `products`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=281;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5016;
 
 --
 -- AUTO_INCREMENT de la tabla `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=401;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=452;
 
 --
 -- AUTO_INCREMENT de la tabla `user_roles`
 --
 ALTER TABLE `user_roles`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=151;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=179;
 
 --
 -- Restricciones para tablas volcadas
