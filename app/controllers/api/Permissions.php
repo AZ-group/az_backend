@@ -11,6 +11,10 @@ use simplerest\libs\Debug;
 
 class Permissions extends MyApiController
 { 
+    
+    protected $model_name  = 'UserTbPermissionsModel';
+    protected $model_table = 'user_tb_permissions';
+
     function __construct()
     {       
         parent::__construct();
@@ -23,7 +27,7 @@ class Permissions extends MyApiController
             Factory::response()->sendError('Invalid JSON',400);
         
         $model    = '\\simplerest\\models\\'.$this->model_name;
-        $instance = DB::table('permissions')->setFetchMode('ASSOC');
+        $instance = DB::table('user_tb_permissions')->setFetchMode('ASSOC');
 
         try {
             $conn = DB::getConnection();
@@ -39,7 +43,7 @@ class Permissions extends MyApiController
             }  
 
             DB::transaction(function() use($data, $instance){                
-                $ok = DB::table('permissions')->where(['tb' => $data['tb'], 'user_id' => $data['user_id']])->delete(false);
+                $ok = DB::table('user_tb_permissions')->where(['tb' => $data['tb'], 'user_id' => $data['user_id']])->delete(false);
 
                 $instance->create($data);
             });

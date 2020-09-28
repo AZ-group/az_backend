@@ -44,6 +44,18 @@ class Debug
 			var_dump($v);	
 	}		
 
+	static function export($v, $key = null) 
+	{			
+		if (gettype($v)=='boolean'){
+			$v = $v ? "(bool) true" : "(bool) false";
+		}	
+	
+		if ($key != null)
+			var_export([$key => $v]);
+		else
+			var_export($v);	
+	}	
+
 
 	// devuelve un var_dump() como json 
 	static function json_var_dump($ar){		

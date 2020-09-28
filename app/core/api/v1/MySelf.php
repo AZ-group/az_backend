@@ -14,31 +14,39 @@ use simplerest\core\exceptions\InvalidValidationException;
 
 class MySelf extends MyApiController 
 {  
-    function __construct(array $headers = []) 
+    protected $model_table = 'users';
+
+    function __construct() 
     { 
-        parent::__construct($headers);
-        $this->model_name = 'UsersModel'; 
+        if (Factory::request()->hasAuth()){
+            $this->callable = ['get', 'put', 'patch'];
+
+            $this->is_listable      = true;
+            $this->is_retrievable   = true;
+        }
+        
+        parent::__construct();
     }
 
     function get($id = null){
-        $id = $this->auth->uid;
+        $id = $this->auth['uid'];
         parent::get($id);
     } 
     
     function put($id = NULL)
     { 
-        $id = $this->auth->uid;
+        $id = $this->auth['uid'];
         parent::put($id);
     } //
 
     function patch($id = NULL)
     { 
-        $id = $this->auth->uid;
+        $id = $this->auth['uid'];
         parent::patch($id);
     } //
         
     function delete($id = null){
-        $id = $this->auth->uid;
+        $id = $this->auth['uid'];
 
         $ok = (bool) DB::table('users')->where([['id', $id], ['active', 1]])
         //->fill(['active'])

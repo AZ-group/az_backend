@@ -2,19 +2,37 @@
 
 - Definir DB !!!
 
+- No debería poder ver todos los user_roles sino tengo permiso read_all de admin
+
+- Aún no entiendo (mi decisión de) porque no tener una tablas 'roles' siendo que podría cachearse dentro del ACL. 
+
+fetchRoles() necesita saber el id de roles pero hace uso de $acl->getRoleName($nombre_rol) así que puede seguir usándose de ese modo y se evita leer la tabla a cada rato. También podría usarse REDIS.   -- done
+
 - Reparar 
 
     MySelf / Me  -- ok
     Trashcan -- ok
-    Collections
+    Collections -- pending
     Files -- ok
     DownloadController -- ok
+    Permissions --ok (revisar)
     FacebookController
     GoogleController
     LoginController
     Roles     
 
+
+- Insertar el rol "registered" con un hook o Midleware en cada cuenta registrada / creada para que nadie tenga en principio menos permisos que un "guest".  
+
 - Inconcistencia: un rol "puro" tiene id y por tanto al filtrar por id puede tener menos visibilidad que un Guest !
+
+- Si un usuario no existe (fue borrado) pero su token está activo:
+
+{
+    "status_code": 500,
+    "error": "Error: creation of resource fails: SQLSTATE[23000]: Integrity constraint violation: 1452 Cannot add or update a child row: a foreign key constraint fails (`az`.`products`, CONSTRAINT `products_ibfk_1` FOREIGN KEY (`belongs_to`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE)",
+    "error_detail": "INSERT INTO products (name, cost, belongs_to, created_by, created_at) VALUES ('JJJ', '199', '453', '453', '2020-09-28 14:19:25')"
+}
 
 - Cuando el tiempo de expiración restante de un access_token sea superior a 15 minutos chequear directamente desde base de datos: si el usuario está activo, tb_permissions y sp_permissions <-- con esto me evito tener que invalidar tokens de larga duración que pudieran haber sido usados en desarrollo.
 
@@ -33,13 +51,6 @@ https://phil.tech/2016/why-care-about-php-middleware/
 http://esbenp.github.io/2015/07/31/implementing-before-after-middleware/
 https://www.sourcefuse.com/blog/rest-api-best-practices/
 
-
-- Convertir 'permissions' en un Array y tener
-
-  "permissions":[
-    "tb": [ ],
-    "sp": [ ]	
-  ]
 
 - Corregir:
 

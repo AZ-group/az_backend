@@ -1425,7 +1425,7 @@ Ej: <pseudocódigo>
     
         // decodificar token y si es válido proseguir
         
-        $uid = $this->auth->uid;
+        $uid = $this->auth['uid'];
 
         // insertar en la tabla folder_permissions el permiso para el usuario con id $uid`
         // y el folder  $folder

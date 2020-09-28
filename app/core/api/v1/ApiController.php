@@ -33,17 +33,31 @@ abstract class ApiController extends ResourceController
     protected $folder;
 
 
-    function __construct(array $headers = []) 
+    function __construct($auth = null) 
     {        
-        parent::__construct();
+        parent::__construct($auth);
             
-        if ($this->model_table == null &&  preg_match('/([A-Z][a-z0-9_]+[A-Z]*[a-z0-9_]*[A-Z]*[a-z0-9_]*[A-Z]*[a-z0-9_]*)/', get_called_class(), $matchs)){
+        if ($this->model_table != null){
+            $this->model_name = implode(array_map('ucfirst',explode('_', $this->model_table))) . 'Model';
+        } elseif (preg_match('/([A-Z][a-z0-9_]+[A-Z]*[a-z0-9_]*[A-Z]*[a-z0-9_]*[A-Z]*[a-z0-9_]*)/', get_called_class(), $matchs)){
+            //echo '*******';
+            //var_dump($this->model_table);
+            //exit;
             $this->model_name = $matchs[1] . 'Model';
             $this->model_table = strtolower($matchs[1]);
-        }   
+        } else {
+            Factory::response()->sendError("ApiController with undefined Model", 500);
+        }  
 
-        $perms = $this->getPermissions($this->model_table);
         
+        //var_dump($this->model_table);
+        //var_export($this->permissions);
+        //exit;
+        
+        $perms = $this->getPermissions($this->model_table);
+
+        Debug::export([$this->model_table, $perms]);  ////
+
         if ($perms !== NULL)
         {
             // individual permissions *replaces* role permissions
@@ -53,31 +67,31 @@ abstract class ApiController extends ResourceController
                     $this->is_retrievable  = ($perms & 8 ) AND 1;
 
                     if ($this->is_listable || $this->is_retrievable){
-                        $this->callable = ['get'];
+                        $this->addCallable('get');
                     }
                 break;
                 
                 case 'POST': 
                     if (($perms & 4 ) AND 1){
-                        $this->callable = ['get'];
+                        $this->addCallable('get');
                     }
                 break;    
 
                 case 'PUT':
                     if (($perms & 2 ) AND 1){
-                        $this->callable = ['put'];
+                        $this->addCallable('put');
                     }
 				break;
                       
                 case 'PATCH':
                     if (($perms & 2 ) AND 1){
-                        $this->callable = ['patch'];
+                        $this->addCallable('putch');
                     }                      
                 break;    
 
                 case 'DELETE': 
                     if (($perms & 1 ) AND 1){
-                        $this->callable = ['delete'];
+                        $this->addCallable('delete');
                     }                    
                 break;
             } 
@@ -87,17 +101,17 @@ abstract class ApiController extends ResourceController
             switch ($_SERVER['REQUEST_METHOD']) {
                 case 'GET':
                     if ($this->acl->hasSpecialPermission('read_all', $this->roles)){
-                        $this->callable  = ['get'];
+                        $this->addCallable('get');
                         $this->is_listable    = true;
                         $this->is_retrievable = true;
                     } else {
                         if ($this->acl->hasResourcePermission('show', $this->roles, $this->model_table)){
-                            $this->callable  = ['get'];
+                            $this->addCallable('get');
                             $this->is_retrievable = true;
                         }
 
                         if ($this->acl->hasResourcePermission('list', $this->roles, $this->model_table)){
-                            $this->callable  = ['get'];
+                            $this->addCallable('get');
                             $this->is_listable    = true;
                         }
                     }  
@@ -105,40 +119,40 @@ abstract class ApiController extends ResourceController
                 
                 case 'POST':
                     if ($this->acl->hasSpecialPermission('write_all', $this->roles)){
-                        $this->callable  = ['post', 'put', 'patch', 'delete'];;
+                        $this->addCallable('post');
                     } else {
                         if ($this->acl->hasResourcePermission('create', $this->roles, $this->model_table)){
-                            $this->callable  = ['post'];;
+                            $this->addCallable('post');
                         }
                     }  
                 break;    
 
                 case 'PUT':
                     if ($this->acl->hasSpecialPermission('write_all', $this->roles)){
-                        $this->callable  = ['post', 'put', 'patch', 'delete'];;
+                        $this->addCallable('put');
                     } else {
                         if ($this->acl->hasResourcePermission('update', $this->roles, $this->model_table)){
-                            $this->callable  = ['put'];;
+                            $this->addCallable('put');
                         }
                     }  
                 break;
 
                 case 'PATCH':
                     if ($this->acl->hasSpecialPermission('write_all', $this->roles)){
-                        $this->callable  = ['post', 'put', 'patch', 'delete'];;
+                        $this->addCallable('patch');
                     } else {
                         if ($this->acl->hasResourcePermission('update', $this->roles, $this->model_table)){
-                            $this->callable  = ['patch'];;
+                            $this->addCallable('patch');
                         }
                     }  
                 break;    
 
                 case 'DELETE':
                     if ($this->acl->hasSpecialPermission('write_all', $this->roles)){
-                        $this->callable  = ['post', 'put', 'patch', 'delete'];;
+                        $this->addCallable('delete');
                     } else {
                         if ($this->acl->hasResourcePermission('delete', $this->roles, $this->model_table)){
-                            $this->callable  = ['delete'];;
+                            $this->addCallable('delete');
                         }
                     }  
                 break;
@@ -146,28 +160,28 @@ abstract class ApiController extends ResourceController
               
         }
     
-
+        
         $this->impersonated_by = $this->auth->impersonated_by ?? null;
 
     
-        //Debug::dump($this->auth->uid ?? NULL, 'uid');
-        //Debug::dump($perms, 'permissions');
-        //Debug::dump($this->roles, 'roles');    
-        //Debug::dump($this->is_listable, 'is_listable?');
-        //Debug::dump($this->is_retrievable, 'is_retrievable?');
-        //Debug::dump($this->callable, 'callables');
-        //Debug::dump($this->impersonated_by, 'impersonated_by);
+        //Debug::export($this->auth['uid'] ?? NULL, 'uid');
+        //Debug::export($perms, 'permissions');
+        //Debug::export($this->roles, 'roles');    
+        //Debug::export($this->is_listable, 'is_listable?');
+        //Debug::export($this->is_retrievable, 'is_retrievable?');
+        //Debug::export($this->callable, 'callables');
+        //Debug::export($this->impersonated_by, 'impersonated_by);
         //exit;
         
-        if (empty($this->callable))
+        /*
+        if (empty($this->callable)){
             Factory::response()->sendError("Forbidden", 403, "Operation is not permited");
-
+        }
+        */
+            
         $this->callable = array_merge($this->callable,['head','options']);
-
-        // headers
-        $headers = array_merge($headers, ['Access-Control-Allow-Methods' => implode(',',array_map( function ($e){ return strtoupper($e); },$this->callable )) ]);
-        $this->setheaders($headers);            	        
- 
+        
+        //var_export($this->callable);
     }
     
     /**
@@ -714,7 +728,7 @@ abstract class ApiController extends ResourceController
                     $rows = $instance->get();
                 
                     
-                //Debug::dump($instance->getLastPrecompiledQuery(), 'SQL');
+                //Debug::export($instance->getLastPrecompiledQuery(), 'SQL');
             
                 $res = Factory::response()->setPretty($pretty);
 
@@ -802,8 +816,9 @@ abstract class ApiController extends ResourceController
             // event hook             
             $this->onPostingBeforeCheck($id, $data);
 
+
             // *
-            if (isset($data['belongs_to'])){
+            if (!isset($data['belongs_to'])){
                 if (!$this->acl->hasSpecialPermission('transfer', $this->roles)){
                     $data['belongs_to'] = $this->uid;
                 } 
@@ -852,9 +867,13 @@ abstract class ApiController extends ResourceController
             // event hook             
             $this->onPostingAfterCheck($id, $data);
 
-           // var_dump($data);
+            try {
+                $last_inserted_id = $instance->create($data);
+            } catch (\PDOException $e){
+                // solo para debug !
+                Factory::response()->sendError("Error: creation of resource fails: ". $e->getMessage(), 500, $instance->dd2());
+            }
 
-            $last_inserted_id = $instance->create($data);
             if ($last_inserted_id !==false){
                 // event hooks
                 $this->onPostFolder($last_inserted_id, $data, $this->folder);
@@ -1071,7 +1090,7 @@ abstract class ApiController extends ResourceController
             $this->onDeletingBeforeCheck($id);
 
             $rows = $instance->get();
-            Debug::dump($instance->getLastPrecompiledQuery(), 'SQL');
+            Debug::export($instance->getLastPrecompiledQuery(), 'SQL');
             
             if (count($rows) == 0){
                 Factory::response()->code(404)->sendError("Register for id=$id does not exists");

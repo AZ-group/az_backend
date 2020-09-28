@@ -17,12 +17,7 @@ class MyApiController extends ApiController
         
     function __construct()
     {
-        // CORS
-        $headers = [
-            'access-control-allow-Origin' => '*'
-        ];   
-        
-        parent::__construct($headers);
+        parent::__construct();
     }
 
 }

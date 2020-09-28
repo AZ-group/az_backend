@@ -25,7 +25,7 @@ class Utils {
         $mail->setFrom($config['email']['mailer']['from'][0], $config['email']['mailer']['from'][1]);    
         $mail->addAddress($to_email, $to_name);
        
-        $mail->Subject = $subject;
+        $mail->uidject = $subject;
 		$mail->msgHTML($body); 
 		
 		if (!is_null($alt_body))

@@ -77,13 +77,13 @@ class DumbController extends Controller
 
         $id = DB::table('products')->create([ 
             'name' => $name, 
-            'description' => 'Esto es una prueba', 
-            'size' => '1L',
+            'description' => 'Esto es una prueba 77', 
+            'size' => '100L',
             'cost' => 66,
             'belongs_to' => 90
         ]);   
         
-        var_dump($id);
+        return $id;
     }
 
     function create_baz($id = null){
@@ -293,8 +293,18 @@ class DumbController extends Controller
         $names = DB::table('products')->pluck('size');
 
         foreach ($names as $name) {
-            echo "$name <br/>";
+            Debug::dd($name);
         }
+    }
+
+    function pluck2($uid) {
+        $perms = DB::table('user_sp_permissions')
+        ->setFetchMode('ASSOC')
+        ->where(['user_id' => $uid])
+        ->join('sp_permissions', 'user_sp_permissions.sp_permission_id', '=', 'sp_permissions.id')
+        ->pluck('name');
+
+        Debug::dd($perms);
     }
 
     function get_product($id){       
@@ -1446,7 +1456,7 @@ class DumbController extends Controller
     function test(){
         $data = ['tb' => 'foo', 'user_id' => 50];
 
-        $ok = DB::table('permissions')->where(['tb' => $data['tb'], 'user_id' => $data['user_id']])->dd();
+        $ok = DB::table('user_tb_permissions')->where(['tb' => $data['tb'], 'user_id' => $data['user_id']])->dd();
         var_dump($ok);
     }
        

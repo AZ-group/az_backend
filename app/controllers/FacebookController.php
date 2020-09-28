@@ -109,7 +109,7 @@ class FacebookController extends Controller
                         }
                     }
 
-                    $_permissions = DB::table('permissions')->setFetchMode('ASSOC')->select(['tb', 'can_create as c', 'can_show as r', 'can_update as u', 'can_delete as d', 'can_list as l'])->where(['user_id' => $uid])->get();
+                    $_permissions = DB::table('user_tb_permissions')->setFetchMode('ASSOC')->select(['tb', 'can_create as c', 'can_show as r', 'can_update as u', 'can_delete as d', 'can_list as l'])->where(['user_id' => $uid])->get();
 
                     $perms = [];
                     foreach ($_permissions as $p){
@@ -195,7 +195,7 @@ class FacebookController extends Controller
                 $access  = $this->gen_jwt([
                                             'uid' => $uid, 
                                             'roles' => $roles,
-                                            'permissions' => $perms,
+                                            'tb_permissions' => $perms,
                                             'active' => $active
                 ], 'access_token');
 

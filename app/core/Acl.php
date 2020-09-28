@@ -2,49 +2,88 @@
 
 namespace simplerest\core;
 
+use simplerest\core\Model;
+use simplerest\libs\DB;
+use simplerest\libs\Factory;
+use simplerest\libs\Debug;
+
 class Acl 
 {
-    protected $roles    = [];
-    protected $role_ids = [];
+    protected $roles = [];
+    protected $role_perms = [];
+    protected $role_ids   = [];
     protected $role_names = [];
+    protected $sp_permissions = [];
+    protected $sp_permissions_names = []; 
     protected $current_role;
     protected $guest_name = 'guest';
-    protected $sp_permissions_allowed = [
-        'read_all',
-        'write_all',
-        'read_all_folders',
-        'write_all_folders',
-        'read_all_trashcan',
-        'write_all_trashcan',
-        'lock',
-        'transfer',
-        'impersonate',
-        'fill_all',
-        'grant'
-    ]; 
-
+    
     public function __construct() { 
-        // $this->config = include CONFIG_PATH . 'config.php';
+        $this->config = include CONFIG_PATH . 'config.php';
+        $this->setup();
     }
 
-    public function addRole(string $role_name, $role_id) {
-       
+    protected function setup(){        
+        // get all available sp_permissions
+        $this->sp_permissions = DB::table('sp_permissions')->get();
+
+        foreach($this->sp_permissions as $spr){
+            $this->sp_permissions_names[] = $spr['name'];
+        }
+
+        // get all available roles
+        $this->roles = DB::table('roles')->get();
+
+        foreach($this->roles as $rr){
+            $this->role_names[] = $rr['name'];
+        }
+    }
+
+    public function getSpPermissions(){
+        return $this->sp_permissions_names;
+    }
+
+    public function addRole(string $role_name, $role_id = NULL) {
+        $create = true;
+
         if (in_array($role_id, $this->role_ids)){
-            throw new \Exception("Role id '$role_id' can not be repetead. It should be UNIQUE.");
+            $create = false;
+
+            foreach ($this->roles as $rr){
+                if ($rr['id'] == $role_id && $rr['name'] != $role_name){
+                    throw new \Exception("Role id '$role_id' can not be repetead. Trying to assign to '$role_name' but it was used for '{$rr['name']}' and it should be UNIQUE.");      
+                }
+            }
         }
 
         if (in_array($role_name, $this->role_names)){
-            throw new \Exception("Role name '$role_name' can not be repetead. It should be UNIQUE.");
+            $create = false;
+            
+            foreach ($this->roles as $rr){
+                if ($rr['id'] != $role_id && $rr['name'] == $role_name){
+                    if ($role_id != NULL) {
+                        throw new \Exception("Role name '$role_name' can not be repetead. Trying to assign to id '$role_id' but it was used for '{$rr['id']}' and it should be UNIQUE.");  
+                    }
+                       
+                }
+            }
         }
 
         if ($role_name == 'guest'){
             $this->guest_name = 'guest';
         }
 
+        if ($create){
+            $role_id = DB::table('roles')->create([
+                'id'   => $role_id,
+                'name' => $role_name
+            ]);
+        }
+        
         $this->role_ids[]   = $role_id;
         $this->role_names[] = $role_name;
         
-        $this->roles[$role_name] = [
+        $this->role_perms[$role_name] = [
                             'role_id' => $role_id,
                             'sp_permissions' => [],
                             'tb_permissions' => []
@@ -75,32 +114,32 @@ class Acl
             throw new \Exception("You can't inherit from undefined rol");
         }
 
-        if (!isset($this->roles[$this->current_role]['sp_permissions'])){
-            $this->roles[$this->current_role]['sp_permissions'] = [];
+        if (!isset($this->role_perms[$this->current_role]['sp_permissions'])){
+            $this->role_perms[$this->current_role]['sp_permissions'] = [];
         } else {
-            if (!empty($this->roles[$this->current_role]['sp_permissions'])){
+            if (!empty($this->role_perms[$this->current_role]['sp_permissions'])){
                 throw new \Exception("You can't inherit permissions from '$role_name' when you have already permissions for '".$this->current_role."'");
             }
         }
 
-        if (!isset($this->roles[$this->current_role]['tb_permissions'])){
-            $this->roles[$this->current_role]['tb_permissions'] = [];
+        if (!isset($this->role_perms[$this->current_role]['tb_permissions'])){
+            $this->role_perms[$this->current_role]['tb_permissions'] = [];
         } else {
-            if (!empty($this->roles[$this->current_role]['tb_permissions'])){
+            if (!empty($this->role_perms[$this->current_role]['tb_permissions'])){
                 throw new \Exception("You can't inherit permissions from '$role_name' when you have already permissions for '$this->current_role'");
             }
         }
 
-        if (!empty($this->roles[$this->current_role]['sp_permissions']) || !empty($this->roles[$this->current_role]['sp_permissions'])){
+        if (!empty($this->role_perms[$this->current_role]['sp_permissions']) || !empty($this->role_perms[$this->current_role]['sp_permissions'])){
             throw new \Exception("You can't inherit permissions from '$role_name' when you have already permissions for '$this->current_role'");
         }
 
-        if (!isset($this->roles[$role_name]) || !isset($this->roles[$role_name]['sp_permissions']) || !isset($this->roles[$role_name]['tb_permissions']) ){
+        if (!isset($this->role_perms[$role_name]) || !isset($this->role_perms[$role_name]['sp_permissions']) || !isset($this->role_perms[$role_name]['tb_permissions']) ){
             throw new \Exception("[ Inherit ] Role '$role_name' not found");
         }
 
-        $this->roles[$this->current_role]['sp_permissions'] = $this->roles[$role_name]['sp_permissions'];
-        $this->roles[$this->current_role]['tb_permissions'] = $this->roles[$role_name]['tb_permissions'];
+        $this->role_perms[$this->current_role]['sp_permissions'] = $this->role_perms[$role_name]['sp_permissions'];
+        $this->role_perms[$this->current_role]['tb_permissions'] = $this->role_perms[$role_name]['tb_permissions'];
 
         return $this;
     }
@@ -116,18 +155,18 @@ class Acl
 
         // chequear que $sp_permissions no se cualquier cosa
         foreach ($sp_permissions as $spp){
-            if (!in_array($spp, $this->sp_permissions_allowed)){
+            if (!in_array($spp, $this->sp_permissions_names)){
                 throw new \Exception("'$spp' is not a valid special permission");
             }
 
             // caso especial de un pseudo-permiso
             if ($spp == 'grant'){
-                $this->addResourcePermissions('permissions', ['read', 'write']);
+                $this->addResourcePermissions('tb_permissions', ['read', 'write']);
                 //return $this;
             }
         }
         
-        $this->roles[$this->current_role]['sp_permissions'] = array_unique(array_merge($this->roles[$this->current_role]['sp_permissions'], $sp_permissions));
+        $this->role_perms[$this->current_role]['sp_permissions'] = array_unique(array_merge($this->role_perms[$this->current_role]['sp_permissions'], $sp_permissions));
      
         return $this;
     }
@@ -141,36 +180,36 @@ class Acl
             throw new \Exception("You can't inherit from undefined rol");
         }
 
-        if (!isset($this->roles[$this->current_role]['tb_permissions'][$table])){
-            $this->roles[$this->current_role]['tb_permissions'][$table] = [];
+        if (!isset($this->role_perms[$this->current_role]['tb_permissions'][$table])){
+            $this->role_perms[$this->current_role]['tb_permissions'][$table] = [];
         }
 
         foreach ($tb_permissions as $tbp){
             switch ($tbp) {
                 case 'show':
-                    $this->roles[$this->current_role]['tb_permissions'][$table][] = 'show';
+                    $this->role_perms[$this->current_role]['tb_permissions'][$table][] = 'show';
                 break;
                 case 'list':
-                    $this->roles[$this->current_role]['tb_permissions'][$table][] = 'list';
+                    $this->role_perms[$this->current_role]['tb_permissions'][$table][] = 'list';
                 break;
                 case 'read':
-                    $this->roles[$this->current_role]['tb_permissions'][$table][] = 'show';
-                    $this->roles[$this->current_role]['tb_permissions'][$table][] = 'list';
+                    $this->role_perms[$this->current_role]['tb_permissions'][$table][] = 'show';
+                    $this->role_perms[$this->current_role]['tb_permissions'][$table][] = 'list';
                 break;
             
                 case 'create':
-                    $this->roles[$this->current_role]['tb_permissions'][$table][] = 'create';
+                    $this->role_perms[$this->current_role]['tb_permissions'][$table][] = 'create';
                 break;
                 case 'update':
-                    $this->roles[$this->current_role]['tb_permissions'][$table][] = 'update';
+                    $this->role_perms[$this->current_role]['tb_permissions'][$table][] = 'update';
                 break;
                 case 'delete':
-                    $this->roles[$this->current_role]['tb_permissions'][$table][] = 'delete';    
+                    $this->role_perms[$this->current_role]['tb_permissions'][$table][] = 'delete';    
                 break;
                 case 'write':
-                    $this->roles[$this->current_role]['tb_permissions'][$table][] = 'create';
-                    $this->roles[$this->current_role]['tb_permissions'][$table][] = 'update';
-                    $this->roles[$this->current_role]['tb_permissions'][$table][] = 'delete';
+                    $this->role_perms[$this->current_role]['tb_permissions'][$table][] = 'create';
+                    $this->role_perms[$this->current_role]['tb_permissions'][$table][] = 'update';
+                    $this->role_perms[$this->current_role]['tb_permissions'][$table][] = 'delete';
                 break;
 
                 default:
@@ -178,7 +217,7 @@ class Acl
             }
         }
 
-        $this->roles[$this->current_role]['tb_permissions'][$table] = array_unique($this->roles[$this->current_role]['tb_permissions'][$table]);
+        $this->role_perms[$this->current_role]['tb_permissions'][$table] = array_unique($this->role_perms[$this->current_role]['tb_permissions'][$table]);
 
         return $this;
     }
@@ -205,8 +244,12 @@ class Acl
         return $this->guest_name;
     }
 
-    public function getRoleName($role_id){
-        foreach ($this->roles as $name => $r){
+    public function getRoleName($role_id = NULL){
+        if ($role_id == NULL){
+            return $this->role_names;
+        }
+
+        foreach ($this->role_perms as $name => $r){
             if ($r['role_id'] == $role_id){
                 return $name;
             }
@@ -216,31 +259,31 @@ class Acl
     }
 
     public function getRoleId(string $role_name){
-        if (isset($this->roles[$role_name])){
-            return $this->roles[$role_name]['role_id'];
+        if (isset($this->role_perms[$role_name])){
+            return $this->role_perms[$role_name]['role_id'];
         }
 
         throw new \Exception("Undefined role with name '$role_name'");
     }
 
     public function roleExists(string $role_name){
-        return isset($this->roles[$role_name]);
+        return isset($this->role_perms[$role_name]);
     }
 
     // sería mucho más rápido si pudiea acceder como $sp_permissions['perm']['role']
     // solo sería hacer un isset($sp_permissions['perm']['role'])
     public function hasSpecialPermission(string $perm, Array $role_names){
-        if (!in_array($perm, $this->sp_permissions_allowed)){
+        if (!in_array($perm, $this->sp_permissions_names)){
             throw new \InvalidArgumentException("hasSpecialPermission : invalid permission '$perm'");    
         }
 
         foreach ($role_names as $r_name){
-            if (!isset($this->roles[$r_name])){
-                //var_dump($this->roles);
+            if (!isset($this->role_perms[$r_name])){
+                //var_dump($this->role_perms);
                 throw new \InvalidArgumentException("hasSpecialPermission : invalid role name '$r_name'");
             }
 
-            if (in_array($perm, $this->roles[$r_name]['sp_permissions'])){
+            if (in_array($perm, $this->role_perms[$r_name]['sp_permissions'])){
                 return true;
             } 
         }
@@ -259,12 +302,12 @@ class Acl
         }
 
         foreach ($role_names as $r_name){
-            if (!isset($this->roles[$r_name])){
+            if (!isset($this->role_perms[$r_name])){
                 throw new \InvalidArgumentException("hasResourcePermission : invalid role name '$r_name'");
             }
 
-            if (isset($this->roles[$r_name]['tb_permissions'][$resource])){
-                if (in_array($perm, $this->roles[$r_name]['tb_permissions'][$resource])){
+            if (isset($this->role_perms[$r_name]['tb_permissions'][$resource])){
+                if (in_array($perm, $this->role_perms[$r_name]['tb_permissions'][$resource])){
                     return true;
                 }
             }  
@@ -318,19 +361,19 @@ class Acl
             throw new \InvalidArgumentException("getResourcePermissions : '$op_type' is not a valid value for op_type");
         }
         
-        if (isset($this->roles[$role]['tb_permissions'][$resource])){
+        if (isset($this->role_perms[$role]['tb_permissions'][$resource])){
             if ($op_type != null){
-                return array_intersect($this->roles[$role]['tb_permissions'][$resource], $ops[$op_type]);
+                return array_intersect($this->role_perms[$role]['tb_permissions'][$resource], $ops[$op_type]);
             }
 
-            return $this->roles[$role]['tb_permissions'][$resource];
+            return $this->role_perms[$role]['tb_permissions'][$resource];
         }
 
         return [];
     }    
 
     public function getRolePermissions(){
-        return $this->roles;
+        return $this->role_perms;
     }
 
    
@@ -340,8 +383,8 @@ class Acl
 
 // Testing
 
-
 /*
+
 $acl = new Acl();
 
 $acl
@@ -379,6 +422,5 @@ $acl
 var_dump($acl->isAllowed('write', ['admin'], 'baz'));
 
 //var_dump($acl->hasSpecialPermission('lock', ['superadmin', 'admin']));
+
 */
-
-

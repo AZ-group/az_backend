@@ -6,7 +6,7 @@ use simplerest\core\Model;
 
 class SuperCoolTableModel extends Model 
 {
-	//protected $table_name = "super_cool_table";
+	protected $table_name = "super_cool_table";
 	protected $id_name = 'id';
 	protected $nullable = ['active'];
 
@@ -15,12 +15,12 @@ class SuperCoolTableModel extends Model
 		'name'		 => 'STR',
 		'active'	 => 'INT',
 		'belongs_to' => 'INT',
-		'created_at' => 'STR',
-		'created_by' => 'INT',
-		'updated_at' => 'STR',
-		'updated_by' => 'INT', 
+		//'created_at' => 'STR',
+		//'created_by' => 'INT',
+		//'updated_at' => 'STR',
+		//'updated_by' => 'INT', 
 		'deleted_at' => 'STR',
-		'deleted_by' => 'INT',
+		//'deleted_by' => 'INT',
 		'locked'	 => 'INT' 
 	];
 

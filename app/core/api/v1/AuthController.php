@@ -77,7 +77,11 @@ class AuthController extends Controller implements IAuth
     }
 
     private function fetchRoles($uid) : Array {
-        $rows = DB::table('user_roles')->setFetchMode('ASSOC')->where(['user_id', $uid])->select(['role_id as role'])->get();	
+        $rows = DB::table('user_roles')
+        ->setFetchMode('ASSOC')
+        ->where(['user_id', $uid])
+        ->select(['role_id as role'])
+        ->get();	
 
         $acl = Factory::acl();
 
@@ -91,8 +95,12 @@ class AuthController extends Controller implements IAuth
         return $roles;
     }
 
-    private function fetchPermissions($uid) : Array {
-        $_permissions = DB::table('permissions')->setFetchMode('ASSOC')->select(['tb', 'can_create as c', 'can_show as r', 'can_update as u', 'can_delete as d', 'can_list as l'])->where(['user_id' => $uid])->get();
+    private function fetchTbPermissions($uid) : Array {
+        $_permissions = DB::table('user_tb_permissions')
+        ->setFetchMode('ASSOC')
+        ->select(['tb', 'can_create as c', 'can_show as r', 'can_update as u', 'can_delete as d', 'can_list as l'])
+        ->where(['user_id' => $uid])
+        ->get();
 
         $perms = [];
         foreach ((array) $_permissions as $p){
@@ -101,6 +109,23 @@ class AuthController extends Controller implements IAuth
         }
 
         return $perms;
+    }
+
+    private function fetchSpPermissions($uid) : Array {
+        $perms = DB::table('user_sp_permissions')
+        ->setFetchMode('ASSOC')
+        ->where(['user_id' => $uid])
+        ->join('sp_permissions', 'user_sp_permissions.sp_permission_id', '=', 'sp_permissions.id')
+        ->pluck('name');
+
+        return $perms ?? [];
+    }
+
+    private function fetchPermissions($uid) : Array { 
+        return [
+                'tb' => $this->fetchTbPermissions($uid), 
+                'sp' => $this->fetchSpPermissions($uid) 
+        ];
     }
 
     function login()
@@ -160,6 +185,8 @@ class AuthController extends Controller implements IAuth
 
             $roles = $this->fetchRoles($uid);
             $perms = $this->fetchPermissions($uid);
+
+            //var_export($perms);
 
             $access  = $this->gen_jwt([ 'uid' => $uid, 
                                         'roles' => $roles, 
@@ -637,11 +664,7 @@ class AuthController extends Controller implements IAuth
                 $payload = \Firebase\JWT\JWT::decode($jwt, $this->config['access_token']['secret_key'], [ $this->config['access_token']['encryption'] ]);
                 
                 if (empty($payload))
-                    Factory::response()->sendError('Unauthorized!',401);  
- 
-                //if ($payload->active === null) {
-                //    Factory::response()->sendError('Non authorized', 403, 'Account pending for activation');
-                //}           
+                    Factory::response()->sendError('Unauthorized!',401);             
 
                 if (!isset($payload->ip) || empty($payload->ip))
                     Factory::response()->sendError('Unauthorized',401,'Lacks IP in web token');
@@ -670,7 +693,7 @@ class AuthController extends Controller implements IAuth
                 //print_r($payload->roles);
                 //exit; 
 
-                return ($payload);
+                return json_decode(json_encode($payload),true);
 
             } catch (\Exception $e) {
                 /*

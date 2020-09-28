@@ -28,7 +28,7 @@ abstract class ResourceController extends Controller
         'Content-Type' => 'application/json; charset=UTF-8'
     ];
 
-    function __construct()
+    function __construct($auth = null)
     {   
         foreach ($this->headers as $key => $header){
             header("$key: $header");
@@ -45,18 +45,17 @@ abstract class ResourceController extends Controller
             $this->permissions = [];
         } else {
 
-            // auth payload
-            $this->auth = (new AuthController())->check();
+            $this->auth = $auth != null ? $auth : (new AuthController())->check();
 
-            $this->uid = $this->auth->uid; 
-            $this->roles  = $this->auth->roles;
-            $this->permissions = $this->auth->permissions ?? NULL;   
+            $this->uid          = $this->auth['uid']; 
+            $this->roles        = $this->auth['roles'];
+            $this->permissions  = $this->auth['permissions'] ?? NULL;   
         }
 
-        //Debug::dump($this->uid, 'uid');
-        //Debug::dump($this->acl->getRoles(), 'possible roles');  ///// 
-        //Debug::dump($this->roles, 'active roles');
-        //Debug::dump($this->permissions, 'permissions');
+        //Debug::export($this->uid, 'uid');
+        //Debug::export($this->acl->getRoleName(), 'possible roles');  ///// 
+        //Debug::export($this->roles, 'active roles');
+        //Debug::export($this->permissions, 'permissions');
 
         Factory::response()->asObject();
 
@@ -68,13 +67,19 @@ abstract class ResourceController extends Controller
     }
     
     protected function getPermissions(string $table = NULL){
-        if ($table == NULL)
-            return $this->permissions;
+        if (empty($this->permissions)){
+            return NULL;
+        }
 
-        if (!isset($this->permissions->$table))
+        $tb_perms = $this->permissions['tb'];
+
+        if ($table == NULL)
+            return $tb_perms;
+
+        if (!isset($tb_perms[$table]))
             return NULL;
 
-        return $this->permissions->$table;
+        return $tb_perms[$table];
     }
 
     protected function isGuest(){

@@ -5,6 +5,7 @@ namespace simplerest\core;
 use simplerest\libs\Arrays;
 use simplerest\libs\Strings;
 use simplerest\libs\Validator;
+use simplerest\libs\Factory;
 use simplerest\core\interfaces\IValidator;
 use simplerest\core\exceptions\InvalidValidationException;
 use simplerest\core\exceptions\SqlException;
@@ -66,7 +67,7 @@ class Model {
 	protected $fetch_mode;
 	protected $soft_delete;
 	protected $last_inserted_id;
-	protected $fetch_mode_default = \PDO::FETCH_OBJ;
+	protected $fetch_mode_default = \PDO::FETCH_ASSOC;
 	protected $data = []; 
 
 	
@@ -78,6 +79,10 @@ class Model {
 		}
 
 		$this->config = include CONFIG_PATH . 'config.php';
+
+		if ($this->config['error_handling']) {
+            set_exception_handler([$this, 'exception_handler']);
+        }
 
 		$this->properties = array_keys($this->schema);
 		
@@ -988,6 +993,10 @@ class Model {
 		return $this->_dd($this->toSql(), $this->getBindings());
 	}
 
+	function dd2(){		
+		return $this->_dd($this->last_pre_compiled_query, $this->last_bindings);
+	}
+
 	// Debug last query
 	function getLog(){
 		return $this->_dd($this->last_pre_compiled_query, $this->last_bindings);
@@ -1002,17 +1011,18 @@ class Model {
 		$count = null;
 		if ($this->exec && $st->execute()){
 			$output = $st->fetchAll($this->getFetchMode());
-			$count = $st->rowCount();
-
+			
+			$count  = $st->rowCount();
 			if (empty($output)) {
 				$ret = [];
 			}else {
 				$ret = $pristine ? $output : $this->applyTransformer($this->applyOutputMutators($output));
 			}
+
+			$this->onRead($count);
 		}else
 			$ret = false;
 				
-		$this->onRead($count);
 		return $ret;	
 	}
 
@@ -1032,10 +1042,11 @@ class Model {
 			}else {
 				$ret = $pristine ? $output : $this->applyTransformer($this->applyOutputMutators($output));
 			}
+
+			$this->onRead($count);
 		}else
 			$ret = false;
 				
-		$this->onRead($count);
 		return $ret;
 	}
 	
@@ -1048,11 +1059,12 @@ class Model {
 		$count = null;
 		if ($this->exec && $st->execute()) {
 			$ret = $st->fetch(\PDO::FETCH_NUM)[0];
+			
 			$count = $st->rowCount();
+			$this->onRead($count);
 		} else
 			$ret = false;
 			
-		$this->onRead($count);
 		return $ret;	
 	}
 
@@ -1075,7 +1087,11 @@ class Model {
 	
 		if ($this->exec && $st->execute()) {
 			$res = $this->applyTransformer($this->applyOutputMutators($st->fetchAll($this->getFetchMode())));
-			return $res[0] ?? NULL;
+			
+			//var_dump($res);
+			//exit;	
+			
+			return $res;
 		} else
 			return false;	
 	}
@@ -1463,12 +1479,12 @@ class Model {
 		$this->last_bindings = $values;
 		$this->last_pre_compiled_query = $q;
 	 
-		if($st->execute())
+		if($st->execute()) {
 			$count = $st->rowCount();
-		else 
+			$this->onUpdated($data, $count);
+		} else 
 			$count = false;
 			
-		$this->onUpdated($data, $count);
 		return $count;
 	}
 
@@ -1535,12 +1551,12 @@ class Model {
 		$this->last_bindings = $this->getBindings();
 		$this->last_pre_compiled_query = $q;
 
-		if($st->execute())
+		if($st->execute()) {
 			$count = $st->rowCount();
-		else 
+			$this->onDeleted($count);
+		} else 
 			$count = false;	
 		
-		$this->onDeleted($count);
 		return $count;	
 	}
 
@@ -1614,10 +1630,6 @@ class Model {
 		$this->last_bindings = $vals;
 		$this->last_pre_compiled_query = $q;
 
-		//var_dump($q);
-		//var_export($vals);
-		//exit;
-
 		$result = $st->execute();
 
 		if ($result){
@@ -1626,11 +1638,14 @@ class Model {
 			} else {
 				$this->last_inserted_id = $this->conn->lastInsertId();
 			}
-		}else
-			$this->last_inserted_id = false;
 
-		$this->onCreated($data, $this->last_inserted_id);	
+			$this->onCreated($data, $this->last_inserted_id);
+		}else {
+			$this->last_inserted_id = false;	
+		}
+
 		return $this->last_inserted_id;	
+		
 	}
 	
 	/*
@@ -1686,11 +1701,11 @@ class Model {
 	public function onDeleting() { }
 	public function onDeleted(?int $count) { }
 
-	public function onCreating(Array $data) {	}
-	public function onCreated(Array $data, ?int $count) { }
+	public function onCreating(Array &$data) {	}
+	public function onCreated(Array &$data, ?int $count) { }
 
-	public function onUpdating(Array $data) { }
-	public function onUpdated(Array $data, ?int $count) { }
+	public function onUpdating(Array &$data) { }
+	public function onUpdated(Array &$data, ?int $count) { }
 
 	/*
 		'''Reflection'''
@@ -1790,4 +1805,16 @@ class Model {
 		$this->conn = $conn;
 		return $this;
 	}
+
+	/**
+     * exception_handler
+     *
+     * @param  mixed $e
+     *
+     * @return void
+     */
+    function exception_handler($e) {
+        $error_detail = $this->config['debug'] ? 'Error on line number '.$e->getLine().' in file - '.$e->getFile() : '';
+        Factory::response()->sendError($e->getMessage(), 500, $error_detail);
+    }
 }

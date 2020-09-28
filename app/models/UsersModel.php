@@ -12,7 +12,7 @@ class UsersModel extends Model
 	//protected $table_name = "users";
 	//protected $id_name = 'id';
 	protected $not_fillable = ['confirmed_email', 'active'];
-	protected $nullable = ['firstname', 'lastname', 'active', 'confirmed_email'];
+	protected $nullable = ['id', 'firstname', 'lastname', 'active', 'confirmed_email'];
 	protected $hidden   = [	'password' ];
 
 	/*
@@ -45,9 +45,9 @@ class UsersModel extends Model
 	}
 	
 	// Hooks
-	function onUpdating($data) {
+	function onUpdating(&$data) {
 		if ($this->isDirty('email')) {
-			$this->update(['confirmed_email' => 0]);
+			$this->fill(['confirmed_email'])->update(['confirmed_email' => 0]);
 		}
 	}
 	

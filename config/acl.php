@@ -1,6 +1,7 @@
 <?php
 
 use simplerest\core\Acl;
+use simplerest\libs\Debug;
 
 
 $acl_cache = false;
@@ -9,7 +10,10 @@ $acl_file = '../app/security/acl.cache';
 // Check whether ACL data already exist
 if (!$acl_cache || is_file($acl_file) !== true) {
 
-    // ... Define roles, access, etc
+    /*
+        Roles are backed in database but role permissions not.
+        Role permissions can be decorated and these decorators are backed.
+    */
 
     $acl = new Acl();
 
@@ -21,23 +25,31 @@ if (!$acl_cache || is_file($acl_file) !== true) {
 
     ->addRole('registered', 1)
     ->addInherit('guest')
-    ->addResourcePermissions('baz', ['write'])
+    ->addResourcePermissions('roles', ['read'])
+    ->addResourcePermissions('user_roles', ['read'])
+    ->addResourcePermissions('super_cool_table', ['read', 'write'])
 
     ->addRole('basic', 2)
     ->addInherit('registered')
     ->addResourcePermissions('products', ['write'])
     ->addResourcePermissions('foo', ['read'])
 
+    //->addRole('registeredO', 1)
+    //->addRole('registered', 10)
+
     ->addRole('regular', 3)
     ->addInherit('registered')
     ->addResourcePermissions('products', ['read', 'write'])
     ->addResourcePermissions('foo', ['read', 'update'])
 
+    ->addRole('supervisor')
+    ->addInherit('registered')
+    ->addSpecialPermissions(['read_all', 'impersonate'])
+
     ->addRole('admin', 100)
     ->addInherit('registered')
     ->addSpecialPermissions(['read_all', 'write_all', 'read_all_folders', 'lock', 'fill_all', 'impersonate'])
-    //->restrictImpersonateTo(['guest', 'basic', 'regular'])
-
+ 
     ->addRole('superadmin', 500)
     ->addInherit('admin')
     ->addSpecialPermissions([
@@ -47,7 +59,16 @@ if (!$acl_cache || is_file($acl_file) !== true) {
                              'transfer'
                             ]);
 
-    
+        
+        
+
+    /////////////////////
+
+    //Debug::export($acl->hasResourcePermission('list', ['basic'], 'super_cool_table'));
+    //Debug::export($acl->getSpPermissions());
+    //Debug::export($acl->getRolePermissions(), 'perms');
+
+    /////////////////////
 
     // Store serialized list into plain file
     file_put_contents(

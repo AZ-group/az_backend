@@ -29,6 +29,10 @@ abstract class Controller
         return $this->callable;
     }
 
+    function addCallable(string $method){
+        $this->callable = array_unique(array_merge($this->callable, [$method]));
+    }
+
     
     /**
      * exception_handler
