@@ -13,7 +13,7 @@ class Permissions extends MyApiController
 { 
     
     protected $model_name  = 'UserTbPermissionsModel';
-    protected $model_table = 'user_tb_permissions';
+    protected $table_name = 'user_tb_permissions';
 
     function __construct()
     {       

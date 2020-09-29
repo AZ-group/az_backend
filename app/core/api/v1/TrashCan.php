@@ -27,7 +27,7 @@ class TrashCan extends MyApiController
         $entity = Strings::toCamelCase($entity);
 
         $this->model_name = ucfirst($entity) . 'Model';
-        $this->model_table = strtolower($entity);
+        $this->table_name = strtolower($entity);
 
         $this->model    = 'simplerest\\models\\'. $this->model_name;
         $api_ctrl = '\simplerest\\controllers\\api\\' . ucfirst($entity);
@@ -45,7 +45,7 @@ class TrashCan extends MyApiController
             Factory::response()->sendError('Not implemented', 501, "Trashcan not implemented for $entity");
         }
             
-        //Debug::dump($this->model_table);
+        //Debug::dump($this->table_name);
         //exit;
         parent::__construct();
 
@@ -76,7 +76,7 @@ class TrashCan extends MyApiController
         ->showDeleted()
         ->fill(['deleted_at']);
  
-        $this->instance2
+        $this->instance2w
         ->showDeleted()
         ->where(['deleted_at', NULL, 'IS NOT']);
     }

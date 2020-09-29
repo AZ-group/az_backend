@@ -6,7 +6,7 @@ use simplerest\controllers\MyApiController;
 
 class UserRoles extends MyApiController
 {    
-    protected $model_table = 'user_roles';
+    protected $table_name = 'user_roles';
 
     function __construct()
     {

@@ -8,6 +8,7 @@ use simplerest\libs\Arrays;
 use simplerest\libs\DB;
 use simplerest\libs\Debug;
 use simplerest\libs\Url;
+use simplerest\libs\Strings;
 use simplerest\libs\Validator;
 use simplerest\models\FoldersModel;
 use simplerest\core\api\v1\ResourceController;
@@ -40,23 +41,14 @@ abstract class ApiController extends ResourceController
         if ($this->model_table != null){
             $this->model_name = implode(array_map('ucfirst',explode('_', $this->model_table))) . 'Model';
         } elseif (preg_match('/([A-Z][a-z0-9_]+[A-Z]*[a-z0-9_]*[A-Z]*[a-z0-9_]*[A-Z]*[a-z0-9_]*)/', get_called_class(), $matchs)){
-            //echo '*******';
-            //var_dump($this->model_table);
-            //exit;
             $this->model_name = $matchs[1] . 'Model';
-            $this->model_table = strtolower($matchs[1]);
+            $this->model_table = Strings::fromCamelCase($matchs[1]);
         } else {
             Factory::response()->sendError("ApiController with undefined Model", 500);
         }  
+        
 
-        
-        //var_dump($this->model_table);
-        //var_export($this->permissions);
-        //exit;
-        
         $perms = $this->getPermissions($this->model_table);
-
-        Debug::export([$this->model_table, $perms]);  ////
 
         if ($perms !== NULL)
         {

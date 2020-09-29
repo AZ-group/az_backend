@@ -42,7 +42,7 @@ class Collections extends MyApiController
             $entity = Strings::toCamelCase($entity);    
            
             $model_name   = ucfirst($entity) . 'Model';
-            $model_table = strtolower($entity);
+            $table_name = strtolower($entity);
 
             $model    = 'simplerest\\models\\'. $model_name;
             $api_ctrl = '\simplerest\\controllers\\api\\' . ucfirst($entity);
@@ -52,7 +52,7 @@ class Collections extends MyApiController
             
                       
             $id = DB::table('collections')->create([
-                'entity' => $model_table,
+                'entity' => $table_name,
                 'refs' => json_encode($refs),
                 'belongs_to' => $this->uid
             ]);
@@ -106,7 +106,7 @@ class Collections extends MyApiController
                 $entity = Strings::toCamelCase($row['entity']);    
            
                 $model_name   = ucfirst($entity) . 'Model';
-                $model_table = strtolower($entity);
+                $table_name = strtolower($entity);
 
                 $model    = 'simplerest\\models\\'. $model_name;
                 $api_ctrl = '\simplerest\\controllers\\api\\' . ucfirst($entity);
@@ -172,7 +172,7 @@ class Collections extends MyApiController
             $entity = Strings::toCamelCase($row['entity']);    
            
             $model_name   = ucfirst($entity) . 'Model';
-            $model_table = strtolower($entity);
+            $table_name = strtolower($entity);
 
             $model    = 'simplerest\\models\\'. $model_name;
             $api_ctrl = '\simplerest\\controllers\\api\\' . ucfirst($entity);

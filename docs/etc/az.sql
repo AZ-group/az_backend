@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: localhost
--- Tiempo de generación: 27-09-2020 a las 04:11:53
+-- Tiempo de generación: 29-09-2020 a las 04:43:03
 -- Versión del servidor: 10.4.11-MariaDB
 -- Versión de PHP: 7.4.3
 
@@ -232,6 +232,10 @@ INSERT INTO `foo` (`id`, `bar`, `hide`, `deleted_at`) VALUES
 (2, 'EEE', 0, NULL),
 (5, 'J', 1, NULL),
 (6, 'foooooooo', 0, NULL),
+(7, '200', 0, NULL),
+(2, 'EEE', 0, NULL),
+(5, 'J', 1, NULL),
+(6, 'foooooooo', 0, NULL),
 (7, '200', 0, NULL);
 
 -- --------------------------------------------------------
@@ -436,7 +440,89 @@ INSERT INTO `products` (`id`, `name`, `description`, `size`, `cost`, `created_at
 (5011, 'xxxyiiii', NULL, '', 105, NULL, NULL, NULL, NULL, NULL, NULL, 1, 0, NULL, 0),
 (5012, 'xxxyiiii', NULL, '', 105, NULL, NULL, NULL, NULL, NULL, NULL, 1, 0, NULL, 0),
 (5014, 'xxxyiiii', NULL, '', 105, NULL, NULL, NULL, NULL, NULL, NULL, 1, 0, NULL, NULL),
-(5015, 'xxxyiiii', NULL, '', 105, NULL, NULL, NULL, NULL, NULL, NULL, 1, 0, NULL, NULL);
+(5015, 'xxxyiiii', NULL, '', 105, NULL, NULL, NULL, NULL, NULL, NULL, 1, 0, NULL, NULL),
+(5016, 'JJJ', NULL, '', 199, '2020-09-28 12:54:52', 453, NULL, NULL, NULL, NULL, 1, 0, NULL, NULL),
+(5017, 'hbpzgwqoruriynwdponu', 'Esto es una prueba 77', '100L', 66, '2020-09-28 13:58:13', NULL, NULL, NULL, NULL, NULL, 1, 0, NULL, 90),
+(5018, 'ukyzokrgwjbipnisgdmt', 'Esto es una prueba 77', '100L', 66, '2020-09-28 13:59:55', NULL, NULL, NULL, NULL, NULL, 1, 0, NULL, 90),
+(5019, 'JJJ', NULL, '', 199, '2020-09-28 14:03:40', 453, NULL, NULL, NULL, NULL, 1, 0, NULL, NULL),
+(5020, 'JJJ', NULL, '', 199, '2020-09-28 14:04:41', 453, NULL, NULL, NULL, NULL, 1, 0, NULL, NULL),
+(5032, 'JJJ', NULL, '', 199, '2020-09-28 14:25:48', 455, NULL, NULL, NULL, NULL, 1, 0, NULL, 455);
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `roles`
+--
+
+CREATE TABLE `roles` (
+  `id` int(11) NOT NULL,
+  `name` varchar(50) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- Volcado de datos para la tabla `roles`
+--
+
+INSERT INTO `roles` (`id`, `name`) VALUES
+(100, 'admin'),
+(2, 'basic'),
+(-1, 'guest'),
+(1, 'registered'),
+(3, 'regular'),
+(500, 'superadmin'),
+(502, 'supervisor');
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `sp_permissions`
+--
+
+CREATE TABLE `sp_permissions` (
+  `id` int(11) NOT NULL,
+  `name` varchar(45) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- Volcado de datos para la tabla `sp_permissions`
+--
+
+INSERT INTO `sp_permissions` (`id`, `name`) VALUES
+(10, 'fill_all'),
+(11, 'grant'),
+(9, 'impersonate'),
+(7, 'lock'),
+(1, 'read_all'),
+(3, 'read_all_folders'),
+(5, 'read_all_trashcan'),
+(8, 'transfer'),
+(2, 'write_all'),
+(4, 'write_all_folders'),
+(6, 'write_all_trashcan');
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `super_cool_table`
+--
+
+CREATE TABLE `super_cool_table` (
+  `id` int(11) NOT NULL,
+  `name` varchar(45) NOT NULL,
+  `active` tinyint(4) NOT NULL,
+  `belongs_to` int(11) NOT NULL,
+  `deleted_at` datetime NOT NULL,
+  `locked` tinyint(4) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- Volcado de datos para la tabla `super_cool_table`
+--
+
+INSERT INTO `super_cool_table` (`id`, `name`, `active`, `belongs_to`, `deleted_at`, `locked`) VALUES
+(500, 'Etereo', 1, 90, '0000-00-00 00:00:00', 0),
+(503, 'Etereo oculto', 0, 90, '0000-00-00 00:00:00', 0),
+(504, 'Etereo oculto II', 0, 90, '0000-00-00 00:00:00', 0);
 
 -- --------------------------------------------------------
 
@@ -521,7 +607,7 @@ INSERT INTO `users` (`id`, `username`, `active`, `locked`, `email`, `confirmed_e
 (87, 'pedro', 1, 0, 'pedro@gmail.com', 1, 'Pedro', 'Picapiedras', '$2y$10$/ehgjdS8p8IbRKMW4AVVOuX38p8yMIZinciIWsj79rDUfRfKH6/56', NULL, 87),
 (88, 'feli8', 1, 0, 'feli@abc', 1, 'Felipe', 'Bozzzolo', '$2y$10$/ehgjdS8p8IbRKMW4AVVOuX38p8yMIZinciIWsj79rDUfRfKH6/56', NULL, 88),
 (89, 'h', 1, 0, 'h@', 1, 'Sr H', 'J', '$2y$10$/ehgjdS8p8IbRKMW4AVVOuX38p8yMIZinciIWsj79rDUfRfKH6/56', NULL, 89),
-(90, 'nano', 1, 0, 'nano@g.c', 0, 'NA', 'Bzz', '$2y$10$QrlBRrdiLlkdq4SP7wz2OuhoFPz3klM4vAA3iHb450EocwMsMJPIS', NULL, 90),
+(90, 'nano', 1, 0, 'nano@gmail.com', 0, 'NA', 'Bzz', '$2y$10$QrlBRrdiLlkdq4SP7wz2OuhoFPz3klM4vAA3iHb450EocwMsMJPIS', NULL, 90),
 (102, 'feli61', 1, 0, 'feli@delacasita', 1, 'Sr K', 'NS/NC', '$2y$10$/ehgjdS8p8IbRKMW4AVVOuX38p8yMIZinciIWsj79rDUfRfKH6/56', NULL, 102),
 (103, 'feli1', 1, 0, 'feli@delacasita2', 1, 'Sr K', 'NS/NC', '$2y$10$/ehgjdS8p8IbRKMW4AVVOuX38p8yMIZinciIWsj79rDUfRfKH6/56', NULL, 103),
 (104, 'feli7', 1, 0, 'feli@delacasita5', 1, 'Sr K', 'NS/NC', '$2y$10$/ehgjdS8p8IbRKMW4AVVOuX38p8yMIZinciIWsj79rDUfRfKH6/56', NULL, 104),
@@ -631,7 +717,7 @@ INSERT INTO `users` (`id`, `username`, `active`, `locked`, `email`, `confirmed_e
 (357, 'rr5000', NULL, 0, 'rr5000@mail.com', 1, NULL, NULL, '$2y$10$0yoHyh9CshfcX6FT2F6zGuZzzZfJdKtvNJqG/uByNau7xFMwzGsbq', NULL, 357),
 (360, 'rr5001', 1, 0, 'rr5001@mail.com', 1, NULL, NULL, '$2y$10$cGezyeUuRKB3BQYNzm/2A.COwInJKgM5Tb1QszWPwrw2z127o7Pom', NULL, 360),
 (361, 'super', 1, 0, 'super@gmail.com', 1, 'Kah', 'El', '$2y$10$gKCArzCICX5fPa9/xJDYvufbpguJh5QRnUdC2jmqTpOZtpb7uhnB6', NULL, 9),
-(400, 'master', 1, 0, 'master@gmail.com', 1, 'Peter', 'Parker', '$2y$10$vcuEqmFdcAlGm35JNLaUCe7saJMwl5mVAK82PLvMHGC.qDpoGE78i', NULL, 9),
+(400, 'master', 1, 0, 'master@gmail.com', 1, 'Peter', 'Parqueadero', '$2y$10$vcuEqmFdcAlGm35JNLaUCe7saJMwl5mVAK82PLvMHGC.qDpoGE78i', NULL, 9),
 (403, 'maso9', NULL, 0, 'maso9@gmail.com', 0, NULL, NULL, '$2y$10$y58qXewSVi.3oc6YGwK2Tu2wnhPOBditu0QnPUm.PYk4XXeqvRhBK', NULL, 403),
 (404, 'maso99', NULL, 0, 'maso99@gmail.com', 0, NULL, NULL, '$2y$10$enRfSTawRi01bHbRACdG5.z6NU8FZNZzDNgvOnP0N6iqOBkHn46Ca', NULL, 404),
 (406, 'maso999', NULL, 0, 'maso999@gmail.com', 0, NULL, NULL, '$2y$10$gOE9emZlsaU/uKU5VPBufOXNbpZsLxNl1vwxNhSq/fPGlVjkWhL/2', NULL, 406),
@@ -662,7 +748,9 @@ INSERT INTO `users` (`id`, `username`, `active`, `locked`, `email`, `confirmed_e
 (447, 'tutt77', NULL, 0, 'rruttuu9797@gmail.com', 0, NULL, NULL, '$2y$10$aLzXlZ5fz2YgJxPw/bUWaOP4nGfpXfg4uVg4IpQmkOq6d.eh6Km8W', NULL, 447),
 (448, 'tutt771', NULL, 0, 'rruttuu97971@gmail.com', 1, NULL, NULL, '$2y$10$DaVHIBbtbklYUn6hKBKuMO6mHHW.4j4D6ChwZTR6Lt.deCfHMljlC', NULL, 448),
 (450, 'tutt7712', NULL, 0, 'rruttuu979712@gmail.com', 0, NULL, NULL, '$2y$10$nt6SqgvuS3OveoQ5kB6o.Ohm7btBtatZvkYg1HrBDC4hE2RPJasXe', NULL, 450),
-(451, 'tt7712', NULL, 0, 'rrut979712@gmail.com', 0, NULL, NULL, '$2y$10$V9YHsQ0dF0uzKcY7a83oa.nKHH56XLlQzkY.q7MoqFoC0LtylCYAa', NULL, 451);
+(451, 'tt7712', NULL, 0, 'rrut979712@gmail.com', 0, NULL, NULL, '$2y$10$V9YHsQ0dF0uzKcY7a83oa.nKHH56XLlQzkY.q7MoqFoC0LtylCYAa', NULL, 451),
+(454, 'vik', NULL, 0, 'vicktor1989@gmail.com', 0, NULL, NULL, '$2y$10$v7Y0wA2DEcMbrgf8oVYCx.Nyqi4FqYpMWXaa6H9GZShK59CY6p1Ne', NULL, 454),
+(455, 'vik4', NULL, 0, 'vicktor1991@gmail.com', 1, 'Perez', NULL, '$2y$10$GkbbmHVPtnzKcOeQJb1JReYR36FLf2LXd3cTqMaH2Yzq5nzxMElmC', NULL, 455);
 
 -- --------------------------------------------------------
 
@@ -797,7 +885,58 @@ INSERT INTO `user_roles` (`id`, `user_id`, `role_id`, `created_at`, `updated_at`
 (175, 447, 2, '2020-09-24 18:05:49', NULL),
 (176, 447, 3, '2020-09-24 18:05:49', NULL),
 (177, 448, 1, '2020-09-24 18:06:18', NULL),
-(178, 451, 3, '2020-09-24 21:58:21', NULL);
+(178, 451, 3, '2020-09-24 21:58:21', NULL),
+(179, 455, 3, '2020-09-28 14:23:45', NULL);
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `user_sp_permissions`
+--
+
+CREATE TABLE `user_sp_permissions` (
+  `id` int(11) NOT NULL,
+  `sp_permission_id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `created_at` datetime NOT NULL,
+  `updated_at` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- Volcado de datos para la tabla `user_sp_permissions`
+--
+
+INSERT INTO `user_sp_permissions` (`id`, `sp_permission_id`, `user_id`, `created_at`, `updated_at`) VALUES
+(1, 9, 90, '2020-09-27 12:07:27', NULL),
+(2, 1, 90, '0000-00-00 00:00:00', NULL);
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `user_tb_permissions`
+--
+
+CREATE TABLE `user_tb_permissions` (
+  `id` int(11) NOT NULL,
+  `tb` varchar(80) COLLATE utf16_spanish_ci NOT NULL,
+  `can_list` tinyint(4) NOT NULL DEFAULT 0,
+  `can_show` tinyint(4) NOT NULL DEFAULT 0,
+  `can_create` tinyint(4) NOT NULL DEFAULT 0,
+  `can_update` tinyint(4) NOT NULL DEFAULT 0,
+  `can_delete` tinyint(4) NOT NULL DEFAULT 0,
+  `user_id` int(11) NOT NULL,
+  `created_at` datetime NOT NULL,
+  `updated_at` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf16 COLLATE=utf16_spanish_ci;
+
+--
+-- Volcado de datos para la tabla `user_tb_permissions`
+--
+
+INSERT INTO `user_tb_permissions` (`id`, `tb`, `can_list`, `can_show`, `can_create`, `can_update`, `can_delete`, `user_id`, `created_at`, `updated_at`) VALUES
+(2, 'products', 0, 1, 0, 1, 1, 168, '0000-00-00 00:00:00', NULL),
+(3, 'foo', 1, 1, 1, 0, 1, 90, '2020-01-14 00:00:00', '2020-09-27 13:22:17'),
+(37, 'foo', 0, 1, 0, 1, 1, 168, '2020-01-14 23:09:37', '2020-01-15 06:30:55');
 
 --
 -- Índices para tablas volcadas
@@ -879,6 +1018,27 @@ ALTER TABLE `products`
   ADD KEY `updated_by` (`updated_by`);
 
 --
+-- Indices de la tabla `roles`
+--
+ALTER TABLE `roles`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `name` (`name`);
+
+--
+-- Indices de la tabla `sp_permissions`
+--
+ALTER TABLE `sp_permissions`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `name` (`name`);
+
+--
+-- Indices de la tabla `super_cool_table`
+--
+ALTER TABLE `super_cool_table`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `belongs_to` (`belongs_to`);
+
+--
 -- Indices de la tabla `users`
 --
 ALTER TABLE `users`
@@ -896,6 +1056,22 @@ ALTER TABLE `user_roles`
   ADD UNIQUE KEY `user_id_2` (`user_id`,`role_id`),
   ADD KEY `user_id` (`user_id`),
   ADD KEY `role_id` (`role_id`);
+
+--
+-- Indices de la tabla `user_sp_permissions`
+--
+ALTER TABLE `user_sp_permissions`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `user_id` (`user_id`),
+  ADD KEY `permission` (`sp_permission_id`);
+
+--
+-- Indices de la tabla `user_tb_permissions`
+--
+ALTER TABLE `user_tb_permissions`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `user_table` (`tb`,`user_id`) USING BTREE,
+  ADD KEY `user_id` (`user_id`);
 
 --
 -- AUTO_INCREMENT de las tablas volcadas
@@ -947,19 +1123,49 @@ ALTER TABLE `permissions`
 -- AUTO_INCREMENT de la tabla `products`
 --
 ALTER TABLE `products`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5016;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5033;
+
+--
+-- AUTO_INCREMENT de la tabla `roles`
+--
+ALTER TABLE `roles`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=503;
+
+--
+-- AUTO_INCREMENT de la tabla `sp_permissions`
+--
+ALTER TABLE `sp_permissions`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+
+--
+-- AUTO_INCREMENT de la tabla `super_cool_table`
+--
+ALTER TABLE `super_cool_table`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=505;
 
 --
 -- AUTO_INCREMENT de la tabla `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=452;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=456;
 
 --
 -- AUTO_INCREMENT de la tabla `user_roles`
 --
 ALTER TABLE `user_roles`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=179;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=180;
+
+--
+-- AUTO_INCREMENT de la tabla `user_sp_permissions`
+--
+ALTER TABLE `user_sp_permissions`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
+-- AUTO_INCREMENT de la tabla `user_tb_permissions`
+--
+ALTER TABLE `user_tb_permissions`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=39;
 
 --
 -- Restricciones para tablas volcadas
@@ -996,12 +1202,6 @@ ALTER TABLE `folder_permissions`
   ADD CONSTRAINT `folder_permissions_ibfk_1` FOREIGN KEY (`belongs_to`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
--- Filtros para la tabla `permissions`
---
-ALTER TABLE `permissions`
-  ADD CONSTRAINT `permissions_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-
---
 -- Filtros para la tabla `products`
 --
 ALTER TABLE `products`
@@ -1012,6 +1212,19 @@ ALTER TABLE `products`
 --
 ALTER TABLE `user_roles`
   ADD CONSTRAINT `user_roles_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Filtros para la tabla `user_sp_permissions`
+--
+ALTER TABLE `user_sp_permissions`
+  ADD CONSTRAINT `user_sp_permissions_ibfk_1` FOREIGN KEY (`sp_permission_id`) REFERENCES `sp_permissions` (`id`),
+  ADD CONSTRAINT `user_sp_permissions_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
+
+--
+-- Filtros para la tabla `user_tb_permissions`
+--
+ALTER TABLE `user_tb_permissions`
+  ADD CONSTRAINT `user_tb_permissions_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

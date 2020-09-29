@@ -7,23 +7,27 @@ class Strings {
 	/*
 		WordAnother to word_another
 	*/
-	static function fromCamelCase($str, $sep = '_'){
-		$words = [];
-		$wix   = -1;
-		$len = strlen($str);
-		for ($i=0; $i<$len; $i++){
-			if ($str[$i] >= 'A' && $str[$i] <= 'Z'){
-				$str[$i] = strtolower($str[$i]);
-				$wix++;
-			}
-			
-			if (!isset($words[$wix]))
-				$words[$wix] = $str[$i];
-			else
-				$words[$wix] .= $str[$i];	
-		}
+	static function fromCamelCase($name){
+		$len = strlen($name);
 
-		return implode($sep,$words);
+		if ($len== 0)
+			return NULL;
+
+			$conv = strtolower($name[0]);
+			for ($i=1; $i<$len; $i++){
+				$ord = ord($name[$i]);
+				if ($ord >=65 && $ord <= 90){
+					$conv .= '_' . strtolower($name[$i]);		
+				} else {
+					$conv .= $name[$i];	
+				}					
+			}		
+	
+		if ($name[$len-1] == '_'){
+			$name = substr($name, 0, -1);
+		}
+	
+		return $conv;
 	}
 
 	/*
