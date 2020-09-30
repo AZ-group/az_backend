@@ -24,25 +24,6 @@ class Url {
         return $protocol;
     }
 
-    static function assets($resource){
-        /*
-        if (!empty($_SERVER['HTTPS']) && ('on' == $_SERVER['HTTPS'])) {
-            $protocol = 'https:';
-        } else {
-            $protocol = 'http:';
-        }
-        */
-
-        $config = include CONFIG_PATH . 'config.php';
-
-        $public = $config['BASE_URL'] == '/' ? '' : 'public/';
-        return  HTTP_PROTOCOL. '//'. $_SERVER['HTTP_HOST'].'/'.$config['BASE_URL']. $public. 'assets/'.$resource;
-    }
-    
-    static function section($view){
-        include VIEWS_PATH . $view;
-    }
-
     /**
      * url_check - complement for parse_url
      *

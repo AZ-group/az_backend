@@ -7,7 +7,6 @@ class UserRolesModel extends Model
  {
 	protected $table_name = "user_roles";
 	protected $id_name = 'id';
-	protected $hidden = [ ];
 
 	/*
 		Types are INT, STR and BOOL among others
@@ -21,8 +20,11 @@ class UserRolesModel extends Model
 		'updated_at'  => 'STR'
 	];
 
+	protected $nullable = ['id'];
+	protected $hidden = [ ];
+
 	protected $rules = [
-		// 'role_id'	=> ['in' => [2,3,100], 'messages' => ['in' => 'Invalid role_id'] ] 
+	
 	];
 
     function __construct($db = NULL){

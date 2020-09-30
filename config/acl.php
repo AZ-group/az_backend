@@ -26,8 +26,7 @@ if (!$acl_cache || is_file($acl_file) !== true) {
     ->addRole('registered', 1)
     ->addInherit('guest')
     ->addResourcePermissions('roles', ['read'])
-    ->addResourcePermissions('user_roles', ['read'])
-    ->addResourcePermissions('super_cool_table', ['read', 'write'])
+    ->addSpecialPermissions(['write_all'])
 
     ->addRole('basic', 2)
     ->addInherit('registered')
@@ -41,6 +40,7 @@ if (!$acl_cache || is_file($acl_file) !== true) {
     ->addInherit('registered')
     ->addResourcePermissions('products', ['read', 'write'])
     ->addResourcePermissions('foo', ['read', 'update'])
+    ->addResourcePermissions('super_cool_table', ['read', 'write'])
 
     ->addRole('supervisor')
     ->addInherit('registered')

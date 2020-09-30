@@ -14,7 +14,7 @@ use simplerest\core\exceptions\InvalidValidationException;
 
 class MySelf extends MyApiController 
 {  
-    protected $table_name = 'users';
+    protected $model_table = 'users';
 
     function __construct() 
     { 

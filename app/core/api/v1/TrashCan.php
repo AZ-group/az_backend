@@ -19,15 +19,17 @@ class TrashCan extends MyApiController
     
     function __construct()
     {
-        $entity  = Factory::request()->shift('entity');
-
+        $entity  = Factory::request()
+        ->getRequestMethod() == 'GET'   ? Factory::request()->shiftQuery('entity') 
+                                        : Factory::request()->shiftBodyParam('entity');
+                
         if (empty($entity))
             Factory::response()->sendError('Entity is required', 400);
 
         $entity = Strings::toCamelCase($entity);
 
         $this->model_name = ucfirst($entity) . 'Model';
-        $this->table_name = strtolower($entity);
+        $this->model_table = strtolower($entity);
 
         $this->model    = 'simplerest\\models\\'. $this->model_name;
         $api_ctrl = '\simplerest\\controllers\\api\\' . ucfirst($entity);
@@ -45,7 +47,9 @@ class TrashCan extends MyApiController
             Factory::response()->sendError('Not implemented', 501, "Trashcan not implemented for $entity");
         }
             
-        //Debug::dump($this->table_name);
+        
+        //var_dump(Factory::request()->getBody());
+        //Debug::dump($this->model_name);
         //exit;
         parent::__construct();
 
@@ -53,7 +57,7 @@ class TrashCan extends MyApiController
 
     function get($id = null) {
         parent::get($id);
-    } // 
+    }  
 
     function onGettingAfterCheck($id){
         $this->instance
@@ -69,14 +73,14 @@ class TrashCan extends MyApiController
     protected function modify($id = NULL, bool $put_mode = false)
     {
         parent::modify($id, $put_mode);
-    } //  
+    }   
 
-    function onPuttingBeforeCheck2($id, $data){
+    function onPuttingBeforeCheck2($id, &$data){
         $this->instance
         ->showDeleted()
         ->fill(['deleted_at']);
  
-        $this->instance2w
+        $this->instance2
         ->showDeleted()
         ->where(['deleted_at', NULL, 'IS NOT']);
     }
@@ -84,26 +88,28 @@ class TrashCan extends MyApiController
             
     function onPuttingAfterCheck($id, &$data) { 
         $trashed = $data['trashed'] ?? true;
-
-        if (isset($data['trashed']))
-            unset($data['trashed']);
-
-        unset($data['entity']);   
-
-        if (strtolower($trashed) == false || $trashed === 0){
-            $data['deleted_at'] = NULL;
-        }
+        
+        if ($trashed !== false && $trashed !== 'false')
+            return;
+        
+        unset($data['trashed']);
+        $data['deleted_at'] = NULL;
     } 
 
 
     function delete($id = NULL) {
         parent::delete($id);
-    } // 
+    } 
 
     function onDeletingBeforeCheck($id){
         $this->instance
         ->showDeleted()
         ->where(['deleted_at', NULL, 'IS NOT']);
+    }
+
+    function onDeletingAfterCheck($id){
+        $this->instance
+        ->setSoftDelete(false);
     }
 
         

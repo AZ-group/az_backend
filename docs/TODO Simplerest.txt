@@ -2,11 +2,31 @@
 
 - Definir DB !!!
 
+- Usar un Trait para meter el exception_handler
+
+- Si intento pasar un id repetido en un POST 
+
+Ej para 'products'
+  
+  {
+      "id": "126",
+      "name": "Uvas ricas",
+      "description": "Espectaculare",
+      "size": "5L",
+      "cost": "52"
+  }
+
+  {
+    "status_code": 500,
+    "error": "Error: creation of resource fails: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '126' for key 'PRIMARY'",
+    "error_detail": "INSERT INTO products (id, name, description, size, cost, belongs_to, created_by, created_at) VALUES ('126', 'Uvas ricas', 'Espectaculare', '5L', '52', '90', '90', '2020-09-29 21:55:22')"
+}
+
+- Pensar en esto:
+
+  read[guest] == read_all[tb]  <-- el permiso "read" de un guest debe tomarse como un caso concreto de read_all para una tabla concreta y ser heredado como tal.
+
 - No debería poder ver todos los user_roles sino tengo permiso read_all de admin
-
-- Aún no entiendo (mi decisión de) porque no tener una tablas 'roles' siendo que podría cachearse dentro del ACL. 
-
-fetchRoles() necesita saber el id de roles pero hace uso de $acl->getRoleName($nombre_rol) así que puede seguir usándose de ese modo y se evita leer la tabla a cada rato. También podría usarse REDIS.   -- done
 
 - Reparar 
 
@@ -20,7 +40,6 @@ fetchRoles() necesita saber el id de roles pero hace uso de $acl->getRoleName($n
     GoogleController
     LoginController
     Roles     
-
 
 - Insertar el rol "registered" con un hook o Midleware en cada cuenta registrada / creada para que nadie tenga en principio menos permisos que un "guest".  
 

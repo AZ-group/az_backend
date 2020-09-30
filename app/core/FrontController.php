@@ -71,7 +71,7 @@ class FrontController
                 ///
                 $asked_method = NULL;
                 if ($config['method_override']['by_url']){
-                    $asked_method  =  $req->shift('_method');
+                    $asked_method  =  $req->shiftQuery('_method');
                 }
 
                 if ($asked_method == NULL && $config['method_override']['by_header']){
@@ -138,7 +138,7 @@ class FrontController
         */
 
         // i18n
-        $lang = $req->shift('lang');
+        $lang = $req->shiftQuery('lang');
         
         if ($lang != NULL)
             setlocale(LC_ALL, "$lang.UTF-8");

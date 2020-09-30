@@ -48,6 +48,14 @@ class Strings {
         return substr($haystack, -strlen($needle))===$needle;
     }
 
+	static function removeRTrim($needle, $haystack)
+    {
+        if (substr($haystack, -strlen($needle)) === $needle){
+			return substr($haystack, 0, - strlen($needle));
+		}
+		return $haystack;
+    }
+
     /**
 	 * gen_secret_key - scretet_key generator
 	 *

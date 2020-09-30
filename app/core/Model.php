@@ -768,6 +768,12 @@ class Model {
 			$q .= 'UNION '.($this->union_type == 'ALL' ? 'ALL' : '').' '.$this->union_q.' ';
 		}
 
+
+		$q = rtrim($q);
+		$q = Strings::removeRTrim('AND', $q);
+		$q = Strings::removeRTrim('OR',  $q);
+
+
 		// PAGINATION
 		if (!$existance && $paginator!==null){
 			$q .= $paginator->getQuery();
@@ -778,9 +784,12 @@ class Model {
 		if ($existance)
 			$q .= ')';
 
-		// Parche
-		$q = str_replace('WHERE AND', 'WHERE', $q);
-		$q = str_replace('WHERE OR', 'WHERE', $q);
+		
+		/*
+		$q = rtrim($q);
+		$q = String::removeRTrim('AND', $q);
+		$q = String::removeRTrim('OR',  $q);
+		*/
 
 		//Debug::dd($q, 'Query:');
 		//Debug::dd($vars, 'Vars:');
@@ -1404,9 +1413,14 @@ class Model {
 		if ($this->conn == null)
 			throw new SqlException('No conection');
 			
-		if (!Arrays::is_assoc($data))
-			throw new \InvalidArgumentException('Array of data should be associative');
+		if (empty($data)){
+			throw new SqlException('There is no data to update');
+		}
 
+		if (!Arrays::is_assoc($data)){
+			throw new SqlException('Array of data should be associative');
+		}
+			
 		if (isset($data['created_by']))
 			unset($data['created_by']);
 
@@ -1417,7 +1431,7 @@ class Model {
 		if(!empty($this->fillable) && is_array($this->fillable)){
 			foreach($vars as $var){
 				if (!in_array($var,$this->fillable))
-					throw new \InvalidArgumentException("update: $var is not fillable");
+					throw new SqlException("update: $var is not fillable");
 			}
 		}
 

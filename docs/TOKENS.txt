@@ -1,3 +1,5 @@
+TOKENS
+
 {
     "data": {
         "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImlhdCI6MTYwMTMzMDk5NSwiZXhwIjoxNjEwMzMwOTk1LCJpcCI6IjEyNy4wLjAuMSIsInVpZCI6IjkwIiwicm9sZXMiOlsiYmFzaWMiXSwicGVybWlzc2lvbnMiOnsidGIiOnsiZm9vIjoyOX0sInNwIjpbImltcGVyc29uYXRlIiwicmVhZF9hbGwiXX0sImFjdGl2ZSI6IjEifQ.i4M0T1Ji4cSltW2RjUL4sDhPVM4Nxspi5kzR41rK0C4",
@@ -13,6 +15,44 @@
     "error": "",
     "error_detail": ""
 }
+
+
+{
+    "data": {
+        "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImlhdCI6MTYwMTM4Njc3NiwiZXhwIjoxNjEwMzg2Nzc2LCJpcCI6IjEyNy4wLjAuMSIsInVpZCI6IjE2OCIsInJvbGVzIjpbInJlZ3VsYXIiXSwicGVybWlzc2lvbnMiOnsidGIiOnsicHJvZHVjdHMiOjExLCJmb28iOjExfSwic3AiOltdfSwiYWN0aXZlIjoiMSJ9.rPF1psJ_44ItykyYW11nEA1qiHgpyhxaxXwK197_05g",
+        "token_type": "bearer",
+        "expires_in": 9000000,
+        "refresh_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImlhdCI6MTYwMTM4Njc3NiwiZXhwIjoxOTE2NzQ2Nzc2LCJpcCI6IjEyNy4wLjAuMSIsInVpZCI6IjE2OCJ9.pkmNhwO14cKnGkgEkvzkyFpQ2_S5HOvmlmCwpJkpX7o",
+        "roles": [
+            "regular"
+        ],
+        "uid": "168"
+    },
+    "status_code": 200,
+    "error": "",
+    "error_detail": ""
+}
+
+<-- ojo tiene permisos definidos
+
+
+{
+    "data": {
+        "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImlhdCI6MTYwMTM4NzE4OSwiZXhwIjoxNjEwMzg3MTg5LCJpcCI6IjEyNy4wLjAuMSIsInVpZCI6IjQ4Iiwicm9sZXMiOlsiYmFzaWMiLCJyZWd1bGFyIl0sInBlcm1pc3Npb25zIjp7InRiIjpbXSwic3AiOltdfSwiYWN0aXZlIjoiMSJ9.15f3l6cgRpRT0HPtXDNysvoUyvye76apbeorMYqgDEg",
+        "token_type": "bearer",
+        "expires_in": 9000000,
+        "refresh_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImlhdCI6MTYwMTM4NzE4OSwiZXhwIjoxOTE2NzQ3MTg5LCJpcCI6IjEyNy4wLjAuMSIsInVpZCI6IjQ4In0.AUwfG8Plk-tzXwL13qfVLrXWaxob2xkHs1hCz5vUNlU",
+        "roles": [
+            "basic",
+            "regular"
+        ],
+        "uid": "48" <-- gates
+    },
+    "status_code": 200,
+    "error": "",
+    "error_detail": ""
+}
+
 
 {
     "data": {
@@ -30,3 +70,168 @@
     "error_detail": ""
 }
 
+
+{
+    "data": {
+        "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImlhdCI6MTYwMTM4NzE0MSwiZXhwIjoxNjEwMzg3MTQxLCJpcCI6IjEyNy4wLjAuMSIsInVpZCI6IjEiLCJyb2xlcyI6WyJyZWd1bGFyIiwiYWRtaW4iXSwicGVybWlzc2lvbnMiOnsidGIiOltdLCJzcCI6W119LCJhY3RpdmUiOiIxIn0.6mkl5K7uno1DNVAXFjRjyd4HYm0bMCCi1MznQTOjezE",
+        "token_type": "bearer",
+        "expires_in": 9000000,
+        "refresh_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImlhdCI6MTYwMTM4NzE0MSwiZXhwIjoxOTE2NzQ3MTQxLCJpcCI6IjEyNy4wLjAuMSIsInVpZCI6IjEifQ.Ywzq7nOrq7876-wbr7V5CBSBSRfGEZ9Xq8kCPHKQJJQ",
+        "roles": [
+            "regular",
+            "admin"
+        ],
+        "uid": "1"
+    },
+    "status_code": 200,
+    "error": "",
+    "error_detail": ""
+}
+
+
+{
+    "data": {
+        "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImlhdCI6MTYwMTM4NzAwNywiZXhwIjoxNjEwMzg3MDA3LCJpcCI6IjEyNy4wLjAuMSIsInVpZCI6IjQiLCJyb2xlcyI6WyJiYXNpYyIsInJlZ3VsYXIiLCJhZG1pbiJdLCJwZXJtaXNzaW9ucyI6eyJ0YiI6W10sInNwIjpbXX0sImFjdGl2ZSI6IjEifQ.PQToIWzYzfk5zB7fncCgOcwZHYb0EBqYWbkkoT15cb0",
+        "token_type": "bearer",
+        "expires_in": 9000000,
+        "refresh_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImlhdCI6MTYwMTM4NzAwNywiZXhwIjoxOTE2NzQ3MDA3LCJpcCI6IjEyNy4wLjAuMSIsInVpZCI6IjQifQ.9r0_3-fsHWVT_VeGlg4bdlfbEEbDXqifzOwUkWCsw5M",
+        "roles": [
+            "basic",
+            "regular",
+            "admin"
+        ],
+        "uid": "4"
+    },
+    "status_code": 200,
+    "error": "",
+    "error_detail": ""
+}
+
+
+{
+    "data": {
+        "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImlhdCI6MTYwMTM4Njg1NiwiZXhwIjoxNjEwMzg2ODU2LCJpcCI6IjEyNy4wLjAuMSIsInVpZCI6IjQwMCIsInJvbGVzIjpbInN1cGVyYWRtaW4iXSwicGVybWlzc2lvbnMiOnsidGIiOltdLCJzcCI6W119LCJhY3RpdmUiOiIxIn0.qeQsO8i83RLyfyZwGAU6vaf3K3Ol6TswrfLckOPEcP4",
+        "token_type": "bearer",
+        "expires_in": 9000000,
+        "refresh_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImlhdCI6MTYwMTM4Njg1NiwiZXhwIjoxOTE2NzQ2ODU2LCJpcCI6IjEyNy4wLjAuMSIsInVpZCI6IjQwMCJ9.2VoadeDKwdv0xU-b2EWlXnZ5VPxqiPqpcLqTOGp2Xp8",
+        "roles": [
+            "superadmin"
+        ],
+        "uid": "400"
+    },
+    "status_code": 200,
+    "error": "",
+    "error_detail": ""
+}
+
+
+---
+---  IMPERSONATED:
+
+
+{
+    "data": {
+        "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImlhdCI6MTYwMTQzNzY2MiwiZXhwIjoxNjEwNDM3NjYyLCJpcCI6IjEyNy4wLjAuMSIsInVpZCI6IjQwMCIsInJvbGVzIjpbInN1cGVyYWRtaW4iXSwicGVybWlzc2lvbnMiOnsidGIiOltdLCJzcCI6W119LCJpbXBlcnNvbmF0ZWRfYnkiOiIxIiwiYWN0aXZlIjoiMSJ9.Sarg7W-JkTy4JBvVHDsPNAHYJz4dNDkhzYAPx4XMrLQ",
+        "refresh_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImlhdCI6MTYwMTQzNzY2MiwiZXhwIjoxOTE2Nzk3NjYyLCJpcCI6IjEyNy4wLjAuMSIsInVpZCI6IjQwMCIsImltcGVyc29uYXRlZF9ieSI6IjEifQ.yxGn-8NZLhLPKmUse4zQkuVAtC89MALZPMQf-P_FIvY",
+        "token_type": "bearer",
+        "expires_in": 9000000,
+        "roles": [
+            "superadmin"
+        ],
+        "uid": "400",
+        "impersonated_by": "1"
+    },
+    "status_code": 200,
+    "error": "",
+    "error_detail": ""
+}
+
+
+{
+    "data": {
+        "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImlhdCI6MTYwMTQzNzcwNCwiZXhwIjoxNjEwNDM3NzA0LCJpcCI6IjEyNy4wLjAuMSIsInVpZCI6IjQ4Iiwicm9sZXMiOlsiYmFzaWMiLCJyZWd1bGFyIl0sInBlcm1pc3Npb25zIjp7InRiIjpbXSwic3AiOltdfSwiaW1wZXJzb25hdGVkX2J5IjoiMSIsImFjdGl2ZSI6IjEifQ.GpoF9cTKrFkMtty0gjlVSveKeNt2198yVOCODfLUZ5w",
+        "refresh_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImlhdCI6MTYwMTQzNzcwNCwiZXhwIjoxOTE2Nzk3NzA0LCJpcCI6IjEyNy4wLjAuMSIsInVpZCI6IjQ4IiwiaW1wZXJzb25hdGVkX2J5IjoiMSJ9.4I7FwOJKnD3W2IGVs63ao1cE337AiTOjKHn_duy0mn4",
+        "token_type": "bearer",
+        "expires_in": 9000000,
+        "roles": [
+            "basic",
+            "regular"
+        ],
+        "uid": "48",
+        "impersonated_by": "1"
+    },
+    "status_code": 200,
+    "error": "",
+    "error_detail": ""
+}
+
+{
+    "data": {
+        "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImlhdCI6MTYwMTQzNzcyMiwiZXhwIjoxNjEwNDM3NzIyLCJpcCI6IjEyNy4wLjAuMSIsInVpZCI6IjkwIiwicm9sZXMiOlsiYmFzaWMiXSwicGVybWlzc2lvbnMiOnsidGIiOnsiZm9vIjoyOX0sInNwIjpbImltcGVyc29uYXRlIiwicmVhZF9hbGwiXX0sImltcGVyc29uYXRlZF9ieSI6IjEiLCJhY3RpdmUiOiIxIn0.0bldnMYM_Zo2cf_a2SrZYZ5yT7srpjpyiqQwk8Ncee0",
+        "refresh_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImlhdCI6MTYwMTQzNzcyMiwiZXhwIjoxOTE2Nzk3NzIyLCJpcCI6IjEyNy4wLjAuMSIsInVpZCI6IjkwIiwiaW1wZXJzb25hdGVkX2J5IjoiMSJ9.CzTiarSrh3wBHjtNAq8EvV4AEG3RAfKQhs5SAU5jx-s",
+        "token_type": "bearer",
+        "expires_in": 9000000,
+        "roles": [
+            "basic"
+        ],
+        "uid": "90",
+        "impersonated_by": "1"
+    },
+    "status_code": 200,
+    "error": "",
+    "error_detail": ""
+}
+
+
+{
+    "data": {
+        "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImlhdCI6MTYwMTQzNzczOSwiZXhwIjoxNjEwNDM3NzM5LCJpcCI6IjEyNy4wLjAuMSIsInVpZCI6IjEiLCJyb2xlcyI6WyJyZWd1bGFyIl0sInBlcm1pc3Npb25zIjpbXSwiaW1wZXJzb25hdGVkX2J5IjoiMSIsImFjdGl2ZSI6MX0.G6CE9tAgi6CdWQ2DgGZ6F3tYWWIPHxLeJ3NFiCkO2Aw",
+        "refresh_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImlhdCI6MTYwMTQzNzczOSwiZXhwIjoxOTE2Nzk3NzM5LCJpcCI6IjEyNy4wLjAuMSIsInVpZCI6IjEiLCJpbXBlcnNvbmF0ZWRfYnkiOiIxIn0.YEw6GXdHThdL12466PDC35yOI7fK8r8iFWV_lVLdHjM",
+        "token_type": "bearer",
+        "expires_in": 9000000,
+        "roles": [
+            "regular"
+        ],
+        "uid": "1",
+        "impersonated_by": "1"
+    },
+    "status_code": 200,
+    "error": "",
+    "error_detail": ""
+}
+
+
+{
+    "data": {
+        "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImlhdCI6MTYwMTQzNzc1NSwiZXhwIjoxNjEwNDM3NzU1LCJpcCI6IjEyNy4wLjAuMSIsInVpZCI6IjEiLCJyb2xlcyI6WyJhZG1pbiJdLCJwZXJtaXNzaW9ucyI6W10sImltcGVyc29uYXRlZF9ieSI6IjEiLCJhY3RpdmUiOjF9.R_hzWEcIYLqdXNkDdOjpbStO9w8ti5sTJ9NXuM1A6HE",
+        "refresh_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImlhdCI6MTYwMTQzNzc1NSwiZXhwIjoxOTE2Nzk3NzU1LCJpcCI6IjEyNy4wLjAuMSIsInVpZCI6IjEiLCJpbXBlcnNvbmF0ZWRfYnkiOiIxIn0.Jz1NCiUf2ctyT55CRCdkGnx6Ykld_6pH_1TCoB9KFS0",
+        "token_type": "bearer",
+        "expires_in": 9000000,
+        "roles": [
+            "admin"
+        ],
+        "uid": "1",
+        "impersonated_by": "1"
+    },
+    "status_code": 200,
+    "error": "",
+    "error_detail": ""
+}
+
+
+{
+    "data": {
+        "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImlhdCI6MTYwMTQzNzc2NywiZXhwIjoxNjEwNDM3NzY3LCJpcCI6IjEyNy4wLjAuMSIsInVpZCI6LTEsInJvbGVzIjpbImd1ZXN0Il0sInBlcm1pc3Npb25zIjpbXSwiaW1wZXJzb25hdGVkX2J5IjoiMSIsImFjdGl2ZSI6bnVsbH0.TmXP9bhYvpBAENa4fG9j8hRzHO-q7XN6O8GGUNRQc4s",
+        "refresh_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImlhdCI6MTYwMTQzNzc2NywiZXhwIjoxOTE2Nzk3NzY3LCJpcCI6IjEyNy4wLjAuMSIsInVpZCI6LTEsImltcGVyc29uYXRlZF9ieSI6IjEifQ.nQUt5I-aqIMQoGwiuNCXgiAqq_wzJQ7aOfxT2WrkkXg",
+        "token_type": "bearer",
+        "expires_in": 9000000,
+        "roles": [
+            "guest"
+        ],
+        "uid": -1,
+        "impersonated_by": "1"
+    },
+    "status_code": 200,
+    "error": "",
+    "error_detail": ""
+}

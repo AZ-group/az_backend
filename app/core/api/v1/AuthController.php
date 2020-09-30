@@ -222,7 +222,7 @@ class AuthController extends Controller implements IAuth
         if (!in_array($_SERVER['REQUEST_METHOD'], ['POST','OPTIONS']))
             Factory::response()->sendError('Incorrect verb ('.$_SERVER['REQUEST_METHOD'].'), expecting POST',405);
 
-        $data  = Factory::request()->getBody(false);
+        $data  = Factory::request()->getBody();
 
         if ($data == null)
             return;
