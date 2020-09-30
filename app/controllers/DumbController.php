@@ -1518,8 +1518,31 @@ class DumbController extends Controller
             'refs' => json_encode([195,196]),
             'belongs_to' => 332
         ]);
-
     }
 
+    function test_get(){
+        Debug::dd(DB::table('products')->first()); 
+        Debug::dd(DB::getQueryLog());
+    }
+
+    function test_get_raw(){
+        $raw_sql = 'SELECT * FROM baz';
+
+        $conn = DB::getConnection();
+        
+        $st = $conn->prepare($raw_sql);
+        $st->execute();
+
+        $result = $st->fetch(\PDO::FETCH_ASSOC);
+
+        // additional casting
+        $result['cost'] = (float) $result['cost'];
+        
+        echo '<pre>';
+        var_export($result);
+        echo '</pre>';
+    }
+
+    
 
 }

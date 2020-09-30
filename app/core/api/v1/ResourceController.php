@@ -83,7 +83,7 @@ abstract class ResourceController extends Controller
     }
 
     protected function isGuest(){
-        return $this->roles == [$this->acl->getGuest()];
+        return $this->roles == [Factory::acl()->getGuest()];
     }
 
     protected function isRegistered(){

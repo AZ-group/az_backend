@@ -21,8 +21,8 @@ class MySelf extends MyApiController
         if (Factory::request()->hasAuth()){
             $this->callable = ['get', 'put', 'patch'];
 
-            $this->is_listable      = true;
-            $this->is_retrievable   = true;
+            $this->is_listable = true;
+            $this->is_retrievable = true;
         }
         
         parent::__construct();
@@ -32,7 +32,7 @@ class MySelf extends MyApiController
         $id = $this->auth['uid'];
         parent::get($id);
     } 
-    
+
     function put($id = NULL)
     { 
         $id = $this->auth['uid'];

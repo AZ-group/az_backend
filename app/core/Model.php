@@ -6,6 +6,7 @@ use simplerest\libs\Arrays;
 use simplerest\libs\Strings;
 use simplerest\libs\Validator;
 use simplerest\libs\Factory;
+use simplerest\libs\Debug;
 use simplerest\core\interfaces\IValidator;
 use simplerest\core\exceptions\InvalidValidationException;
 use simplerest\core\exceptions\SqlException;
@@ -75,7 +76,6 @@ class Model {
 
 		if($conn){
 			$this->conn = $conn;
-			$this->conn->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
 		}
 
 		$this->config = include CONFIG_PATH . 'config.php';
@@ -272,7 +272,9 @@ class Model {
 
 	function setSoftDelete(bool $status) {
 		if (!$this->inSchema(['deleted_at'])){
-			throw new SqlException("There is no 'deleted_at' for table '".$this->from()."' in the schema");
+			if ($status){
+				throw new SqlException("There is no 'deleted_at' for table '".$this->from()."' in the schema");
+			}
 		} 
 		
 		$this->soft_delete = $status;
@@ -290,7 +292,7 @@ class Model {
 
 	protected function from(){
 		if (!empty($this->table_raw_q))
-			return $this->table_raw_q. ' ';
+			return $this->table_->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
 
 		return $this->table_name. ' '.(!empty($this->table_alias) ? 'as '.$this->table_alias : '');
 	}
@@ -583,7 +585,7 @@ class Model {
 			$order  = (!empty($order) && !$this->randomize) ? array_merge($this->order, $order) : $this->order;
 			$limit  = $limit  ?? $this->limit  ?? null;
 			$offset = $offset ?? $this->offset ?? 0; 
-
+			
 			if($limit>0 || $order!=NULL){
 				try {
 					$paginator = new Paginator();
@@ -702,6 +704,7 @@ class Model {
 			$where = trim($where);
 
 			if (!empty($where)){
+				$where = rtrim($where);
 				$where = "($where) AND ". $implode. ' ';
 			}else{
 				$where = "$implode ";
@@ -720,8 +723,9 @@ class Model {
 			}
 		}
 		
-		if (!empty($where))
-			$q  .= "WHERE $where";
+		if (!empty($where)){
+			$q  .= 'WHERE '.ltrim($where);
+		}
 		
 		$group = (!empty($this->group)) ? 'GROUP BY '.implode(',', $this->group) : '';
 		$q  .= " $group";
@@ -747,6 +751,7 @@ class Model {
 			}			
 
 			if (!empty($having)){
+				$having = rtrim($having);
 				$having = "($having) AND ". $implode. ' ';
 			}else{
 				$having = "HAVING $implode ";
@@ -1002,13 +1007,14 @@ class Model {
 		return $this->_dd($this->toSql(), $this->getBindings());
 	}
 
+	// Debug last query
 	function dd2(){		
 		return $this->_dd($this->last_pre_compiled_query, $this->last_bindings);
 	}
 
 	// Debug last query
 	function getLog(){
-		return $this->_dd($this->last_pre_compiled_query, $this->last_bindings);
+		return $this->dd2();
 	}
 
 	function get(array $fields = null, array $order = null, int $limit = NULL, int $offset = null, $pristine = false){
@@ -1192,7 +1198,11 @@ class Model {
 
 
 	function _where($conditions, $group_op = 'AND', $conjunction)
-	{	
+	{
+		if (empty($conditions)){
+			return;
+		}
+
 		if (Arrays::is_assoc($conditions)){
 			$conditions = Arrays::nonassoc($conditions);
 		}
@@ -1258,11 +1268,12 @@ class Model {
 		$this->where[] = ' ' .$ws_str;
 		////////////////////////////////////////////
 
-		//Debug::dd($this->where);
+		//Debug::export($this->where);
+		//exit;
 		//Debug::dd($this->w_vars, 'WHERE VARS');	
 		//Debug::dd($this->w_vals, 'WHERE VALS');	
 
-		return $this;
+		return;
 	}
 
 	function where($conditions, $conjunction = 'AND'){

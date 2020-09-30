@@ -17,17 +17,20 @@ class Collections extends MyApiController
 {   
     function __construct()
     {
-        $this->scope['guest'] = [];   
+        if (Factory::request()->hasAuth()){
+            $this->callable = ['get', 'post', 'put', 'patch'];
+
+            $this->is_listable = true;
+            $this->is_retrievable = true;
+        }  
         parent::__construct();
     }
 
-     
     function post() {
-        $data = Factory::request()->getBody();  
+        $data = Factory::request()->getBody(false);  
 
         if (empty($data))
             Factory::response()->sendError('Invalid JSON',400);
-
         
         if (empty($data['entity']))
             Factory::response()->sendError('entity is required', 400);    
@@ -68,16 +71,13 @@ class Collections extends MyApiController
         }
 
     } // 
-
+    
     protected function modify($id = NULL, bool $put_mode = false)
     {
         if ($id == null)
             Factory::response()->code(400)->sendError("Lacks id in request");
 
-        if (!ctype_digit($id))
-            Factory::response()->sendError('Bad request', 400, 'Id should be an integer');
-
-        $data = Factory::request()->getBody();
+        $data = Factory::request()->getBody(false);
 
         if (empty($data))
             Factory::response()->sendError('Invalid JSON',400);
@@ -85,7 +85,7 @@ class Collections extends MyApiController
         try {
             
             if (!empty($data['remove']) && strtolower($data['remove']) == 'true'){
-                if (DB::table('collections')->where(['id', $id])->delete(false)){
+                if (DB::table('collections')->where(['id', $id])->delete()){
                     Factory::response()->sendOK();
                 } else {
                     Factory::response()->sendError("Colection not found",404);
@@ -98,10 +98,9 @@ class Collections extends MyApiController
                     Factory::response()->code(404)->sendError("Collection for id=$id does not exists");
                 }
             
-                if (!$this->is_admin && $row['belongs_to'] != $this->uid){
-                    Factory::response()->sendError('Forbidden', 403, 'You are not the owner');
-                }         
-                
+                 if (!Factory::acl()->hasSpecialPermission('write_all', $this->roles) && $row['belongs_to'] != $this->uid){
+                     Factory::response()->sendError('Forbidden', 403, 'You are not the owner');
+                 }         
                                
                 $entity = Strings::toCamelCase($row['entity']);    
            
@@ -132,7 +131,11 @@ class Collections extends MyApiController
                 }                
 
                 $refs = json_decode($row['refs']);
-                $affected = $instance->whereIn('id', $refs)->update($data);
+                unset($data['refs']);
+
+                $affected = $instance->whereIn('id', $refs)
+                ->update($data);
+
                 Factory::response()->send(['affected_rows' => $affected]); 
             }
 
@@ -141,7 +144,8 @@ class Collections extends MyApiController
         }
     }        
 
-    /**
+
+     /**
      * delete
      *
      * @param  mixed $id
@@ -151,9 +155,6 @@ class Collections extends MyApiController
     function delete($id = NULL) {
         if($id == NULL)
             Factory::response()->sendError("Lacks id for Collection in request", 400);
-
-        if (!ctype_digit($id))
-            Factory::response()->sendError('Bad request', 400, 'Id should be an integer');
 
         $data = Factory::request()->getBody();  
 
@@ -165,13 +166,13 @@ class Collections extends MyApiController
                 Factory::response()->code(404)->sendError("Collection for id=$id does not exists");
             }
             
-            if (!$this->is_admin && $row['belongs_to'] != $this->uid){
+            if (!Factory::acl()->hasSpecialPermission('write_all', $this->roles) && $row['belongs_to'] != $this->uid){
                 Factory::response()->sendError('Forbidden', 403, 'You are not the owner');
             }         
 
             $entity = Strings::toCamelCase($row['entity']);    
            
-            $model_name   = ucfirst($entity) . 'Model';
+            $model_name = ucfirst($entity) . 'Model';
             $table_name = strtolower($entity);
 
             $model    = 'simplerest\\models\\'. $model_name;
@@ -187,8 +188,11 @@ class Collections extends MyApiController
             $refs = json_decode($row['refs']);
             $affected = 0;
             DB::transaction(function() use ($instance, $api_ctrl, $refs, $id, &$affected) {
-                $affected = $instance->whereIn('id', $refs)->delete($api_ctrl::$soft_delete && $instance->inSchema(['deleted_at']));
-                DB::table('collections')->where(['id' => $id])->delete(false);
+                $affected = $instance->whereIn('id', $refs)
+                ->setSoftDelete($api_ctrl::$soft_delete)
+                ->delete();
+
+                DB::table('collections')->where(['id' => $id])->delete();
             });   
 
             //echo " affected ( $affected )";
@@ -200,5 +204,6 @@ class Collections extends MyApiController
         }
 
     } // 
+        
         
 } // end class

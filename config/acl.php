@@ -56,7 +56,8 @@ if (!$acl_cache || is_file($acl_file) !== true) {
                              'write_all_folders', 
                              'read_all_trashcan',
                              'write_all_trashcan',
-                             'transfer'
+                             'transfer',
+                             'grant'
                             ]);
 
         

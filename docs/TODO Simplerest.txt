@@ -4,6 +4,12 @@
 
 - Usar un Trait para meter el exception_handler
 
+- [ Bugs ]  [ Colecciones ] 
+
+  - No debería poder crear colecciones sobre registros inexistentes
+  - NO debería poder crear una colección de registros que no me pertenecen sino soy Admin o tengo los permisos correspondientes !!!    
+  - No deberían poder crearse dos colecciones iguales (mismos registros, misma tabla)
+
 - Si intento pasar un id repetido en un POST 
 
 Ej para 'products'
@@ -175,10 +181,6 @@ Aún sin implementar invalidación de tokens es posible expulsar a todos los usu
 - Enviar efectivamente correos -prioridad alta-
 
 - Correos con formato. <-- ver como es en Laravel que usa un motor de plantillas.
-
-- [ Bug ]  [ Seguridad ] NO debería poder crear una colección de registros que no me pertenecen sino soy Admin o tengo los permisos correspondientes !!!
-
-- No deberían poder crearse dos colecciones iguales (mismos registros, misma tabla)
 
 - En app/libs/Factory.php está mal que en check() se haga referencia a una versión concreta de AuthController ya que está dentro de una librería que no está versionada.
 
@@ -419,16 +421,30 @@ https://maslosoft.com/kb/how-to-continue-script-execution-in-background-in-php/
 
 - Investigar sobre PDO::FETCH_LAZY que puede ahorrar mucha memoria
 https://phpdelusions.net/pdo/fetch_modes
+https://www.php.net/manual/en/pdostatement.fetch.php
 
 - Leer sobre "long running jobs"
 
 https://farazdagi.com/2014/rest-and-long-running-jobs/
 https://stackoverflow.com/a/5044619/980631
 
-Podria complementar con HATEOAS 
+- Digamos que definimos estas operaciones:
+
+    GET /cursos
+    GET /cursos/{codigo}/unidades-didacticas
+
+La primera nos retornará la información de todos los cursos y la segunda información sobre las unidades didácticas de un curso concreto. Un ejemplo de la segunda URL en la que se ha aplicado un valor a la parte variable sería:
+
+    /cursos/introduccion/unidades-didacticas
+
+https://programar.cloud/post/como-crear-un-api-rest/
+
+
+- Podria complementar con HATEOAS 
 
 https://restfulapi.net/hateoas/
 https://en.wikipedia.org/wiki/HATEOAS
+https://programar.cloud/post/como-implementar-hateoas-en-tus-apis/
 
 
 - Implementar búsquedas complejas como en Magento

@@ -12,27 +12,31 @@ class UserRoles extends MyApiController
 
     function __construct()
     {
-        if (Factory::request()->hasAuth()){
+        if (Factory::request()->hasAuth() && $this->isRegistered()){
             $this->callable = ['get'];
 
             $this->is_retrievable   = true;
+            $this->is_listable      = true;
         }
 
         parent::__construct();
     }
 
     function get($id = null){
-        if ($this->isRegistered() && !Factory::acl()->hasSpecialPermission('read_all', $this->roles)){
-            $id = $this->auth['uid'];
-        }
-        
         parent::get($id);
     } 
 
+    function onGettingAfterCheck($id){
+        if (!Factory::acl()->hasSpecialPermission('grant', $this->roles) && 
+            !Factory::acl()->hasSpecialPermission('read_all', $this->roles)) {
+            $this->instance->where(['user_id' => $this->auth['uid']]); 
+        }
+    }
+
     function post($id = NULL)
     { 
-        if ($this->isRegistered() && !Factory::acl()->hasSpecialPermission('write_all', $this->roles)){
-            $id = $this->auth['uid'];
+        if (!Factory::acl()->hasSpecialPermission('grant', $this->roles)){
+            Factory::response()->sendError('You are no allowed to change roles', 403);
         }
 
         parent::post($id);
@@ -40,8 +44,8 @@ class UserRoles extends MyApiController
     
     function put($id = NULL)
     { 
-        if ($this->isRegistered() && !Factory::acl()->hasSpecialPermission('grant', $this->roles)){
-            $id = $this->auth['uid'];
+        if (!Factory::acl()->hasSpecialPermission('grant', $this->roles)){
+            Factory::response()->sendError('You are no allowed to change roles', 403);
         }
 
         parent::put($id);
@@ -49,8 +53,8 @@ class UserRoles extends MyApiController
 
     function patch($id = NULL)
     { 
-        if ($this->isRegistered() && !Factory::acl()->hasSpecialPermission('grant', $this->roles)){
-            $id = $this->auth['uid'];
+        if (!Factory::acl()->hasSpecialPermission('grant', $this->roles)){
+            Factory::response()->sendError('You are no allowed to change roles', 403);
         }
 
         parent::patch($id);
@@ -59,8 +63,8 @@ class UserRoles extends MyApiController
 
     function delete($id = NULL)
     { 
-        if ($this->isRegistered() && !Factory::acl()->hasSpecialPermission('write_all', $this->roles)){
-            $id = $this->auth['uid'];
+        if (!Factory::acl()->hasSpecialPermission('grant', $this->roles)){
+            Factory::response()->sendError('You are no allowed to change roles', 403);
         }
 
         parent::delete($id);

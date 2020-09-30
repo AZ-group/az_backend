@@ -51,7 +51,6 @@ abstract class ApiController extends ResourceController
                 Factory::response()->sendError("ApiController with undefined Model", 500);
             }  
         }
-
         
         $perms = $this->getPermissions($this->model_table);
 
@@ -360,7 +359,7 @@ abstract class ApiController extends ResourceController
                 }               
             }
 
-            //var_dump($_get);
+            //var_export($_get);
             //exit;
 
             if ($this->folder !== null)
@@ -725,7 +724,7 @@ abstract class ApiController extends ResourceController
                     $rows = $instance->get();
                 
                     
-                //Debug::export($instance->getLastPrecompiledQuery(), 'SQL');
+                //Debug::export($instance->dd2(), 'SQL');
             
                 $res = Factory::response()->setPretty($pretty);
 
@@ -1170,8 +1169,8 @@ abstract class ApiController extends ResourceController
                 $this->onDeletingFolderAfterCheck($id, $this->folder);
             }
 
-            $instance->setSoftDelete(static::$soft_delete && $instance->inSchema(['deleted_at']));
-            
+            $instance->setSoftDelete(static::$soft_delete);
+
             // event hook
             $this->onDeletingAfterCheck($id);
 

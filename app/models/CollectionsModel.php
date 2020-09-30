@@ -18,6 +18,8 @@ class CollectionsModel extends Model
 		'belongs_to' => 'INT'
 	];
 
+	protected $nullable = ['id'];
+
 	protected $rules = [
 	
 	];

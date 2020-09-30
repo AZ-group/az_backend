@@ -11,7 +11,7 @@ class DB {
 
     private function __construct() { }
 
-    public static function getConnection() {
+    public static function getConnection($options = null) {
 		if (self::$conn != null)
 			return self::$conn;
 
@@ -23,7 +23,11 @@ class DB {
 		$pass    = $config['database']['pass'] ?? '';
 		
 		try {
-			$options = [ \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION ];
+			if (empty($options)){
+				$options[\PDO::ATTR_ERRMODE] = \PDO::ERRMODE_EXCEPTION;
+				//$options[\PDO::ATTR_EMULATE_PREPARES] = false;  /* es posible desactivar ? */
+			}
+				
 			self::$conn = new \PDO("mysql:host=" . $host . ";dbname=" . $db_name, $user, $pass, $options);
             self::$conn->exec("set names utf8");
 		} catch (\PDOException $e) {
