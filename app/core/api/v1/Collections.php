@@ -15,10 +15,22 @@ use simplerest\libs\Url;
 
 class Collections extends MyApiController
 {   
+    protected $forbidden_tables = [
+        'folder_other_permissions',
+        'folder_permissions',
+        'folders',
+        'users',
+        'roles',
+        'user_roles',
+        'sp_permissions',
+        'user_sp_permissions',
+        'user_tb_permissions',
+    ];
+
     function __construct()
     {
         if (Factory::request()->hasAuth()){
-            $this->callable = ['get', 'post', 'put', 'patch'];
+            $this->callable = ['get', 'post', 'put', 'patch', 'delete'];
 
             $this->is_listable = true;
             $this->is_retrievable = true;
@@ -40,6 +52,10 @@ class Collections extends MyApiController
 
         $entity = $data['entity'];
         $refs   = $data['refs'];
+
+        if (in_array(strtolower($entity), $this->forbidden_tables)){
+            Factory::response()->sendError('Forbidden', 403, "Table '". $entity . "' is not available for collections");
+        }
 
         try {            
             $entity = Strings::toCamelCase($entity);    
@@ -98,9 +114,11 @@ class Collections extends MyApiController
                     Factory::response()->code(404)->sendError("Collection for id=$id does not exists");
                 }
             
-                 if (!Factory::acl()->hasSpecialPermission('write_all', $this->roles) && $row['belongs_to'] != $this->uid){
-                     Factory::response()->sendError('Forbidden', 403, 'You are not the owner');
-                 }         
+                $sp = Factory::acl()->hasSpecialPermission('write_all', $this->roles);
+
+                if (!$sp && $row['belongs_to'] != $this->uid){
+                    Factory::response()->sendError('Forbidden', 403, 'You are not the owner');
+                }         
                                
                 $entity = Strings::toCamelCase($row['entity']);    
            
@@ -116,11 +134,18 @@ class Collections extends MyApiController
                 $conn = DB::getConnection();     
                 $instance = (new $model($conn));      
 
+                unset($data['refs']);
+
                 foreach ($data as $k => $v){
                     if (strtoupper($v) == 'NULL' && $instance->isNullable($k)) 
                         $data[$k] = NULL;
                 }
-    
+
+                // Table must have 'belongs_to' 
+                if (!$sp) {
+                    $instance->where(['belongs_to' => $this->uid]);
+                }
+
                 $validado = (new Validator())->setRequired($put_mode)->validate($instance->getRules(), $data);
                 if ($validado !== true){
                     Factory::response()->sendError('Data validation error', 400, $validado);
@@ -131,7 +156,6 @@ class Collections extends MyApiController
                 }                
 
                 $refs = json_decode($row['refs']);
-                unset($data['refs']);
 
                 $affected = $instance->whereIn('id', $refs)
                 ->update($data);
@@ -166,7 +190,9 @@ class Collections extends MyApiController
                 Factory::response()->code(404)->sendError("Collection for id=$id does not exists");
             }
             
-            if (!Factory::acl()->hasSpecialPermission('write_all', $this->roles) && $row['belongs_to'] != $this->uid){
+            $sp = Factory::acl()->hasSpecialPermission('write_all', $this->roles);
+
+            if (!$sp && $row['belongs_to'] != $this->uid){
                 Factory::response()->sendError('Forbidden', 403, 'You are not the owner');
             }         
 
@@ -184,6 +210,10 @@ class Collections extends MyApiController
             $conn = DB::getConnection();     
             $instance = (new $model($conn));     
 
+            // Table must have 'belongs_to' 
+            if (!$sp) {
+                $instance->where(['belongs_to' => $this->uid]);
+            }    
             
             $refs = json_decode($row['refs']);
             $affected = 0;

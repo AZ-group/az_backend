@@ -4,12 +4,6 @@
 
 - Usar un Trait para meter el exception_handler
 
-- [ Bugs ]  [ Colecciones ] 
-
-  - No debería poder crear colecciones sobre registros inexistentes
-  - NO debería poder crear una colección de registros que no me pertenecen sino soy Admin o tengo los permisos correspondientes !!!    
-  - No deberían poder crearse dos colecciones iguales (mismos registros, misma tabla)
-
 - Si intento pasar un id repetido en un POST 
 
 Ej para 'products'
@@ -33,20 +27,7 @@ Ej para 'products'
   read[guest] == read_all[tb]  <-- el permiso "read" de un guest debe tomarse como un caso concreto de read_all para una tabla concreta y ser heredado como tal.
 
 - No debería poder ver todos los user_roles sino tengo permiso read_all de admin
-
-- Reparar 
-
-    MySelf / Me  -- ok
-    Trashcan -- ok
-    Collections -- pending
-    Files -- ok
-    DownloadController -- ok
-    Permissions --ok (revisar)
-    FacebookController
-    GoogleController
-    LoginController
-    Roles     
-
+    
 - Insertar el rol "registered" con un hook o Midleware en cada cuenta registrada / creada para que nadie tenga en principio menos permisos que un "guest".  
 
 - Inconcistencia: un rol "puro" tiene id y por tanto al filtrar por id puede tener menos visibilidad que un Guest !
@@ -428,7 +409,7 @@ https://www.php.net/manual/en/pdostatement.fetch.php
 https://farazdagi.com/2014/rest-and-long-running-jobs/
 https://stackoverflow.com/a/5044619/980631
 
-- Digamos que definimos estas operaciones:
+- Digamos que definimos estas operaciones:  <-- relacionado con HATEOAS
 
     GET /cursos
     GET /cursos/{codigo}/unidades-didacticas
@@ -437,10 +418,21 @@ La primera nos retornará la información de todos los cursos y la segunda infor
 
     /cursos/introduccion/unidades-didacticas
 
+  GET  /customers/5/orders
+
+<-- lista de órdenes de compra para el cliente con id=5
+
+o...
+
+  GET /customers/1/orders/99/products
+
+<-- productos de la orden 99 del cliente 1
+
+
 https://programar.cloud/post/como-crear-un-api-rest/
 
 
-- Podria complementar con HATEOAS 
+- Implementar HATEOAS 
 
 https://restfulapi.net/hateoas/
 https://en.wikipedia.org/wiki/HATEOAS
@@ -615,10 +607,6 @@ https://laravel.com/docs/5.7/configuration
 https://medium.com/@sagarmaheshwary31/laravel-5-8-from-scratch-config-env-migrations-and-todos-crud-7c771bcac802
 https://github.com/vlucas/phpdotenv
 
-- Implementar un paginador con enlaces a nivel de API Rest como:
-
-https://laravel.com/docs/5.8/pagination
-
 
 - Implementar "where anidados" como en Laravel con callbacks
 
@@ -705,19 +693,6 @@ https://www.ibm.com/support/knowledgecenter/en/SS6KJL_8.6.4/FEB/ref_data_rest_ap
 
 Más
 https://restdb.io/docs/querying-with-the-api
-
-- Traer colecciones de recursos relacioandos
-
-  GET  /customers/5/orders
-
-<-- lista de órdenes de compra para el cliente con id=5
-
-o...
-
-  GET /customers/1/orders/99/products
-
-<-- productos de la orden 99 del cliente 1
-
 
 - Implementar X-Rate-Limit-Limit, X-Rate-Limit-Remaining y X-Rate-Limit-Reset
 

@@ -5,19 +5,18 @@ SimpleRest utiliza la arquitectura MVC, está orientado a API Restful y es un fr
 
 Algunas características:
 
-- Arquitectura MVC
+- Arquitectura MVC *
 - APIs funcionan out-the-box o sea sin escribir nada de código ***
-- Login por usuario / email y contraseña
-- Login con Facebook
-- Login con Google
-- Impersonate
 - Sistema de roles 
 - Sistema de permisos personalizados que decoran los roles
+- Posibilidad de "compartir" recursos via "folders"
+- Impersonate
 - Papelera de reciclaje
 - Colecciones para acciones masivas
 - Versionado
 - Internacionalización
 
+(*) A pesar de ser un framework orientado a API Rest es posible servir vistas aunque no posee un motor de plantillas.
 
 # Estructura del proyecto
 
@@ -985,7 +984,7 @@ Los mensajes se crean para cualquier restricción como required, type, min, max,
 Ejemplo:
 
 protected $rules = [
-        'name' 			=> ['min'=>3, 'max'=>40, 'messages' => [
+        'name' 	  => ['min'=>3, 'max'=>40, 'messages' => [
 			'min' => 'Please enter at least 3 chars', 
 			'max' => 'Please don't exceed 40 chars' ]
 		],
@@ -1211,15 +1210,15 @@ Además por supuesto de que write y read tienen sus equivalencias así que habri
 
 ### Rol de Admin
 
-El rol de "admin" está definido en modelo RolesModel y es muy especial porque aunque es posible asignar permisos adicionales a cualquier rol, hay tareas administrativas que solo puede realizar un admin:
+En lugar de definir de forma monolítica los alcances de un "admin" éste se puede construir a partir de combinaciones de los siguientes permisos especiales asignables a cualquier rol
 
 Ejemplos:
 
 - "lock" - bloquear /besbloquear un registro 
-- "alter_locked" - modificar un registro bloqueado
-- "alter_locked" - borrar un registro bloqueado. Requiere también de "write_all_trashcan"
-- "alter_locked" - borrar definitivamente un registro bloqueado
-- "alter_locked" - restaurar (undelete) un registro bloqueado
+- "lock" - modificar un registro bloqueado
+- "lock" - borrar un registro bloqueado. Requiere también de "write_all_trashcan"
+- "lock" - borrar definitivamente un registro bloqueado
+- "lock" - restaurar (undelete) un registro bloqueado
 - "read_all" - acceder a registros de otros usuarios (no incluye los protegidos en folders)
 - "read_all" - listar registros de otros usuarios (no incluye los protegidos en folders)
 - "read_all_folders" - acceder a registros en folders que no se nos han compartido 
@@ -1230,21 +1229,11 @@ Ejemplos:
 - "write_all_folders" - modificar / borrar registros de otros usuarios en folders (sin alterar su ownership)
 - "write_all_trashcan" - borrar definitivamente / restaurar registros de otros usuarios
 - "transfer" - tranferir un registro o sea cambiar la propiedad (ownership) de un registro (campo belongs_to)
-- S/N - modificar la fecha de creación 
-- S/N - llenar cualquier campo incluso los no-fillables
+- "fill_all" - modificar la fecha de creación 
+- "fill_all" - llenar cualquier campo incluso los no-fillables
+- "grant" - conceder roles y permisos
 
-Roles adicionales o permisos restrictivos no afectan en nada a un admin (sus alcance es inalterado)
-
-
-### Roles virtuales
-
-El sistema tiene un rol virtual que es "guest" para el caso de un usuario que no ha presentado credenciales (autenticación).
-
-Este role virtual no aparece reflejado en /api/v1/userRoles 
-
-Respecto del acceso a "folders", un "guest" o invitado no puede en principio visualizar registros que pertenezcan a folders sin permiso de lectura para "otros" especificando que sea también para guests.  
-
-Es posible brindar acceso de lectura a guests a registros individuales de cualquier recurso si en el Modelo existe el campo guest_access y en el registro en particular vale 1 (true)
+Como colorario es posible tener muchos roles con caracteristicas de un admin o superadmin.
 
 
 ### Permisos individuales
@@ -1463,7 +1452,7 @@ Para hacer un "undelete" de un recurso se hace un PATCH o PUT sobre el trash_can
 
 	{
 		"entity": "Products",
-		"trashed": "false"
+		"trashed": false
 	}
 
 Para eliminar *permanentemente* un recurso se realiza un DELETE sobre el elemento en la papelera:
@@ -1500,7 +1489,18 @@ PATCH /api/v1/collections/2
 
 Para borrar masivamente
 
-DEL /api/v1/collections/9
+DELETE /api/v1/collections/9
+
+Cabe destacar que las operaciones PATCH y DELETE se efectuan sobre los registros contenidos en la colección de sus respectiva entidad o dicho de otro modo un DELETE sobre una colección no borra solo el registro de la colección sino los registros asociados + el registro de la colección.
+
+Por lo anterior en un PATCH sobre una colección no es posible modificar "refs" ni el "id" de la colección via endpoint.
+
+Son seguras las colecciones?
+
+  - NO debería poder crear una colección de registros que no me pertenecen sino soy "admin" o tengo los permisos correspondientes ? -> no importa porque la verificación se hace al mommento de intentar afectar los registros de la colección.
+  - No debería evitarse poder crear colecciones sobre registros inexistentes ? -> no importa porque al momento de hacer el PATCH o el DELETE sobre la colección solo se afectarán los registros existentes.   
+  - No deberían poder crearse dos colecciones iguales (mismos registros, misma tabla) -> no importa porque tanto PATCH como DELETE son idempotentes.
+  - El permiso write_all no se queda corto si las colecciones se llegaran a crear sobre roles, user_roles, sp_permissions, tb_permissions, folders, folder_permissions, other_folder_permissions, etc ? SI! y por eso se restringe y no se dejan crear colecciones sobre esas tablas.
 
 
 Filtrar colecciones

@@ -26,7 +26,6 @@ if (!$acl_cache || is_file($acl_file) !== true) {
     ->addRole('registered', 1)
     ->addInherit('guest')
     ->addResourcePermissions('roles', ['read'])
-    ->addSpecialPermissions(['write_all'])
 
     ->addRole('basic', 2)
     ->addInherit('registered')
