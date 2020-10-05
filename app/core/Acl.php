@@ -189,14 +189,24 @@ class Acl
                 case 'show':
                     $this->role_perms[$this->current_role]['tb_permissions'][$table][] = 'show';
                 break;
+                case 'show_all':
+                    $this->role_perms[$this->current_role]['tb_permissions'][$table][] = 'show_all';
+                break;
                 case 'list':
                     $this->role_perms[$this->current_role]['tb_permissions'][$table][] = 'list';
+                break;
+                case 'list_all':
+                    $this->role_perms[$this->current_role]['tb_permissions'][$table][] = 'list_all';
                 break;
                 case 'read':
                     $this->role_perms[$this->current_role]['tb_permissions'][$table][] = 'show';
                     $this->role_perms[$this->current_role]['tb_permissions'][$table][] = 'list';
                 break;
-            
+                case 'read_all':  // new
+                    $this->role_perms[$this->current_role]['tb_permissions'][$table][] = 'show_all';
+                    $this->role_perms[$this->current_role]['tb_permissions'][$table][] = 'list_all';
+                break;
+
                 case 'create':
                     $this->role_perms[$this->current_role]['tb_permissions'][$table][] = 'create';
                 break;
@@ -255,7 +265,7 @@ class Acl
             }
         }
 
-        throw new \Exception("Undefined role with id '$role_name'");
+        throw new \Exception("Undefined role for role_id '$role_id'");
     }
 
     public function getRoleId(string $role_name){
@@ -297,7 +307,7 @@ class Acl
         @param $resource string
     */
     public function hasResourcePermission(string $perm, Array $role_names, string $resource){
-        if (!in_array($perm, ['show', 'list', 'create', 'update', 'delete'])){
+        if (!in_array($perm, ['show', 'show_all', 'list', 'list_all', 'create', 'update', 'delete'])){
             throw new \InvalidArgumentException("hasResourcePermission : invalid permission '$perm'");    
         }
 
@@ -316,44 +326,9 @@ class Acl
         return false;
     }
 
-    /*
-        @param $perm string read|write|show|list|create|update|delete
-        @param $role_names Array 
-        @param $resource string
-    */
-    public function isAllowed(string $op_type, Array $role_names, $resource)
-    {        
-        switch ($op_type) {
-            case 'show':
-            case 'list':
-                return $this->hasSpecialPermission('read_all', $role_names) || $this->hasResourcePermission($op_type, $role_names, $resource);
-            break;
-
-            case 'read':
-                // puede ser ineficiente
-                return $this->hasSpecialPermission('read_all', $role_names) || ($this->hasResourcePermission('show', $role_names, $resource) && $this->hasResourcePermission('list', $role_names, $resource));
-            break;
-        
-            case 'create':
-            case 'update':
-            case 'delete':    
-                return $this->hasSpecialPermission('write_all', $role_names) || $this->hasResourcePermission($op_type, $role_names, $resource);
-            break;
-
-            case 'write':
-                // puede ser ineficiente
-                return $this->hasSpecialPermission('write_all', $role_names) || ($this->hasResourcePermission('create', $role_names, $resource) && $this->hasResourcePermission('update', $role_names, $resource || $this->hasResourcePermission('delete', $role_names, $resource )));
-            break;
-
-            default:
-                throw new \Exception("'$op_type' is not a valid permission type");
-        }
-        
-    }
-
     public function getResourcePermissions(string $role, string $resource, $op_type = null){
         $ops = [
-            'read'  => ['show', 'list'],
+            'read'  => ['show', 'list', 'show_all', 'list_all'],
             'write' => ['create', 'update', 'delete']
         ];
 

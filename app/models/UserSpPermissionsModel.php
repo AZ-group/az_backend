@@ -13,7 +13,7 @@ class UserSpPermissionsModel extends Model
 		'id' 				=> 'INT',
 		'sp_permission_id' 	=> 'INT',
 		'user_id' 			=> 'INT',
-		//'created_by' 		=> 'INT',
+		'created_by' 		=> 'INT',
 		'created_at' 		=> 'STR',
 		'updated_at' 		=> 'STR'
 	];

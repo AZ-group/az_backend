@@ -59,7 +59,7 @@ class TrashCan extends MyApiController
         parent::get($id);
     }  
 
-    function onGettingAfterCheck($id){
+    protected function onGettingAfterCheck($id){
         $this->instance
         ->showDeleted()
         ->where(['deleted_at', NULL, 'IS NOT']);
@@ -70,12 +70,12 @@ class TrashCan extends MyApiController
         Factory::response()->sendError('You can not create a trashcan resource',405);
     }        
 
-    protected function modify($id = NULL, bool $put_mode = false)
+    function modify($id = NULL, bool $put_mode = false)
     {
         parent::modify($id, $put_mode);
     }   
 
-    function onPuttingBeforeCheck2($id, &$data){
+    protected function onPuttingBeforeCheck2($id, &$data){
         $this->instance
         ->showDeleted()
         ->fill(['deleted_at']);
@@ -86,7 +86,7 @@ class TrashCan extends MyApiController
     }
 
             
-    function onPuttingAfterCheck($id, &$data) { 
+    protected function onPuttingAfterCheck($id, &$data) { 
         $trashed = $data['trashed'] ?? true;
         
         if ($trashed !== false && $trashed !== 'false')
@@ -101,13 +101,13 @@ class TrashCan extends MyApiController
         parent::delete($id);
     } 
 
-    function onDeletingBeforeCheck($id){
+    protected function onDeletingBeforeCheck($id){
         $this->instance
         ->showDeleted()
         ->where(['deleted_at', NULL, 'IS NOT']);
     }
 
-    function onDeletingAfterCheck($id){
+    protected function onDeletingAfterCheck($id){
         $this->instance
         ->setSoftDelete(false);
     }

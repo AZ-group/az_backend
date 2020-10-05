@@ -7,10 +7,10 @@ use simplerest\libs\Debug;
 class BazModel extends Model 
 {
 	//protected $table_name = "baz";
-	//protected $id_name = 'id';
+	protected $id_name = 'id_baz';
 
 	protected $schema = [
-		'id' => 'INT',
+		'id_baz' => 'INT',
 		'name' => 'STR',
 		'cost' => 'STR'
 	];

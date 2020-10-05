@@ -11,12 +11,15 @@ use simplerest\core\interfaces\IValidator;
 use simplerest\core\exceptions\InvalidValidationException;
 use simplerest\core\exceptions\SqlException;
 use simplerest\core\interfaces\ITransformer;
+use simplerest\traits\ExceptionHandler;
+
 
 class Model {
+	use ExceptionHandler;
 
 	protected $table_name;
 	protected $table_alias = '';
-	protected $id_name = 'id';
+	protected $id_name;
 	protected $schema   = [];
 	protected $nullable = [];
 	protected $not_nullable = [];
@@ -68,6 +71,7 @@ class Model {
 	protected $fetch_mode;
 	protected $soft_delete;
 	protected $last_inserted_id;
+	protected $paginator = true;
 	protected $fetch_mode_default = \PDO::FETCH_ASSOC;
 	protected $data = []; 
 
@@ -82,8 +86,9 @@ class Model {
 
 		if ($this->config['error_handling']) {
             set_exception_handler([$this, 'exception_handler']);
-        }
+		}
 
+		
 		$this->properties = array_keys($this->schema);
 		
 		if (empty($this->table_name)){
@@ -92,6 +97,13 @@ class Model {
 			$str = Strings::fromCamelCase($class_name);
 			$this->table_name = strtolower(substr($str, 0, strlen($str)-6));
 		}			
+		
+		if ($this->id_name == NULL && !$this->inSchema(['id'])){
+			throw new \Exception("Undefined Id for ".$this->table_name. '. Use \'id\' or $id_name to specify another field name');
+		}
+
+		// event handler
+		$this->boot();
 
 		if ($this->fillable == NULL){
 			$this->fillable = $this->properties;
@@ -147,6 +159,23 @@ class Model {
 			}
 		}		
 	}
+
+
+	/*
+		Returns prmary key
+	*/
+	function getKeyName(){
+		return $this->id_name;
+	}
+
+	/*
+		Turns on / off pagination
+	*/
+	function setPaginator(bool $status){
+		$this->paginator = $status;
+		return $this;
+	}
+
 
 	function registerInputMutator(string $field, callable $fn, bool $null_lock = false){
 		$this->input_mutators[$field] = [$fn, $null_lock];
@@ -292,7 +321,7 @@ class Model {
 
 	protected function from(){
 		if (!empty($this->table_raw_q))
-			return $this->table_->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
+			return $this->table_raw_q. ' ';
 
 		return $this->table_name. ' '.(!empty($this->table_alias) ? 'as '.$this->table_alias : '');
 	}
@@ -582,25 +611,33 @@ class Model {
 				}
 			} 		
 
-			$order  = (!empty($order) && !$this->randomize) ? array_merge($this->order, $order) : $this->order;
-			$limit  = $limit  ?? $this->limit  ?? null;
-			$offset = $offset ?? $this->offset ?? 0; 
-			
-			if($limit>0 || $order!=NULL){
-				try {
-					$paginator = new Paginator();
-					$paginator->limit  = $limit;
-					$paginator->offset = $offset;
-					$paginator->orders = $order;
-					$paginator->properties = $this->properties;
-					$paginator->compile();
 
-					$this->pag_vals = $paginator->getBinding();
-				}catch (SqlException $e){
-					throw new SqlException("Pagination error: {$e->getMessage()}");
+			if ($this->paginator){
+				$order  = (!empty($order) && !$this->randomize) ? array_merge($this->order, $order) : $this->order;
+				$limit  = $limit  ?? $this->limit  ?? null;
+				$offset = $offset ?? $this->offset ?? 0; 
+				
+				if($limit>0 || $order!=NULL){
+					try {
+						$paginator = new Paginator();
+						$paginator->limit  = $limit;
+						$paginator->offset = $offset;
+						$paginator->orders = $order;
+						$paginator->properties = $this->properties;
+						$paginator->compile();
+
+						$this->pag_vals = $paginator->getBinding();
+					}catch (SqlException $e){
+						throw new SqlException("Pagination error: {$e->getMessage()}");
+					}
+				}else{
+					$paginator = null;
 				}
-			}else
+							
+			} else {
 				$paginator = null;	
+			}	
+
 		}			
 
 
@@ -1720,17 +1757,19 @@ class Model {
 		Even hooks -podrían estar definidos en clase abstracta o interfaz-
 	*/
 
-	public function onReading() { }
-	public function onRead(?int $count) { }
+	protected function boot() { }
+
+	protected function onReading() { }
+	protected function onRead(?int $count) { }
 	
-	public function onDeleting() { }
-	public function onDeleted(?int $count) { }
+	protected function onDeleting() { }
+	protected function onDeleted(?int $count) { }
 
-	public function onCreating(Array &$data) {	}
-	public function onCreated(Array &$data, ?int $count) { }
+	protected function onCreating(Array &$data) {	}
+	protected function onCreated(Array &$data, $last_inserted_id) { }
 
-	public function onUpdating(Array &$data) { }
-	public function onUpdated(Array &$data, ?int $count) { }
+	protected function onUpdating(Array &$data) { }
+	protected function onUpdated(Array &$data, ?int $count) { }
 
 	/*
 		'''Reflection'''
@@ -1831,15 +1870,4 @@ class Model {
 		return $this;
 	}
 
-	/**
-     * exception_handler
-     *
-     * @param  mixed $e
-     *
-     * @return void
-     */
-    function exception_handler($e) {
-        $error_detail = $this->config['debug'] ? 'Error on line number '.$e->getLine().' in file - '.$e->getFile() : '';
-        Factory::response()->sendError($e->getMessage(), 500, $error_detail);
-    }
 }

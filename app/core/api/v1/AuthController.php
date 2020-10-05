@@ -98,14 +98,14 @@ class AuthController extends Controller implements IAuth
     private function fetchTbPermissions($uid) : Array {
         $_permissions = DB::table('user_tb_permissions')
         ->setFetchMode('ASSOC')
-        ->select(['tb', 'can_create as c', 'can_show as r', 'can_update as u', 'can_delete as d', 'can_list as l'])
+        ->select(['tb', 'can_list_all as la', 'can_show_all as ra', 'can_list as l', 'can_show as r', 'can_create as c', 'can_update as u', 'can_delete as d'])
         ->where(['user_id' => $uid])
         ->get();
 
         $perms = [];
         foreach ((array) $_permissions as $p){
             $tb = $p['tb'];
-            $perms[$tb] = $p['l'] * 16 + $p['r'] * 8 + $p['c'] * 4 + $p['u'] * 2 + $p['d'];
+            $perms[$tb] =  $p['la'] * 64 + $p['ra'] * 32 +  $p['l'] * 16 + $p['r'] * 8 + $p['c'] * 4 + $p['u'] * 2 + $p['d'];
         }
 
         return $perms;
@@ -291,7 +291,7 @@ class AuthController extends Controller implements IAuth
                 $row = DB::table('users')->setFetchMode('ASSOC')
                 ->where([ 'id' =>  $uid ] ) 
                 ->first();
-
+                
                 if (!$row)
                     throw new Exception("User to impersonate does not exist");
 
@@ -302,7 +302,7 @@ class AuthController extends Controller implements IAuth
                 } elseif (((string) $active === "0")) {
                     Factory::response()->sendError('User account to be impersonated is deactivated', 500);
                 }  
-
+                
                 $roles = $this->fetchRoles($uid);
                 $perms = $this->fetchPermissions($uid);
             }    

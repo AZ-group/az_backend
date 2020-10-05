@@ -13,9 +13,10 @@ use simplerest\models\UserRolesModel;
 use PHPMailer\PHPMailer\PHPMailer;
 use simplerest\libs\Utils;
 use simplerest\libs\Validator;
-use GuzzleHttp\Client;
+//use GuzzleHttp\Client;
 //use Guzzle\Http\Message\Request;
-//Guzzle\Http\Message\Response
+//use Symfony\Component\Uid\Uuid;
+
 
 class DumbController extends Controller
 {
@@ -218,9 +219,27 @@ class DumbController extends Controller
     }
 
 
-
     function limit(){
-        Debug::dd(DB::table('products')->offset(20)->limit(10)->get());
+        Debug::dd(DB::table('products')
+        ->offset(20)
+        ->select(['id', 'name', 'cost'])
+        ->limit(10)
+        ->get());
+        
+        Debug::dd(DB::getQueryLog());
+
+        Debug::dd(DB::table('products')->limit(10)->get());
+        Debug::dd(DB::getQueryLog());
+    }
+
+    function limit0(){
+        Debug::dd(DB::table('products')
+        ->offset(20)
+        ->select(['id', 'name', 'cost'])
+        ->limit(10)
+        ->setPaginator(false)
+        ->get());
+        
         Debug::dd(DB::getQueryLog());
 
         Debug::dd(DB::table('products')->limit(10)->get());
@@ -241,12 +260,12 @@ class DumbController extends Controller
         $sub = DB::table('products')
         ->select(['name', 'size'])
         ->groupBy(['size']);
-    
+        
         $conn = DB::getConnection();
     
         $m = new \simplerest\core\Model($conn);
         $res = $m->fromRaw("({$sub->toSql()}) as sub")->count();
-    
+        
         //Debug::dd($sub->toSql());
         Debug::dd($m->getLastPrecompiledQuery());
         //Debug::dd(DB::getQueryLog());     
@@ -1543,6 +1562,19 @@ class DumbController extends Controller
         echo '</pre>';
     }
 
-    
+    function get_role_permissions(){
+        $acl = Factory::acl();
+
+        var_dump($acl->hasResourcePermission('show_all', ['guest'], 'products'));
+        //var_export($acl->getRolePermissions());
+    }
+
+    function boom(){
+        throw new \Exception('BOOOOM');
+    }
+
+    function uu(){
+        var_dump(uuid_create(UUID_TYPE_RANDOM));            
+    }
 
 }

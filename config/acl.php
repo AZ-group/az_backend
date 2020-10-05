@@ -19,13 +19,15 @@ if (!$acl_cache || is_file($acl_file) !== true) {
 
     $acl
     ->addRole('guest', -1)
-    ->addResourcePermissions('products', ['show', 'list'])
+    ->addResourcePermissions('products', ['read_all'])
     ->addResourcePermissions('baz', ['read'])
+    ->addResourcePermissions('bar', ['read', 'write'])
     //->setGuest('guest')
 
     ->addRole('registered', 1)
     ->addInherit('guest')
     ->addResourcePermissions('roles', ['read'])
+    ->addResourcePermissions('products', ['write'])
 
     ->addRole('basic', 2)
     ->addInherit('registered')
@@ -41,9 +43,9 @@ if (!$acl_cache || is_file($acl_file) !== true) {
     ->addResourcePermissions('foo', ['read', 'update'])
     ->addResourcePermissions('super_cool_table', ['read', 'write'])
 
-    ->addRole('supervisor')
+    ->addRole('supervisor', 502)  // salta sino especifico el id al leerlo
     ->addInherit('registered')
-    ->addSpecialPermissions(['read_all', 'impersonate'])
+    ->addResourcePermissions('users', ['read_all'])  // <--
 
     ->addRole('admin', 100)
     ->addInherit('registered')
@@ -52,9 +54,10 @@ if (!$acl_cache || is_file($acl_file) !== true) {
     ->addRole('superadmin', 500)
     ->addInherit('admin')
     ->addSpecialPermissions([
-                             'write_all_folders', 
                              'read_all_trashcan',
                              'write_all_trashcan',
+                             'write_all_folders', 
+                             'write_all_collections',
                              'transfer',
                              'grant'
                             ]);
@@ -84,6 +87,6 @@ if (!$acl_cache || is_file($acl_file) !== true) {
 }
 
 
-//var_dump($acl->getRolePermissions());
+//var_export($acl->getRolePermissions());
 
 return $acl;

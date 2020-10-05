@@ -17,8 +17,9 @@ class DB {
 
 		$config = include CONFIG_PATH . 'config.php';
 
-        $db_name = $config['database']['db_name'];
 		$host    = $config['database']['host'] ?? 'localhost';
+		$rdbms   = $config['database']['rdbms'];	
+        $db_name = $config['database']['db_name'];
 		$user    = $config['database']['user'] ?? 'root';
 		$pass    = $config['database']['pass'] ?? '';
 		
@@ -28,7 +29,7 @@ class DB {
 				//$options[\PDO::ATTR_EMULATE_PREPARES] = false;  /* es posible desactivar ? */
 			}
 				
-			self::$conn = new \PDO("mysql:host=" . $host . ";dbname=" . $db_name, $user, $pass, $options);
+			self::$conn = new \PDO("$rdbms:host=" . $host . ";dbname=" . $db_name, $user, $pass, $options);
             self::$conn->exec("set names utf8");
 		} catch (\PDOException $e) {
 			throw new \PDOException($e->getMessage());
@@ -36,6 +37,17 @@ class DB {
 		
 		return self::$conn;
 	}
+
+	
+    static function closeConnection() {
+		static::$conn=null;
+		//echo 'Successfully disconnected from the database!';
+	}
+	
+	public function __destruct()
+    {
+        static::closeConnection();        
+    }
 		
 	// Returns last executed query 
 	public static function getQueryLog(){

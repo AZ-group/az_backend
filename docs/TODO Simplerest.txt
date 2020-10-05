@@ -2,7 +2,96 @@
 
 - Definir DB !!!
 
-- Usar un Trait para meter el exception_handler
+- VirtualModel extends Model .... con schema on the fly. Esto sería útil para poder en pruebas unitarias hacer una migración para las tablas de prueba, hacer las pruebas sobre el modelo virtual y luego con otra migración regresar la DB al estado anterior.
+
+
+- Para UUID hay algoritmos más eficientes que otros:
+
+https://github.com/ramsey/uuid
+https://jolicode.com/blog/uuid-generation-in-php
+https://mariadb.com/kb/en/guiduuid-performance/
+https://www.php.net/manual/en/function.uniqid.php
+
+
+- Considerar usar RocksDB en producción
+
+https://mariadb.com/kb/en/myrocks/
+
+
+- Al loguearse o renovar tokens o en otro endpoint poder ver 
+
+{
+	"roles": {
+		...
+		...
+	}
+
+	"permissions": {
+		"sp": { ... },
+		"tb": { 
+			"foo": { 
+				"read_all": false,
+				"read": true,
+				...
+				"write": null
+			}
+		},
+		"combined": {  <--- nuevo !
+			"sp": {
+				"read_all",
+				"write_all",
+				"read_all_collections",
+				"write_all_collections",
+				"read_all_trashcan",
+				"write_all_trashcan",
+				"transfer",
+				"lock",
+				"impersonate"
+			},
+			"tb": {
+				"foo": { 
+					"read_all": false, <-- por tb
+					"read": true,  <-- por tb
+					...
+					"write_all": true  <-- por sp (sin sobreescribir)
+				}				
+			}
+		}
+	}
+}
+
+- Checkboxes de 3 estados donde uno sea null / undefined para mostrar los permisos sobre tb_permissions en caso de hacer un panel de control para estos menesteres
+
+https://es.stackoverflow.com/a/41311/8826
+
+- Es aconsejable agregar por defecto un campo "computed": [ campos que son computados ] al usar un transformer para que el cliente sepa que no puede hacer un POST o PUT incluyendo esos campos. Similarmente podría usarse un mecanismo de doble vía pero igual aclarar que campos fueron mapeados:  "maped": [ campos mapedos bi-direccionalmente ]
+
+- Al mostrar user_roles el paginador muestra el total de registros aún cuando muestra solo uno:
+
+{
+    "data": [
+        {
+            "id": "179",
+            "user_id": "455",
+            "role_id": "3",
+            "created_at": "2020-09-28 14:23:45",
+            "updated_at": null
+        }
+    ],
+    "status_code": 200,
+    "error": "",
+    "error_detail": "",
+    "paginator": {
+        "total": 117, <-- ok 
+        "count": 1,
+        "currentPage": 1, 
+        "totalPages": 12,   <-- mal ?
+        "pageSize": 10,
+        "nextUrl": "http://az.lan/api/v1/user_roles?pageSize=10&page=2" <-- debería ser null
+    }
+}
+
+- Reparar el sistema de "folders" luego de re-escribir el ApiController separando GET en 4 métodos 
 
 - Si intento pasar un id repetido en un POST 
 
@@ -22,15 +111,16 @@ Ej para 'products'
     "error_detail": "INSERT INTO products (id, name, description, size, cost, belongs_to, created_by, created_at) VALUES ('126', 'Uvas ricas', 'Espectaculare', '5L', '52', '90', '90', '2020-09-29 21:55:22')"
 }
 
-- Pensar en esto:
-
-  read[guest] == read_all[tb]  <-- el permiso "read" de un guest debe tomarse como un caso concreto de read_all para una tabla concreta y ser heredado como tal.
-
 - No debería poder ver todos los user_roles sino tengo permiso read_all de admin
     
 - Insertar el rol "registered" con un hook o Midleware en cada cuenta registrada / creada para que nadie tenga en principio menos permisos que un "guest".  
 
 - Inconcistencia: un rol "puro" tiene id y por tanto al filtrar por id puede tener menos visibilidad que un Guest !
+
+- Al momento de "instalarse" mostrar una pantalla de presentación con la adevertencia de que debug=true, mediante comando poder crear un superadmin y servir un panel de admnistración de usuarios, roles y permisos como sucede con Django Rest framework 
+
+https://medium.com/swlh/build-your-first-rest-api-with-django-rest-framework-e394e39a482c
+
 
 - Si un usuario no existe (fue borrado) pero su token está activo:
 
@@ -125,6 +215,14 @@ https://developers.redhat.com/blog/2015/04/30/how-to-load-test-and-tune-performa
 
 https://www.sisense.com/blog/rest-api-testing-strategy-what-exactly-should-you-test/
 
+- Posibilidad de serializar Modelos para incrementar performance
+
+https://bezkoder.com/django-mongodb-crud-rest-framework/
+
+- CORS debe no ser por defecto sino habilitarse via Midleware
+
+https://bezkoder.com/django-mongodb-crud-rest-framework/
+
 
 - Actualizar la documentación
 
@@ -138,7 +236,12 @@ https://www.phpfastcache.com/
 - Poseer el permiso 'grant' no debería habilitar a que quien lo sea lo otorgue a otros para lo cual haría falta el permiso 'super'.
 
 - Id opcionalmente no autoincrementales por seguridad ! usar UUID(s) en su lugar
-https://www.php.net/manual/en/function.uniqid.php <-- no este
+https://www.php.net/manual/en/function.uniqid.php <-- no 
+
+- Migrar a PHP UNIT 9.0
+
+https://laravelshift.com/upgrade-phpunit-9
+
 
 - [ ACL ] Implementar eventos beforeCheckAccess y afterCheckAccess 
 https://docs.phalcon.io/4.0/en/acl
@@ -357,7 +460,19 @@ Algo interesante es que cuando se piden más registros por página del límite u
 
 - Incluir el nombre del proyecto en un salt sobre las secret keys para evitar que un token generado en un proyecto funcione en otro con las mismas secret keys. O sea aplicar una secret_key = fn(secret_key, nombre_proyecto)
 
-- Enviar un correo de confirmación con el event hook onCreated() sobre Users.
+
+- Implementar una forma sencilla de enviar correos, quizás como en Laravel
+
+  use App\Mail\WelcomeMessage;
+  use Illuminate\Support\Facades\Mail;
+
+  dispatch(function () {
+      Mail::to('taylor@laravel.com')->send(new WelcomeMessage);
+  })->afterResponse();
+
+<-- además utilizan Queues 
+
+- Posiblemente enviar un correo de confirmación con el event hook onCreated() sobre Users.
 
 - Enviar efectivamente correos -prioridad alta-
 
@@ -380,16 +495,18 @@ Algo interesante es que cuando se piden más registros por página del límite u
 
 - Debe ser posible *volver* a solicitar un correo con el enlace de confirmación de correo (obviamente se exige que el usuario esté registrado y haya entregado un access token válido)
 
-- El TrashCan al paginar no está mostrando (falta)
-
-        "total": XXX,
-        "count": XXX,
-        "currentPage": XXX,
-        "totalPages": XXX,
-
 - Redis con API Rest ? SI ! implementar serializacion del ACL y caché para todo incluidas las consultas 
 https://docs.phalcon.io/4.0/en/acl#serialization
 
+- Implementar  (colas) como en Laravel para tareas pesadas como enviar correos o procesar imágenes o elaborar reportes en cuyo caso debería devolver Accepted.
+
+https://laravel.com/docs/7.x/queues
+
+- Para las colas usar Supervisor (tal y como lo hace Laravel)
+
+  https://reustle.org/managing-long-running-processes-with-supervisor.html
+  https://medium.com/@lih.verma/model-as-a-service-and-managing-them-via-supervisor-and-nginx-5d730e1254b6
+  
 
 - Implementar notificaciones push o reverse API.
 
@@ -448,6 +565,7 @@ https://devdocs.magento.com/guides/v2.3/rest/performing-searches.html
 
 https://fideloper.com/laravel-raw-queries
 
+- Debería el módulo de autenticación incluir la parte de registro? en Laravel existe un RegisterController aunque el problema que le veo es que tendría que cambiar las rutas porque hoy el registro está en el AuthController en /v1/api/auth y entonces estaría en donde? la ventaja de tener un RegisterController sería hooks específicos como BeforeRegister y AfterRgister
 
 - Modificar Request::header() para que obtenga de forma "case-insensitive" los headers de apache_request_headers()
 
@@ -766,6 +884,9 @@ https://lumen.laravel.com/docs/6.x/database
 - Generar Modelos con sus schemas a partir de la DB como con CRUDO usando un comando.
 
 - Migrations, seeders,...
+
+En az\docs\etc dejé unas capturas de pantalla pero se puede ver como funciona sobre el final de este vídeo:
+https://www.youtube.com/watch?v=w6u8amnFhSo
 
 - Sanitización a nivel de urls, FILTER_SANITIZE_URL
 

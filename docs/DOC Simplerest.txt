@@ -5,10 +5,9 @@ SimpleRest utiliza la arquitectura MVC, está orientado a API Restful y es un fr
 
 Algunas características:
 
-- Arquitectura MVC *
+- Arquitectura MVC 
 - APIs funcionan out-the-box o sea sin escribir nada de código ***
-- Sistema de roles 
-- Sistema de permisos personalizados que decoran los roles
+- ACL centralizado con sistema de roles y de permisos personalizados que decoran los roles
 - Posibilidad de "compartir" recursos via "folders"
 - Impersonate
 - Papelera de reciclaje
@@ -16,7 +15,7 @@ Algunas características:
 - Versionado
 - Internacionalización
 
-(*) A pesar de ser un framework orientado a API Rest es posible servir vistas aunque no posee un motor de plantillas.
+(*) A pesar de ser un framework orientado a API Rest es posible servir vistas aunque no posee un motor de plantillas. Es posible que esta característica sea removida en futuras versiones.
 
 # Estructura del proyecto
 
@@ -38,6 +37,7 @@ Algunas características:
 │   ├── exceptions
 │   ├── interfaces                          
 │   └── config                    # Configuration directory
+│		├── acl.php 
 │       ├── config.php          
 │       └── constants.php           
 │         
@@ -71,8 +71,8 @@ OJO ! afecta al DownloadController
 
 	{
     	"name": "Pablo",
-		"username": "boctulusz",
-		"password" : "gogogo"
+		"username": "crack777",
+		"password" : "xxxxxx"
 	}
 
 <-- campos mínimos
@@ -634,6 +634,48 @@ class UsersModel extends Model
 
 El procedimiento es registrar los mutators para cada campo del modelo que los requiera.
 
+Otro uso de input mutators es para utilizar UUIDs donde dentro de un Trait podemos tener la funcionalidad de generar el uuid:
+
+	namespace simplerest\traits;
+
+	trait Uuids
+	{
+		protected function boot()
+		{
+			parent::boot();
+
+			$this->registerInputMutator('uuid', function($id){ 
+				return $id == NULL ? uuid_create(UUID_TYPE_RANDOM) : $id; 
+			});
+		}    
+	}
+
+En el modelo donde queremos implementar el uuid, debemos declar el campo como string, importamos y hacemos el "use" del Trait:
+
+	<?php
+	namespace simplerest\models;
+
+	use simplerest\core\Model;
+	use simplerest\traits\Uuids;
+
+	class BarModel extends Model 
+	{ 
+		use Uuids;
+		
+		protected $id_name = 'uuid';
+
+		protected $schema = [
+			'uuid' => 'STR', 
+			// ...
+		];
+		
+		protected $nullable = ['uuid'];
+		
+		function __construct($db = NULL){
+			parent::__construct($db);
+		}
+	}
+
 Tenemos también los "output mutators" que permiten aplicar una función sobre la salida de la ejecución de una query.
 
 Ejemplo:
@@ -761,21 +803,21 @@ Por último tenemos los campos ocultos:
 
 Se definen varios event hooks sobre el modelo que se disparan ante una operación CRUD
 
-	public function onReading() {	}
-	public function onRead(?int $count) { }
+	protected function onReading() {	}
+	protected function onRead(?int $count) { }
 	
-	public function onDeleting($soft_delete) { }
-	public function onDeleted(?int $count) { }
+	protected function onDeleting($soft_delete) { }
+	protected function onDeleted(?int $count) { }
 
-	public function onCreating(Array $data) {	}
-	public function onCreated(Array $data, ?int $count) { }
+	protected function onCreating(Array $data) {	}
+	protected function onCreated(Array $data, ?int $count) { }
 
-	public function onUpdating(Array $data) { }
-	public function onUpdated(Array $data, ?int $count) { }
+	protected function onUpdating(Array $data) { }
+	protected function onUpdated(Array $data, ?int $count) { }
 
 Un uso práctico de estos eventos es para des-confirmar un email cuando se ha cambiado. En este caso se hace uso de la función isDirty() que acepta como parámetro el campo que necesitamos saber si ha cambiado.
 
-	function onUpdating($data) {
+	protected function onUpdating($data) {
 		if ($this->isDirty('email')) {
 			$this->update(['confirmed_email' => 0]);
 		}	
@@ -785,7 +827,7 @@ La función isDirty() acepta un campo o un array de campos o incluso puede estar
 
 Otro uso práctico de event hooks es para ocultar registros basados en cierta condición. Ej: si un campo definido por el usuario hidden = 1 entonces devolver 404 (No found)
 
-	function onReading() {
+	protected function onReading() {
 		$this->where(['hide' => 0]);
 	}
 
@@ -797,17 +839,17 @@ PD: Laravel también incluye los eventos onRestoring() y onRestored() para cuand
 
 Las APIs que extienden a ApiController también tienen varios event hooks
 
-	public function onGetting($id) { }
-    public function onGot($id, $count){ }
+	protected function onGetting($id) { }
+    protected function onGot($id, $count){ }
 
-    public function onDeleting($id){ }
-    public function onDeleted($id, $affected){ }
+    protected function onDeleting($id){ }
+    protected public function onDeleted($id, $affected){ }
 
-    public function onPosting($id, $data){ }
-    public function onPost($data, $id){ }
+    protected function onPosting($id, $data){ }
+    protected function onPost($data, $id){ }
 
-    public function onPutting($id, $data){ }
-    public function onPut($id, $data, $affected){ }
+    protected function onPutting($id, $data){ }
+    protected function onPut($id, $data, $affected){ }
 
 
 Existen otros hooks en en ApiController relacionados con el acceso a folders.
@@ -1154,58 +1196,31 @@ El Acl genera algo como:
 	}
 
 
+Existen dos tipos de permisos que se pueden asignar a los roles:  "resource permissions" y "special permissions".
+
+Los "resource permissions" se aplican sobre las tablas especificadas mientras que los "special permissions" son de caracter más general y definen la posibilidad de realizar ciertas acciones administrativas típicas de un "admin".
+
+Además sobre "resource permissions" existen ciertos permisos "especiales" -no confundir con "special permissions"- que habilitan a leer registros que no le pertenecen al tenedor del rol:  
+
+show_all	- lee los registros propios y ajenos sobre ese recurso
+list_all	- lista los registros propios y ajenos sobre ese recurso
+read_all	- lista y lee los registros propios y ajenos sobre ese recurso
+
+Estos permisos típicamente se deberían dar a un "guest" para que pueda por ejemplo leer todas las entradas de un blog o las publicaciones de un sitio de ventas. Si por el contrario a un "guest" se le diera un permiso "read" -en vez de "read_all"- entonces podría darse el caso contradictorio de que un "guest" pueda ver las publicaciones de un vendedor y ese mismo vendedor solo pueda ver las suyas propias y no las de otros vendedores.
+
+Por lo anterior se aconseja no dar un permiso "read" a un "guest" sino en todo caso un "read_all" y hacer que directa o interectamente todos los roles deriven de "guest". 
+
+Estos permisos especiales sobre "resource permissions" pueden tener otros usos interesantes como permitirle a un supervisor ver todos los registros de los usuarios y publicaciones de una tienda:
+
+->addRole('supervisor', 502)  
+->addInherit('registered')
+->addResourcePermissions('users', ['read_all'])  // <--
+->addResourcePermissions('products', ['read_all'])  // <--
+
 
 ### Permisos
 
 Los permisos sobre los endpoints son en general del tipo CRUD + permiso para listar los recursos: ['show', 'list', 'create', 'update',  'delete']
-
-
-### Roles
-
-Se pueden crear distintos roles que son mantenidos en el modelo 'RolesModel' y cuyo fin es limitar las acciones CRUD que puedan realizar. El la entidad "roles" como tal no existe en la base de datos y solo vive en el modelo.
-
-Para cada endpoint es posible especificar un conjunto de permisos para cada rol ya sea 'read' y 'write' o bien ser más específico y especificar 'show', 'list', create', 'delete' y 'update'. Ejemplo:
-
-	protected $scope = [
-	    'guest'   => [],  
-	    'basic'   => ['show'],
-	    'regular' => ['read', 'write']
-	];
-
-Para poder listar recursos debe incluirse el permiso "list" mientras que para poder visualizar un registro de un recurso por id se necesita el permiso "access".
-
-Equivalencias:
-
-read = show + list
-write = create + update + delete
-
-
-Los permisos de los roles se combinan, así por ejemplo un usuario que tiene los roles "basic" y "regular" (ambos) puede tener permisos de lectura y escritura sobre productos si tiene lo siguiente:
-
-	class Products extends MyApiController
-	{ 
-
-		function __construct()
-		{       
-			$this->scope['guest'] = ['read'];
-			$this->scope['basic'] = [];
-			$this->scope['regular'] = ['read', 'write'];
-
-			parent::__construct();
-		}
-
-O bien ....
-
-	$this->scope['basic'] = ['read',];
-	$this->scope['regular'] = ['write'];
-
-O bien ...
-
-	$this->scope['basic'] = ['write',];
-	$this->scope['regular'] = ['read'];
-
-
-Además por supuesto de que write y read tienen sus equivalencias así que habria otras varias formas de expresar lo mismo.
 
 
 ### Rol de Admin
@@ -1220,7 +1235,7 @@ Ejemplos:
 - "lock" - borrar definitivamente un registro bloqueado
 - "lock" - restaurar (undelete) un registro bloqueado
 - "read_all" - acceder a registros de otros usuarios (no incluye los protegidos en folders)
-- "read_all" - listar registros de otros usuarios (no incluye los protegidos en folders)
+- "read_all" - listar registros de otros usuarios (no incluye los protegidos en folders pero si colecciones)
 - "read_all_folders" - acceder a registros en folders que no se nos han compartido 
 - "read_all_folders" - listar registros en folders que no se nos han compartido
 - "read_all_trashcan" - acceder a  registros de otros en papelera
@@ -1228,6 +1243,7 @@ Ejemplos:
 - "write_all" - modificar / borrar registros de otros usuarios (sin alterar su ownership)
 - "write_all_folders" - modificar / borrar registros de otros usuarios en folders (sin alterar su ownership)
 - "write_all_trashcan" - borrar definitivamente / restaurar registros de otros usuarios
+- "write_all_collections" - escribir los registros de las colecciones de otros usuarios. 
 - "transfer" - tranferir un registro o sea cambiar la propiedad (ownership) de un registro (campo belongs_to)
 - "fill_all" - modificar la fecha de creación 
 - "fill_all" - llenar cualquier campo incluso los no-fillables
@@ -1261,6 +1277,68 @@ folder_other_permissions:
 - Puede especificarse el otorgamiento de permisos a usuarios no-registrados (guest)
 
 Los permisos son leídos al momento de "loguearse" o bien cuando se renuevan las credenciales y por tanto los cambios de permisos solo tienen efecto cuando se renueva el access_token y no antes. 
+
+
+Como podría presentarse la información sobre roles y permisos a un administrador:
+
+Para un usuario:
+
+	roles
+
+		superadmin
+
+	Special permissions
+
+		read_all				[del]
+		write_all				[del]	
+		read_all_collections	[del]
+		write_all_collections	[del]
+		read_all_trashcan		[del]
+		write_all_trashcan		[del]
+		transfer				[del]
+		lock					[del]
+		impersonate				[del]
+		
+	[add]
+		
+	<-- los permisos especiales tienen como base los de su rol o roles y pueden ser decorados via tabla `user_sp_permissions`. Esto significa que lo que "se ve" no es la tabla `user_sp_permissions` sino el resultado de aplicar los permisos combinados de distintos roles y a eso los permisos presentes en la tabla `user_sp_permissions` si los hubiere.	
+
+Para otro usuario:
+
+	roles
+
+		accounting
+		supervisor
+
+	Special permissions
+
+		impersonate				[del]
+		read_all				[del]	
+		
+	[add]	
+
+	tb: users					[del]	
+
+	[X]	list_all
+	[X]	show_all
+	[ ]	list
+	[ ]	show
+	[ ]	create
+	[ ]	update
+	[ ]	delete
+
+	tb: sells					[del]
+
+	[X]	list_all
+	[X]	show_all
+	[ ]	list
+	[ ]	show
+	[ ]	create
+	[ ]	update
+	[ ]	delete
+
+	<-- estos permisos sobre-escriben los permisos propios de su rol o roles del usuario y tienen prioridad por sobre los permisos especiales.
+
 
 
 ### Folders
@@ -1538,6 +1616,11 @@ Cuando un registro es borrado por el Admin éste es bloqueado para el usuario pr
 Implementación:
 
 Una entidad correspondiente a un endpoint si contiene un campo 'locked' de tipo "bool" (TINYINT para Mysql) entonces queda habilitada para el mecanismo de "bloqueo".
+
+
+### Seguridad 
+
+Es muy importante tener buen criterio al momento de entregar permisos ya que es potencialmente posible lograr escalarlos manipulando las tablas de permisos, etc.
 
 
 # La API

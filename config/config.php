@@ -16,13 +16,14 @@ return [
 	*/	
 	'REMOVE_API_SLUG' => false, 
 	'HTTPS' => 'Off',
-	'DEFAULT_CONTROLLER' => NULL,
+	'DEFAULT_CONTROLLER' => 'LoginController',
 
 	'database' => [
-		'host' => 'localhost',
+		'host'	=> 'localhost',
+		'rdbms' => 'mysql',
 		'db_name' => 'az', 
-		'user' => 'boctulus', 
-		'pass' => 'gogogo#*$U&_441@#'
+		'user'	=> 'boctulus', 
+		'pass'	=> 'gogogo#*$U&_441@#'
 	], 
 
 	'DateTimeZone' => 'America/Argentina/Buenos_Aires',

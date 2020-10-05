@@ -1,0 +1,14 @@
+
+- Implementar "botón de arrepentimiento" para compradores del MercoSur
+
+https://www.boletinoficial.gob.ar/detalleAviso/primera/235729/20201005
+
+- Habilitar TLS para poder usar HTTP/2 y mejorar la performance (requiere más recursos)
+
+https://tecadmin.net/enable-tls-in-modssl-and-apache/
+https://httpd.apache.org/docs/trunk/ssl/ssl_howto.html
+https://httpd.apache.org/docs/2.4/mod/mod_http2.html
+https://serverfault.com/q/751114/261450
+https://docs.microsoft.com/en-us/mem/configmgr/core/plan-design/security/enable-tls-1-2
+https://blog.restcase.com/http2-benefits-for-rest-apis/
+https://blog.cloudflare.com/using-http-2-server-push-with-php/

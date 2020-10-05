@@ -15,9 +15,9 @@ class DumbAuthController extends ResourceController
 
     function super_cool_action($a)
     {
-        var_dump($this->isGuest());    
-        var_dump($this->getRoles());
-        var_dump($this->isRegistered());
+        //var_dump($this->isGuest());    
+        //var_dump($this->getRoles());
+        //var_dump($this->isRegistered());
 
         if (!$this->hasAnyRole(['cajero', 'basic']))
             Factory::response()->sendError('Unauthorized', 401);
@@ -32,7 +32,9 @@ class DumbAuthController extends ResourceController
         foreach ($permissions as $tb => $perms){
             echo "[$tb]\n";
             $perms = (int) $perms;
-            printf("List: %d, Show: %d, Create: %d, Update: %d, Delete: %d", 
+            printf("List All: %d, Show All: %d, List: %d, Show: %d, Create: %d, Update: %d, Delete: %d", 
+                ($perms & 64) AND 1, 
+                ($perms & 32 ) AND 1,
                 ($perms & 16) AND 1, 
                 ($perms & 8 ) AND 1, 
                 ($perms & 4 ) AND 1, 
@@ -41,4 +43,5 @@ class DumbAuthController extends ResourceController
             );
         }
     }
+
 }

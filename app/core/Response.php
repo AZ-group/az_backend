@@ -3,6 +3,7 @@
 namespace simplerest\core;
 
 use simplerest\libs\Factory;
+use simplerest\libs\DB;
 
 class Response
 {
@@ -10,7 +11,7 @@ class Response
     static protected $http_code = NULL;
     static protected $http_code_msg = '';
     static protected $instance = NULL;
-    static protected $version = '1.1';
+    static protected $version = '2';
     static protected $config;
     static protected $pretty;
     static protected $quit = true;
@@ -24,6 +25,11 @@ class Response
         static::$config = include CONFIG_PATH . 'config.php';
         static::$pretty = static::$config['pretty'];
     }
+
+    public function __destruct()
+    {
+        DB::closeConnection();
+    }    
 
     static function getInstance(){
         
@@ -110,8 +116,10 @@ class Response
     function send($data, int $http_code = NULL){
         $http_code = $http_code != NULL ? $http_code : (static::$http_code !== null ? static::$http_code : 200);
 
-        header(trim('HTTP/'.static::$version.' '.$http_code.' '.static::$http_code_msg));
-        
+        if (!headers_sent()) {
+            header(trim('HTTP/'.static::$version.' '.$http_code.' '.static::$http_code_msg));
+        }    
+
         if (static::$as_object || is_object($data) || is_array($data)) {
             $arr = ['data' => $data, 
                     'status_code' => $http_code,

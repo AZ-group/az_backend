@@ -114,7 +114,7 @@ class Collections extends MyApiController
                     Factory::response()->code(404)->sendError("Collection for id=$id does not exists");
                 }
             
-                $sp = Factory::acl()->hasSpecialPermission('write_all', $this->roles);
+                $sp = Factory::acl()->hasSpecialPermission('write_all_collections', $this->roles);
 
                 if (!$sp && $row['belongs_to'] != $this->uid){
                     Factory::response()->sendError('Forbidden', 403, 'You are not the owner');
@@ -157,8 +157,13 @@ class Collections extends MyApiController
 
                 $refs = json_decode($row['refs']);
 
-                $affected = $instance->whereIn('id', $refs)
-                ->update($data);
+                $affected = 0;
+                DB::transaction(function() use ($instance, $refs, &$affected, $data, $id) {
+                    $affected = $instance->whereIn('id', $refs)
+                    ->update($data);
+                    
+                    DB::table('collections')->where(['id' => $id])->delete();
+                });     
 
                 Factory::response()->send(['affected_rows' => $affected]); 
             }
@@ -190,7 +195,7 @@ class Collections extends MyApiController
                 Factory::response()->code(404)->sendError("Collection for id=$id does not exists");
             }
             
-            $sp = Factory::acl()->hasSpecialPermission('write_all', $this->roles);
+            $sp = Factory::acl()->hasSpecialPermission('write_all_collections', $this->roles);
 
             if (!$sp && $row['belongs_to'] != $this->uid){
                 Factory::response()->sendError('Forbidden', 403, 'You are not the owner');
@@ -219,7 +224,6 @@ class Collections extends MyApiController
             $affected = 0;
             DB::transaction(function() use ($instance, $api_ctrl, $refs, $id, &$affected) {
                 $affected = $instance->whereIn('id', $refs)
-                ->setSoftDelete($api_ctrl::$soft_delete)
                 ->delete();
 
                 DB::table('collections')->where(['id' => $id])->delete();

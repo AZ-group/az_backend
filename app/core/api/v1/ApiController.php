@@ -53,14 +53,88 @@ abstract class ApiController extends ResourceController
         }
         
         $perms = $this->getPermissions($this->model_table);
+        //Debug::export($perms, 'perms'); /////
 
+        switch ($_SERVER['REQUEST_METHOD']) {
+            case 'GET':
+                if ($this->acl->hasSpecialPermission('read_all', $this->roles)){
+                    $this->addCallable('get');
+                    $this->is_listable    = true;
+                    $this->is_retrievable = true;
+                } else {
+                    if ($this->acl->hasResourcePermission('show', $this->roles, $this->model_table) || 
+                        $this->acl->hasResourcePermission('show_all', $this->roles, $this->model_table)){
+                        $this->addCallable('get');
+                        $this->is_retrievable = true;
+                    }
+
+                    if ($this->acl->hasResourcePermission('list', $this->roles, $this->model_table) ||
+                        $this->acl->hasResourcePermission('list_all', $this->roles, $this->model_table)){
+                        $this->addCallable('get');
+                        $this->is_listable    = true;
+                    }
+                }  
+            break;
+            
+            case 'POST':
+                if ($this->acl->hasSpecialPermission('write_all', $this->roles)){
+                    $this->addCallable('post');
+                } else {
+                    if ($this->acl->hasResourcePermission('create', $this->roles, $this->model_table)){
+                        $this->addCallable('post');
+                    }
+                }  
+            break;    
+
+            case 'PUT':
+                if ($this->acl->hasSpecialPermission('write_all', $this->roles)){
+                    $this->addCallable('put');
+                } else {
+                    if ($this->acl->hasResourcePermission('update', $this->roles, $this->model_table)){
+                        $this->addCallable('put');
+                    }
+                }  
+            break;
+
+            case 'PATCH':
+                if ($this->acl->hasSpecialPermission('write_all', $this->roles)){
+                    $this->addCallable('patch');
+                } else {
+                    if ($this->acl->hasResourcePermission('update', $this->roles, $this->model_table)){
+                        $this->addCallable('patch');
+                    }
+                }  
+            break;    
+
+            case 'DELETE':
+                if ($this->acl->hasSpecialPermission('write_all', $this->roles)){
+                    $this->addCallable('delete');
+                } else {
+                    if ($this->acl->hasResourcePermission('delete', $this->roles, $this->model_table)){
+                        $this->addCallable('delete');
+                    }
+                }  
+            break;
+        } 
+                    
+        
         if ($perms !== NULL)
         {
             // individual permissions *replaces* role permissions
             switch ($_SERVER['REQUEST_METHOD']) {
+                /*
+                    list_all        64
+                    show_all        32 
+                    list            16
+                    show            8
+                    post            4
+                    put / patch     2
+                    delete          1
+                */
+
                 case 'GET': 
-                    $this->is_listable     = ($perms & 16) AND 1;
-                    $this->is_retrievable  = ($perms & 8 ) AND 1;
+                    $this->is_listable     = ($perms & 16) AND 1 || ($perms & 64) AND 1;
+                    $this->is_retrievable  = ($perms & 8 ) AND 1 || ($perms & 32) AND 1;
 
                     if ($this->is_listable || $this->is_retrievable){
                         $this->addCallable('get');
@@ -92,70 +166,7 @@ abstract class ApiController extends ResourceController
                 break;
             } 
  
-        }else{
-
-            switch ($_SERVER['REQUEST_METHOD']) {
-                case 'GET':
-                    if ($this->acl->hasSpecialPermission('read_all', $this->roles)){
-                        $this->addCallable('get');
-                        $this->is_listable    = true;
-                        $this->is_retrievable = true;
-                    } else {
-                        if ($this->acl->hasResourcePermission('show', $this->roles, $this->model_table)){
-                            $this->addCallable('get');
-                            $this->is_retrievable = true;
-                        }
-
-                        if ($this->acl->hasResourcePermission('list', $this->roles, $this->model_table)){
-                            $this->addCallable('get');
-                            $this->is_listable    = true;
-                        }
-                    }  
-                break;
-                
-                case 'POST':
-                    if ($this->acl->hasSpecialPermission('write_all', $this->roles)){
-                        $this->addCallable('post');
-                    } else {
-                        if ($this->acl->hasResourcePermission('create', $this->roles, $this->model_table)){
-                            $this->addCallable('post');
-                        }
-                    }  
-                break;    
-
-                case 'PUT':
-                    if ($this->acl->hasSpecialPermission('write_all', $this->roles)){
-                        $this->addCallable('put');
-                    } else {
-                        if ($this->acl->hasResourcePermission('update', $this->roles, $this->model_table)){
-                            $this->addCallable('put');
-                        }
-                    }  
-                break;
-
-                case 'PATCH':
-                    if ($this->acl->hasSpecialPermission('write_all', $this->roles)){
-                        $this->addCallable('patch');
-                    } else {
-                        if ($this->acl->hasResourcePermission('update', $this->roles, $this->model_table)){
-                            $this->addCallable('patch');
-                        }
-                    }  
-                break;    
-
-                case 'DELETE':
-                    if ($this->acl->hasSpecialPermission('write_all', $this->roles)){
-                        $this->addCallable('delete');
-                    } else {
-                        if ($this->acl->hasResourcePermission('delete', $this->roles, $this->model_table)){
-                            $this->addCallable('delete');
-                        }
-                    }  
-                break;
-            } 
-              
         }
-    
         
         $this->impersonated_by = $this->auth->impersonated_by ?? null;
 
@@ -242,25 +253,22 @@ abstract class ApiController extends ResourceController
     function get($id = null) {
         global $api_version;
 
+        $_get   = Factory::request()->getQuery();   
+        
         $this->id     = $id;
         $this->folder = Arrays::shift($_get,'folder');
 
-        $_get   = Factory::request()->getQuery();   
-        
+      
         // event hook
         $this->onGettingBeforeCheck($id);
 
         // Si el rol no le permite a un usuario ver un recurso aunque se le comparta un folder tampoco podrá listarlo
+        
+        if ($id == null && !$this->is_listable)
+            Factory::response()->sendError('Unauthorized', 403, "You are not allowed to list");    
 
-        if (!$this->acl->hasSpecialPermission('read_all', $this->roles)) {
-
-            if ($id == null && !$this->is_listable)
-                Factory::response()->sendError('Unauthorized', 403, "You are not allowed to list");    
-
-            if ($id != null && !$this->is_retrievable)
-                Factory::response()->sendError('Unauthorized', 401, "You are not allowed to retrieve");  
-
-        }
+        if ($id != null && !$this->is_retrievable)
+            Factory::response()->sendError('Unauthorized', 401, "You are not allowed to retrieve");  
 
         try {            
 
@@ -396,7 +404,8 @@ abstract class ApiController extends ResourceController
                         } 
                                                 
                     } else {
-                        if ($owned && !$this->acl->hasSpecialPermission('read_all', $this->roles))
+                        if ($owned && !$this->acl->hasSpecialPermission('read_all', $this->roles) && 
+                            !$this->acl->hasResourcePermission('show_all', $this->roles, $this->model_table))
                             $_get[] = ['belongs_to', $this->uid];
                     }
                        
@@ -609,7 +618,9 @@ abstract class ApiController extends ResourceController
 
                 if (empty($this->folder)){
                     // root, sin especificar folder ni id (lista)   // *             
-                    if (!$this->isGuest() && $owned && !$this->acl->hasSpecialPermission('read_all', $this->roles) ){
+                    if (!$this->isGuest() && $owned && 
+                        !$this->acl->hasSpecialPermission('read_all', $this->roles) &&
+                        !$this->acl->hasResourcePermission('list_all', $this->roles, $this->model_table) ){
                         $_get[] = ['belongs_to', $this->uid];     
                     }       
                 }else{
@@ -885,7 +896,7 @@ abstract class ApiController extends ResourceController
                 $this->onPostFolder($last_inserted_id, $data, $this->folder);
                 $this->onPost($last_inserted_id, $data);
 
-                Factory::response()->send(['id' => $last_inserted_id], 201);
+                Factory::response()->send([$instance->getKeyName() => $last_inserted_id], 201);
             }	
             else
                 Factory::response()->sendError("Error: creation of resource fails!");
@@ -1206,43 +1217,43 @@ abstract class ApiController extends ResourceController
         API event hooks
     */    
 
-    public function onGettingBeforeCheck($id) { }
-    public function onGettingAfterCheck($id) { }
-    public function onGettingAfterCheck2($id) { }  ///
-    public function onGot($id, ?int $count){ }
+    protected function onGettingBeforeCheck($id) { }
+    protected function onGettingAfterCheck($id) { }
+    protected function onGettingAfterCheck2($id) { }  ///
+    protected function onGot($id, ?int $count){ }
 
-    public function onDeletingBeforeCheck($id){ }
-    public function onDeletingAfterCheck($id){ }
-    public function onDeleted($id, ?int $affected){ }
+    protected function onDeletingBeforeCheck($id){ }
+    protected function onDeletingAfterCheck($id){ }
+    protected function onDeleted($id, ?int $affected){ }
 
-    public function onPostingBeforeCheck($id, Array &$data){ }
-    public function onPuttingBeforeCheck2($id, Array &$data){ }  ///
-    public function onPostingAfterCheck($id, Array &$data){ }
-    public function onPost($id, Array $data){ }
+    protected function onPostingBeforeCheck($id, Array &$data){ }
+    protected function onPuttingBeforeCheck2($id, Array &$data){ }  ///
+    protected function onPostingAfterCheck($id, Array &$data){ }
+    protected function onPost($id, Array $data){ }
 
-    public function onPuttingBeforeCheck($id, Array &$data){ }
-    public function onPuttingAfterCheck($id, Array &$data){ }
-    public function onPut($id, Array $data, ?int $affected){ }
+    protected function onPuttingBeforeCheck($id, Array &$data){ }
+    protected function onPuttingAfterCheck($id, Array &$data){ }
+    protected function onPut($id, Array $data, ?int $affected){ }
 
      /*
         API event hooks for folder access
     */  
 
-    public function onGettingFolderBeforeCheck($id, $folder){ } 
-    public function onGettingFolderAfterCheck($id, $folder){ }
-    public function onGotFolder($id, ?int $count, $folder){ }
+    protected function onGettingFolderBeforeCheck($id, $folder){ } 
+    protected function onGettingFolderAfterCheck($id, $folder){ }
+    protected function onGotFolder($id, ?int $count, $folder){ }
 
-    public function onDeletingFolderBeforeCheck($id, $folder){ }
-    public function onDeletingFolderAfterCheck($id, $folder){ }
-    public function onDeletedFolder($id, ?int $affected, $folder){ }
+    protected function onDeletingFolderBeforeCheck($id, $folder){ }
+    protected function onDeletingFolderAfterCheck($id, $folder){ }
+    protected function onDeletedFolder($id, ?int $affected, $folder){ }
 
-    public function onPostingFolderBeforeCheck($id, Array &$data, $folder){ }
-    public function onPostingFolderAfterCheck($id, Array &$data, $folder){ }
-    public function onPostFolder($id, Array $data, $folder){ }
+    protected function onPostingFolderBeforeCheck($id, Array &$data, $folder){ }
+    protected function onPostingFolderAfterCheck($id, Array &$data, $folder){ }
+    protected function onPostFolder($id, Array $data, $folder){ }
 
-    public function onPuttingFolderBeforeCheck($id, Array &$data, $folder){ }
-    public function onPuttingFolderAfterCheck($id, Array &$data, $folder){ }
-    public function onPutFolder($id, Array $data, ?int $affected, $folder){ }
+    protected function onPuttingFolderBeforeCheck($id, Array &$data, $folder){ }
+    protected function onPuttingFolderAfterCheck($id, Array &$data, $folder){ }
+    protected function onPutFolder($id, Array $data, ?int $affected, $folder){ }
 
     
 }  
