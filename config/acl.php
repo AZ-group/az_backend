@@ -4,7 +4,7 @@ use simplerest\core\Acl;
 use simplerest\libs\Debug;
 
 
-$acl_cache = false;
+$acl_cache = true;
 $acl_file = '../app/security/acl.cache';
 
 // Check whether ACL data already exist

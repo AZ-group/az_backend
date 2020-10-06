@@ -28,7 +28,7 @@ class UserTbPermissions extends MyApiController
     }
 
     function post(){
-        $data = Factory::request()->getBody();
+        $data = Factory::request()->getBody(false);
 
         if (empty($data))
             Factory::response()->sendError('Invalid JSON',400);

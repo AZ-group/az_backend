@@ -16,6 +16,8 @@ use simplerest\libs\Validator;
 //use GuzzleHttp\Client;
 //use Guzzle\Http\Message\Request;
 //use Symfony\Component\Uid\Uuid;
+use simplerest\libs\Files;
+use simplerest\libs\Time;
 
 
 class DumbController extends Controller
@@ -1573,8 +1575,19 @@ class DumbController extends Controller
         throw new \Exception('BOOOOM');
     }
 
-    function uu(){
-        var_dump(uuid_create(UUID_TYPE_RANDOM));            
+    function hi($name = null){
+        return 'hi ' . $name;
+    }
+
+    function speed(){
+
+        Time::setUnit('MILI');
+        $t = Time::exec_speed(function(){ 
+            Factory::response();
+        }, 1); 
+        
+        Debug::export("$t mili seconds");
+        //Files::logger("$t mili seconds");
     }
 
 }

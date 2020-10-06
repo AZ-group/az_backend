@@ -152,7 +152,7 @@ class Request  implements \ArrayAccess, Arrayable
     }
 
     function getRequestMethod(){
-        return $_SERVER['REQUEST_METHOD'];
+        return $_SERVER['REQUEST_METHOD'] ?? NULL;
     }
 
     /* Arrayable Interface */ 

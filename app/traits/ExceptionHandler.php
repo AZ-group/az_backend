@@ -3,7 +3,7 @@
 namespace simplerest\traits;
 
 use simplerest\libs\Factory;
-use simplerest\DB;
+use simplerest\libs\DB;
 
 trait ExceptionHandler
 {

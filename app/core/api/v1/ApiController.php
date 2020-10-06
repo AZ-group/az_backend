@@ -15,6 +15,7 @@ use simplerest\core\api\v1\ResourceController;
 use simplerest\core\exceptions\SqlException;
 use simplerest\core\exceptions\InvalidValidationException;
 
+use simplerest\libs\Files;    
 
 abstract class ApiController extends ResourceController
 {
@@ -38,7 +39,9 @@ abstract class ApiController extends ResourceController
     function __construct($auth = null) 
     {  
         parent::__construct($auth);
-            
+       
+        $this->start = microtime(true);
+
         if ($this->model_name != null){
             $this->model_table = Strings::fromCamelCase(Strings::removeRTrim('Model', $this->model_name));
         }else {
@@ -783,6 +786,9 @@ abstract class ApiController extends ResourceController
                 // event hook
                 $this->onGot($id, $total);
                 
+                $t = (microtime(true) - $this->start) * 1000;
+                Files::logger("ApiController (list, paginated, 10 rows): ".$t." mili seconds");
+
                 $res->send($rows);       
             }
 
@@ -812,7 +818,7 @@ abstract class ApiController extends ResourceController
         
         $model    = '\\simplerest\\models\\'.$this->model_name;
         $this->instance = $instance = (new $model())->setFetchMode('ASSOC');
-        
+
         $id = $data[$instance->getIdName()] ?? null;
         $this->folder = $this->folder = $data['folder'] ?? null;
 

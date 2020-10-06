@@ -2,8 +2,74 @@
 
 - Definir DB !!!
 
-- VirtualModel extends Model .... con schema on the fly. Esto sería útil para poder en pruebas unitarias hacer una migración para las tablas de prueba, hacer las pruebas sobre el modelo virtual y luego con otra migración regresar la DB al estado anterior.
+- Descular porque un POST puede tardar 2000 ms y rara vez 60 ms que sería algo "normal" 
 
+  t(FrontController) ?
+  t(Request) ?
+  t(ApiController) ?
+  t(Auth->check()) ?
+  t(ACL) ?
+  t(Modelo) ?
+  t(Response) ?  
+
+Valores hallados:
+
+  Resolución de DNS                             0 - 30 mili seg
+  Bloqueo                                       0 - 30 mili seg
+  
+  FrontController  (sin incluir response)       mediana: 3 mili seg 
+  FrontController (completo)                    4 mili seg aprox
+
+  Factory::request()                            0.5 - 1.5 mili seg
+
+  AuthController instanciación + check()        1 - 3 mili seg  
+
+  Acl (sin cachear)                             25 - 48 mili seg
+  Acl (cacheado)                                1 - 2 mili seg 
+
+  ApiController (incl. llamadas al modelo)      7 - 31 mili seg  <-- mucha variación!
+  <-- sin incluir Auth ni Acl 
+
+  DB::table('users')->setFetchMode('ASSOC')
+  ->limit(10)->select(['email'])->get()         0.7 mili seg  (solo el CRUD)
+
+  DB> SELECT email FROM users LIMIT 0,10;       0.5 - 1 mili seg aprox (en la terminal)
+
+  Factory::response()                           0.7 - 1.5 mili seg
+
+  Total PHP:                                    29 - 70 mili seg
+
+  --------------------------------------------------------------------------
+  TOTAL: (en POSTMAN)
+
+  GET /api/v1/users?fields=email                70 mili - 6300 mili seg  
+
+
+Conclusión: 
+
+
+
+- He observado que Apache en servir la nada misma introduce una demora de 59 ms, mejorará con otro Web Server?
+
+- Usar RTAPI para testear tiempos de latencia:
+
+https://www.nginx.com/blog/api-real-time-test-latency-responsiveness-nginx-rtapi-tool/
+
+- Usar con conexiones http persistentes, por cierto ya es persistente? Si !
+
+https://en.wikipedia.org/wiki/HTTP_persistent_connection
+https://stackoverflow.com/questions/13332883/rest-web-service-and-keep-alive
+https://www.a2hosting.com/kb/developer-corner/apache-web-server/using-keep-alive-connections-to-improve-performance
+https://www.lob.com/blog/use-http-keep-alive
+https://docs.apigee.com/api-platform/antipatterns/disable-persistent-connections
+
+    Backend services should honor and handle HTTP persistent connection in accordance with HTTP 1.1 standards.
+    Backend services should respond with a Connection:keep-alive header if they are able to handle persistent (keep alive) connections.
+    Backend services should respond with a Connection:close header if they are unable to handle persistent connections.
+
+- Ensayar con Apache y con Nginx buscando los mejores tiempos de respuesta.
+
+- VirtualModel extends Model .... con schema on the fly. Esto sería útil para poder en pruebas unitarias hacer una migración para las tablas de prueba, hacer las pruebas sobre el modelo virtual y luego con otra migración regresar la DB al estado anterior.
 
 - Para UUID hay algoritmos más eficientes que otros:
 
@@ -506,7 +572,9 @@ https://laravel.com/docs/7.x/queues
 
   https://reustle.org/managing-long-running-processes-with-supervisor.html
   https://medium.com/@lih.verma/model-as-a-service-and-managing-them-via-supervisor-and-nginx-5d730e1254b6
-  
+  https://www.interserver.net/tips/kb/laravel-queue-tutorial-supervisor/
+  https://medium.com/@rohit_shirke/configuring-supervisor-for-laravel-queues-81e555e550c6
+
 
 - Implementar notificaciones push o reverse API.
 

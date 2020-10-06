@@ -15,6 +15,7 @@ class Foo extends MyApiController
     public function onGetting($id) { 
         //Debug::dump($id, 'id');
     }
+    
     public function onGot($id, ?int $count){ }
 
     public function onDeleting($id){ }

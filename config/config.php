@@ -11,6 +11,9 @@ return [
 	#
 	'BASE_URL' => '/',   
 
+	'ROUTER' => true,
+	'FRONT_CONTROLLER' => false,
+	
 	/*
 		urls start with /api/ if REMOVE_API_SLUG is set to false
 	*/	

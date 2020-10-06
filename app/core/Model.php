@@ -98,10 +98,15 @@ class Model {
 			$this->table_name = strtolower(substr($str, 0, strlen($str)-6));
 		}			
 		
-		if ($this->id_name == NULL && !$this->inSchema(['id'])){
+		if ($this->id_name == NULL){
+			if ($this->inSchema(['id'])){
+				$this->id_name = 'id';
+			} else {
 			throw new \Exception("Undefined Id for ".$this->table_name. '. Use \'id\' or $id_name to specify another field name');
-		}
 
+			}
+		}	
+		
 		// event handler
 		$this->boot();
 
