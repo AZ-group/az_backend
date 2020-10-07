@@ -141,9 +141,11 @@ https://mariadb.com/kb/en/myrocks/
 	}
 }
 
--  Routing: seguir implementando siguiendo como referencia:
+- Routing: seguir implementando siguiendo como referencia:
 
 https://laravel.com/docs/7.x/routing
+
+- Serializar Route !!!!!!
 
 - Checkboxes de 3 estados donde uno sea null / undefined para mostrar los permisos sobre tb_permissions en caso de hacer un panel de control para estos menesteres
 
