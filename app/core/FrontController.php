@@ -152,12 +152,11 @@ class FrontController
             if ($lang != NULL)
                 setlocale(LC_ALL, "$lang.UTF-8");
 
-
             if (!class_exists($class_name))
                 Response::getInstance()->sendError("Class not found", 404, "Internal error - controller class $class_name not found");  
 
             if (!method_exists($class_name, $method))
-                Response::getInstance()->sendError("Internal error - method $method does not exist in $class_name", 500); 
+                Response::getInstance()->sendError("Internal error - method $method was not found in $class_name", 500); 
                     
             $controller_obj = new $class_name();
 

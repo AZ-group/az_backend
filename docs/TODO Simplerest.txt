@@ -12,6 +12,10 @@
   t(Modelo) ?
   t(Response) ?  
 
+Prueba: 
+
+  GET /api/v1/users?fields=email                70 mili - 6300 mili seg  
+
 Valores hallados:
 
   Resolución de DNS                             0 - 30 mili seg
@@ -37,19 +41,30 @@ Valores hallados:
 
   Factory::response()                           0.7 - 1.5 mili seg
 
-  Total PHP:                                    29 - 70 mili seg
+  Total PHP:                                    29 - 70 mili seg = (0,30) + (0,30) + 3 + (1,3) + (1,2) + (7,31)
 
-  --------------------------------------------------------------------------
-  TOTAL: (en POSTMAN)
+Conclusiones: 
 
-  GET /api/v1/users?fields=email                70 mili - 6300 mili seg  
-
-
-Conclusión: 
-
-
+  - Mucho lag en resolución de DNS, bloqueos. Nginx utiliza arquitectura asíncrona a base de eventos, sin bloqueos !!!!
+  - Gran mejora al serializar objetos como el ACL
+  - Demasiada variación de tiempos en el ApiController
+  - Podría haber una gran mejora si se usara una caché como REDIS para las consultas. ¿Cuántas consultas son necesarias para poder procesar un GET? 
+  - El tiempo mínimo en las condiciones de prueba y en el estado actual de fw sería de 12 ms pero no se alcanza porque siempre hay algún proceso que demora más.
 
 - He observado que Apache en servir la nada misma introduce una demora de 59 ms, mejorará con otro Web Server?
+
+  Probar en Linux con el módulo de Apache PHP-FPM (idealmente en Linux) -> habilita opcode caching
+  https://kinsta.com/es/blog/nginx-vs-apache/
+  https://www.inmotionhosting.com/support/website/php-fpm-the-future-of-php-handling/
+  https://www.quora.com/What-are-the-advantages-of-using-PHP-FPM-+-Nginx-over-Apache-and-mod_php
+  http://www.orbitale.io/2017/11/11/apache-and-php-fpm-in-windows.html
+
+  Hacer pruebas con el built-in web server
+  https://www.php.net/manual/en/features.commandline.webserver.php
+
+
+- Optimización de web servers 
+https://www.sitepoint.com/apache-vs-nginx-performance-optimization-techniques/
 
 - Usar RTAPI para testear tiempos de latencia:
 
@@ -125,6 +140,10 @@ https://mariadb.com/kb/en/myrocks/
 		}
 	}
 }
+
+-  Routing: seguir implementando siguiendo como referencia:
+
+https://laravel.com/docs/7.x/routing
 
 - Checkboxes de 3 estados donde uno sea null / undefined para mostrar los permisos sobre tb_permissions en caso de hacer un panel de control para estos menesteres
 
