@@ -1,6 +1,10 @@
 <?php
 
 /*
+	Migrations
+*/
+
+/*
 	preg_match destructivo
 */
 function slice(string &$str, string $pattern, callable $fn = NULL) {

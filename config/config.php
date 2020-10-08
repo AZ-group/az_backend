@@ -21,12 +21,23 @@ return [
 	'HTTPS' => 'Off',
 	'DEFAULT_CONTROLLER' => 'LoginController',
 
-	'database' => [
-		'host'	=> 'localhost',
-		'rdbms' => 'mysql',
-		'db_name' => 'az', 
-		'user'	=> 'boctulus', 
-		'pass'	=> 'gogogo#*$U&_441@#'
+	'db_connections' => [
+		'db1' => [
+			'host'	=> 'localhost',
+			'driver' => 'mysql',
+			'db_name' => 'az', 
+			'user'	=> 'boctulus', 
+			'pass'	=> 'gogogo#*$U&_441@#'
+		],
+		/*
+		'db2' => [
+			'host'	=> 'localhost',
+			'driver' => 'mysql',
+			'db_name' => 'simplerest', 
+			'user'	=> 'boctulus', 
+			'pass'	=> 'gogogo#*$U&_441@#'
+		]
+		*/
 	], 
 
 	'DateTimeZone' => 'America/Argentina/Buenos_Aires',

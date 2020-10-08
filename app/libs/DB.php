@@ -5,23 +5,45 @@ namespace simplerest\libs;
 use simplerest\core\Model;
 
 class DB {
+	protected static $connections = [];
+	protected static $current_id_conn;
+	protected static $instance;  
 
-	public static $conn;
-	public static $instance;  
+    protected function __construct() { }
 
-    private function __construct() { }
+	public static function setConnection($id){
+		static::$current_id_conn = $id;
+	}
 
-    public static function getConnection($options = null) {
-		if (self::$conn != null)
-			return self::$conn;
-
+    public static function getConnection(string $conn_id = null, $options = null) {
 		$config = include CONFIG_PATH . 'config.php';
+		
+		$cc = count($config['db_connections']);
+		
+		if ($cc == 0){
+			throw new \Exception('No database');
+		}
 
-		$host    = $config['database']['host'] ?? 'localhost';
-		$rdbms   = $config['database']['rdbms'];	
-        $db_name = $config['database']['db_name'];
-		$user    = $config['database']['user'] ?? 'root';
-		$pass    = $config['database']['pass'] ?? '';
+		if ($conn_id != null){
+			static::$current_id_conn = $conn_id;	
+		} else {
+			if (static::$current_id_conn == null){
+				if ($cc == 1){
+					static::$current_id_conn = array_keys($config['db_connections'])[0];
+				} else {
+					throw new \InvalidArgumentException('No database selected');
+				}	
+			}
+		}
+
+		if (isset(self::$connections[static::$current_id_conn]))
+			return self::$connections[static::$current_id_conn];
+		
+		$host    = $config['db_connections'][static::$current_id_conn]['host'] ?? 'localhost';
+		$driver  = $config['db_connections'][static::$current_id_conn]['driver'];	
+        $db_name = $config['db_connections'][static::$current_id_conn]['db_name'];
+		$user    = $config['db_connections'][static::$current_id_conn]['user'] ?? 'root';
+		$pass    = $config['db_connections'][static::$current_id_conn]['pass'] ?? '';
 		
 		try {
 			if (empty($options)){
@@ -29,24 +51,31 @@ class DB {
 				//$options[\PDO::ATTR_EMULATE_PREPARES] = false;  /* es posible desactivar ? */
 			}
 				
-			self::$conn = new \PDO("$rdbms:host=" . $host . ";dbname=" . $db_name, $user, $pass, $options);
-            self::$conn->exec("set names utf8");
+			self::$connections[static::$current_id_conn] = new \PDO("$driver:host=" . $host . ";dbname=" . $db_name, $user, $pass, $options);
+            self::$connections[static::$current_id_conn]->exec("set names utf8");
 		} catch (\PDOException $e) {
 			throw new \PDOException($e->getMessage());
 		}	
 		
-		return self::$conn;
+		return self::$connections[static::$current_id_conn];
+	}
+	
+    static function closeConnection(string $conn_id = null) {
+		if ($conn_id == null){
+			static::$connections[static::$current_id_conn] = null;
+		} else {
+			static::$connections[$conn_id] = null;
+		}
+		//echo 'Successfully disconnected from the database!';
 	}
 
-	
-    static function closeConnection() {
-		static::$conn=null;
-		//echo 'Successfully disconnected from the database!';
+	static function closeAllConnections(){
+		static::$connections = null;
 	}
 	
 	public function __destruct()
     {
-        static::closeConnection();        
+        static::closeAllConnections();        
     }
 		
 	// Returns last executed query 
@@ -55,7 +84,6 @@ class DB {
 	}
 	
 	public static function table($from, $alias = NULL) {
-
 		// Usar un wrapper y chequear el tipo
 		if (stripos($from, ' FROM ') === false){
 			$tb_name = $from;

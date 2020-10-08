@@ -241,6 +241,7 @@ abstract class ApiController extends ResourceController
      * @return void
      */
     function options() {
+        
     }
  
   
@@ -783,8 +784,7 @@ abstract class ApiController extends ResourceController
 
                 // event hook
                 $this->onGot($id, $total);
-                $res->send($rows);    
-                exit;   
+                $res->send($rows);
             }
 
         
@@ -1046,7 +1046,7 @@ abstract class ApiController extends ResourceController
                 $this->onPutFolder($id, $data, $affected, $this->folder);
                 $this->onPut($id, $data, $affected);
                 
-                Factory::response()->sendJson("OK");
+                Factory::response()->send("OK");
             } else {
                 Factory::response()->sendError("Error in PATCH",404);
             }	

@@ -386,6 +386,8 @@ class DumbController extends Controller
     }
 
     function count(){
+        DB::setConnection('db1');
+
         $c = DB::table('products')
         ->where([ 'belongs_to'=> 90] )
         ->count();
@@ -1588,6 +1590,14 @@ class DumbController extends Controller
         
         Debug::export("$t mili seconds");
         //Files::logger("$t mili seconds");
+    }
+
+    function get_con(){
+        DB::setConnection('db2');
+       
+        $conn = DB::getConnection();
+
+        $m = new \simplerest\models\ProductsModel($conn);
     }
 
 }

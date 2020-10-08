@@ -25,7 +25,7 @@ class FrontController
         //Time::setUnit('MILI');
         //$t = Time::exec_speed(function() use ($config, &$api_version) { 
 
-            Response::getInstance()->setQuit(false);    
+            Response::getInstance();    
             $sub = (int) $config['REMOVE_API_SLUG'];
     
             if (php_sapi_name() != 'cli'){

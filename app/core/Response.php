@@ -156,8 +156,10 @@ class Response
             exit; 
     }
  
+    // cambiar:
     function sendOK(){
-        $this->send('OK', 200);
+        http_response_code(200);
+        exit;
     }
 
     // send as JSON

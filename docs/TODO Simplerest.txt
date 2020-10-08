@@ -156,6 +156,33 @@ Además de expresiones regulares aceptar constantes como:
 
 - Serializar Route !!!!!!
 
+- Re-escribir Response y .... evitar usar custom headers !
+
+Adding custom headers or using a non-standard content-type forces the browser to issue a preflight ''OPTIONS'' request to determine if these are acceptable or not, and this effectively doubles the latency of fetching data.
+
+Avoid custom HTTP headers, and use standard headers like Accept for content negotiated responses instead.
+
+https://dzone.com/articles/solving-the-options-performance-issue-with-single
+
+
+- Analizar que pasa con OPTIONS !!! no puede ser que demore tanto !
+
+- Probar si la performance no se ve afectada con "named arguments" y aplicar de mínima a la clase Model. 
+
+https://stitcher.io/blog/php-8-named-arguments
+https://dev.to/jopacicdev/what-s-new-in-php-8-and-what-does-that-mean-4kdf
+
+- Probar annotations (attributes) como en ASP.NET en vez de usar Traits
+
+https://docs.microsoft.com/en-us/aspnet/core/security/authorization/simple?view=aspnetcore-5.0
+
+- Probar PHP-Ds como alternativa a arrays en PHP 8 y verificar eficiencia 
+
+https://medium.com/@rtheunissen/efficient-data-structures-for-php-7-9dda7af674cd
+https://github.com/php-ds/ext-ds
+https://www.php.net/manual/en/book.ds.php
+
+
 - Checkboxes de 3 estados donde uno sea null / undefined para mostrar los permisos sobre tb_permissions en caso de hacer un panel de control para estos menesteres
 
 https://es.stackoverflow.com/a/41311/8826
