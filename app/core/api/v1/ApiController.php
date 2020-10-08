@@ -39,8 +39,6 @@ abstract class ApiController extends ResourceController
     function __construct($auth = null) 
     {  
         parent::__construct($auth);
-       
-        $this->start = microtime(true);
 
         if ($this->model_name != null){
             $this->model_table = Strings::fromCamelCase(Strings::removeRTrim('Model', $this->model_name));
@@ -785,11 +783,8 @@ abstract class ApiController extends ResourceController
 
                 // event hook
                 $this->onGot($id, $total);
-                
-                $t = (microtime(true) - $this->start) * 1000;
-                Files::logger("ApiController (list, paginated, 10 rows): ".$t." mili seconds");
-
-                $res->send($rows);       
+                $res->send($rows);    
+                exit;   
             }
 
         

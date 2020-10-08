@@ -151,6 +151,8 @@ class Route
                 $data = call_user_func_array([$controller_obj, $method], $args);
                 Response::getInstance()->send($data);
             }
+
+            exit;
         }
     }
 

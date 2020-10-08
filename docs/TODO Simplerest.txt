@@ -142,8 +142,17 @@ https://mariadb.com/kb/en/myrocks/
 }
 
 - Routing: seguir implementando siguiendo como referencia:
+https://laravel.com/docs/8.x/routing
 
-https://laravel.com/docs/7.x/routing
+Además de expresiones regulares aceptar constantes como:
+
+  String
+  Int
+  Long
+  Double
+  Float
+  Boolean
+  UUID
 
 - Serializar Route !!!!!!
 
