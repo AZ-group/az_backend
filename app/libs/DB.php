@@ -7,7 +7,7 @@ use simplerest\core\Model;
 class DB {
 	protected static $connections = [];
 	protected static $current_id_conn;
-	protected static $instance;  
+	protected static $model_instance;  
 
     protected function __construct() { }
 
@@ -38,6 +38,11 @@ class DB {
 
 		if (isset(self::$connections[static::$current_id_conn]))
 			return self::$connections[static::$current_id_conn];
+
+		
+		if (!isset($config['db_connections'][static::$current_id_conn])){
+			throw new \InvalidArgumentException('Invalid database selected for '.static::$current_id_conn);
+		}	
 		
 		$host    = $config['db_connections'][static::$current_id_conn]['host'] ?? 'localhost';
 		$driver  = $config['db_connections'][static::$current_id_conn]['driver'];	
@@ -62,7 +67,8 @@ class DB {
 	
     static function closeConnection(string $conn_id = null) {
 		if ($conn_id == null){
-			static::$connections[static::$current_id_conn] = null;
+			unset(static::$connections[static::$current_id_conn]);
+			static::$current_id_conn = NULL; // undefined
 		} else {
 			static::$connections[$conn_id] = null;
 		}
@@ -77,10 +83,14 @@ class DB {
     {
         static::closeAllConnections();        
     }
-		
+	
+	public static function countConnections(){
+		return count(static::$connections ?? []);
+	}
+
 	// Returns last executed query 
 	public static function getQueryLog(){
-		return static::$instance->getLog();
+		return static::$model_instance->getLog();
 	}
 	
 	public static function table($from, $alias = NULL) {
@@ -90,22 +100,22 @@ class DB {
 		
 			$names = explode('_', $tb_name);
 			$names = array_map(function($str){ return ucfirst($str); }, $names);
-			$instance = implode('', $names).'Model';		
+			$model_instance = implode('', $names).'Model';		
 
-			$class = '\\simplerest\\models\\' . $instance;
+			$class = '\\simplerest\\models\\' . $model_instance;
 			$obj = new $class(self::getConnection(), $alias);
 			
 			if (!is_null($alias))
 				$obj->setTableAlias($alias);
 
-			static::$instance = $obj;			
+			static::$model_instance = $obj;			
 			return $obj;	
 		}
 
-		$instance = new Model(self::getConnection());
-		static::$instance = $instance;
+		$model_instance = new Model(self::getConnection());
+		static::$model_instance = $model_instance;
 
-		$st = ($instance)->fromRaw($from);	
+		$st = ($model_instance)->fromRaw($from);	
 		return $st;
 	}
 

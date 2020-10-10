@@ -17,7 +17,7 @@ class OpsController extends Controller
 
     // php index.php sub1 a ops
     function index(){
-        return 'INDEX';
+        return 'OPsssssss';
     }
 
     // php index.php sub1 a ops inc 6

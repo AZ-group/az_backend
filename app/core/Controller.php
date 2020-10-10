@@ -13,7 +13,7 @@ abstract class Controller
     protected $callable = [];
     
     function __construct() {
-        $this->config = include CONFIG_PATH . 'config.php';
+        $this->config = Factory::config();
 
         if ($this->config['error_handling']) {
             set_exception_handler([$this, 'exception_handler']);

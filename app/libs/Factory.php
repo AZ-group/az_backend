@@ -20,4 +20,14 @@ class Factory {
 
         return $instance;
 	}
+
+	static function config(){
+		static $arr;
+
+		if ($arr == null){
+			$arr = include CONFIG_PATH . 'config.php';
+		}
+
+        return $arr;
+	}
 }

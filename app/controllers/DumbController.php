@@ -1581,23 +1581,69 @@ class DumbController extends Controller
         return 'hi ' . $name;
     }
 
+  
     function speed(){
+        $n = 5;
+
+        function config(){
+            static $arr;
+    
+            if ($arr == null){
+                $arr = include CONFIG_PATH . 'config.php';
+            }
+    
+            return $arr;
+        }
 
         Time::setUnit('MILI');
-        $t = Time::exec_speed(function(){ 
-            Factory::response();
-        }, 1); 
+        $t1 = Time::exec_speed(function(){ 
+            $config = include CONFIG_PATH . 'config.php';
+        }, $n); 
         
-        Debug::export("$t mili seconds");
+        print_r("$t1 mili seconds \n");
+
+
+        $t2 = Time::exec_speed(function(){ 
+            $config = config();
+        }, $n); 
+        
+        print_r("$t2 mili seconds \n");
+
+        $times = $t1/$t2;
+        print_r("Es $times veces más rápido \n");
+
         //Files::logger("$t mili seconds");
     }
 
     function get_con(){
-        DB::setConnection('db2');
-       
+        DB::setConnection('db2');       
         $conn = DB::getConnection();
 
         $m = new \simplerest\models\ProductsModel($conn);
     }
 
+    /*
+        MySql: show status where `variable_name` = 'Threads_connected
+        MySql: show processlist;
+    */
+    function test_active_connnections(){
+        Debug::export(DB::countConnections(), 'Number of active connections');
+
+        DB::setConnection('db2');  
+        Debug::export(DB::table('users')->count(), 'Users DB2:'); 
+
+        DB::setConnection('db1');  
+        Debug::export(DB::table('users')->count(), 'Users DB1');
+
+        DB::setConnection('db2');  
+        Debug::export(DB::table('users')->first(), 'Users DB2:');
+
+        Debug::export(DB::countConnections(), 'Number of active connections'); // 2 y no 3 ;)
+
+        DB::closeConnection();
+        Debug::export(DB::countConnections(), 'Number of active connections'); // 1
+
+        DB::closeAllConnections();
+        Debug::export(DB::countConnections(), 'Number of active connections'); // 0
+    }
 }

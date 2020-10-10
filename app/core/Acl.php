@@ -19,7 +19,7 @@ class Acl
     protected $guest_name = 'guest';
     
     public function __construct() { 
-        $this->config = include CONFIG_PATH . 'config.php';
+        $this->config = Factory::config();
         $this->setup();
     }
 

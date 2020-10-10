@@ -10,7 +10,6 @@ use simplerest\libs\Files;
 use simplerest\libs\Time;
 use simplerest\libs\Factory;
 
-
 class FrontController
 {
     const DEFAULT_ACTION = "index";
@@ -20,7 +19,7 @@ class FrontController
         global $argv;
         global $api_version;
 
-        $config = include '../config/config.php';
+        $config = Factory::config();
 
         //Time::setUnit('MILI');
         //$t = Time::exec_speed(function() use ($config, &$api_version) { 

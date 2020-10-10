@@ -54,6 +54,19 @@ Algunas características:
 └── .htaccess                     
 ```
 
+# Requerimientos 
+
+	PHP 7.4+
+	MySQL / MariaDB 
+	Apache Web Server 2.4
+
+Es posible hacer funcionar el framework con Nginx y es muy probable que con pocos ajustes funcione en un motor distinto a MySQL como PostgreeSql.
+
+# Instalación
+
+Se debe configurar el archivo config.php en la carpeta config. Se admiten múltiples bases de datos.
+
+
 # Endpoints que comienzan o no con /api
 
 Las urls comienzan *sin* /api si en /config/config.php 
@@ -413,7 +426,6 @@ class DumbAuthController extends ResourceController
 Api Controller:
 
 Un ApiController es un tipo de ResourceController que sirve para procesar un endpoint y por tanto sus métodos son los verbos correspondientes: get, post, put, patch, delete, head
-
 
 ### Modelo
 
@@ -2024,6 +2036,32 @@ GET /api/v1/files?file_ext=jpg
 Borrar un archivo 
 
 	DEL /api/v1/files/241
+
+
+# Make 
+
+Para generar modelos, controladores y apis se utiliza el comando make de la siguiente forma: 
+
+	php index.php make controller SuperUtilController
+o
+	php index.php make controller super_util
+
+Inclusive para controladores es posible especificar la ruta:
+
+	php index.php make controller sub1\a\cosas
+
+Para modelos:
+
+	php index.php make model SuperAlfaBetaModel
+o
+	php index.php make model super_alfa_beta
+
+Para ApiRestul controlers
+
+	php index.php make api SuperAlfaBeta
+	php index.php make api super_alfa_beta
+
+<-- el index.php está en la carpeta public
 
 
 # NGINX web server

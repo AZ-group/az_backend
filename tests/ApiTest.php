@@ -11,6 +11,7 @@ require_once __DIR__ . '../../vendor/autoload.php';
 use PHPUnit\Framework\TestCase;
 use simplerest\models\UsersModel;
 use simplerest\libs\DB;
+use simplerest\libs\Factory;
 use simplerest\libs\Debug;
 
 define('HOST', 'simplerest.lan');
@@ -120,7 +121,7 @@ class ApiTest extends TestCase
 
     function __construct() {
 		parent::__construct();
-        $this->config = include 'config/config.php';
+        $this->config = Factory::config();
 
         list($this->at, $this->rt) = $this->login(['email' => "tester3@g.c", "password" => "gogogo"]);
         $this->uid = $this->get_me($this->at)['id'];

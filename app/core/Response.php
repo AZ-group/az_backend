@@ -28,7 +28,7 @@ class Response
 
     public function __destruct()
     {
-        DB::closeConnection();
+        DB::closeAllConnections();
     }    
 
     static function getInstance(){
@@ -156,9 +156,11 @@ class Response
             exit; 
     }
  
-    // cambiar:
+
     function sendOK(){
-        http_response_code(200);
+        if (!headers_sent()) {
+            http_response_code(200);
+        }
         exit;
     }
 
@@ -166,8 +168,10 @@ class Response
     function sendJson($data, int $http_code = NULL){
         $http_code = $http_code != NULL ? $http_code : (static::$http_code !== null ? static::$http_code : 200);
         
-        header(trim('HTTP/'.static::$version.' '.$http_code.' '.static::$http_code_msg));
-       
+        if (!headers_sent()) {
+            header(trim('HTTP/'.static::$version.' '.$http_code.' '.static::$http_code_msg));
+        }
+
         $res =  $this->encode([ 
                                 'data' => $data, 
                                 'status_code' => $http_code,
@@ -197,15 +201,16 @@ class Response
      * @return void
      */
     function sendError(string $msg_error, int $http_code = NULL, $error_detail= NULL){
-        if ($http_code == NULL)
-            if (static::$http_code != NULL)
-                $http_code = static::$http_code;
-            else
-                $http_code = 500;
-  
-        if ($http_code != NULL && !static::$fake_status_codes)
-            header(trim('HTTP/'.static::$version.' '.$http_code.' '.static::$http_code_msg));
-
+        if (!headers_sent()) {
+            if ($http_code == NULL)
+                if (static::$http_code != NULL)
+                    $http_code = static::$http_code;
+                else
+                    $http_code = 500;
+    
+            if ($http_code != NULL && !static::$fake_status_codes)
+                header(trim('HTTP/'.static::$version.' '.$http_code.' '.static::$http_code_msg));
+        }    
         
         $res =  $this->encode([ 
                                 'status_code' => $http_code,
