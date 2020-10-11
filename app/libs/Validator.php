@@ -6,16 +6,17 @@ use simplerest\core\interfaces\IValidator;
 
 /*
 	Validador de campos de formulario
-	Ver 2.0 Beta
+	Ver 2.1 Beta
 
 	@author boctulus
-	
-	Novedad: el desacople de reglas y datos
 */
 class Validator implements IValidator
 {
 	protected $required  = true;
 	protected $ignored_fields = [];
+
+	static protected $rules = [];
+	static protected $rule_types = [];
 
 	function setRequired(bool $state){
 		$this->required = $state;
@@ -25,6 +26,89 @@ class Validator implements IValidator
 	function ignoreFields(array $fields){
 		$this->ignored_fields = $fields;
 		return $this;
+	}
+
+	function __construct(){
+		static::loadRules();
+	}
+
+	// default rules
+	static function loadRules(){
+		static::$rules = [ 
+			'bool' => function($dato) {
+				return $dato == 0 || $dato == 1;
+			},
+			'int' => function($dato) {
+				return preg_match('/^(-?[0-9]+)+$/',trim($dato)) == 1;
+			},
+			'float' => function($dato) {
+				$dato = trim($dato);
+				return is_numeric($dato);
+			},
+			'number' => function($dato) {
+				$dato = trim($dato);
+				return ctype_digit($dato) || is_numeric($dato);
+			},
+			'str' => function($dato) {
+				return is_string($dato);
+			},
+			'alpha' => function($dato) {                                   
+				return (preg_match('/^[a-z]+$/i',$dato) == 1); 
+			},	
+			'alpha_num' => function($dato) {                                     
+				return (preg_match('/^[a-z0-9]+$/i',$dato) == 1);
+			},
+			'alpha_dash' => function($dato) {                                     
+				return (preg_match('/^[a-z\-_]+$/i',$dato) == 1);
+			},
+			'alpha_num_dash' => function($dato) {                                    
+				return (preg_match('/^[a-z0-9\-_]+$/i',$dato) == 1);
+			},	
+			'alpha_spaces' => function($dato) {                                     
+				return (preg_match('/^[a-z ]+$/i',$dato) == 1);  
+			},
+			'alpha_utf8' => function($dato) {                                    
+				return (preg_match('/^[\pL\pM]+$/u',$dato) == 1); 
+			},
+			'alpha_num_utf8' => function($dato) {                                    
+				return (preg_match('/^[\pL\pM0-9]+$/u',$dato) == 1);
+			},
+			'alpha_dash_utf8' => function($dato) {                                   
+				return (preg_match('/^[\pL\pM\-_]+$/u',$dato) == 1); 	
+			},
+			'alpha_spaces_utf8' => function($dato) {                                   
+				return (preg_match('/^[\pL\pM\p{Zs}]+$/u',$dato) == 1); 		
+			},
+			'not_num' => function($dato) {
+				return preg_match('/[0-9]+/',$dato) == 0;
+			},
+			'email' => function($dato) {
+				return filter_var($dato, FILTER_VALIDATE_EMAIL);
+			},
+			'url' => function($dato) {
+				return filter_var($dato, FILTER_VALIDATE_URL);
+			},
+			'mac' => function($dato) {
+				return filter_var($dato, FILTER_VALIDATE_MAC);
+			},		
+			'domain' => function($dato) {
+				return filter_var($dato, FILTER_VALIDATE_DOMAIN);
+			},
+			'date' => function($dato) {
+				return get_class()::isValidDate($dato);
+			},
+			'time' => function($dato) {
+				return get_class()::isValidDate($dato,'H:i:s');
+			},			
+			'datetime' => function($dato) {
+				return preg_match('/[1-2][0-9]{3}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-5][0-9]/',$dato)== 1;
+			},
+			'array' => function($dato) {
+				return is_array($dato);
+			}
+		];		
+		
+		static::$rule_types = array_keys(static::$rules);
 	}
 
 	/*
@@ -44,65 +128,25 @@ class Validator implements IValidator
 		
 		if (empty($tipo))
 			throw new \InvalidArgumentException('Data type is undefined');
-
-		if ($tipo == 'bool' || $tipo == 'boolean'){
-			return $dato == 0 || $dato == 1;
-		}elseif ($tipo == 'int' || $tipo == 'integer'){
-			return preg_match('/^(-?[0-9]+)+$/',trim($dato)) == 1;
-		}elseif($tipo == 'decimal' || $tipo == 'float' || $tipo == 'double'){
-			$dato = trim($dato);
-			return is_numeric($dato);
-		}elseif($tipo == 'number'){
-			$dato = trim($dato);
-			return ctype_digit($dato) || is_numeric($dato);
-		}elseif($tipo == 'string' || $tipo == 'str'){
-			return is_string($dato);
-		}elseif($tipo == 'alpha'){                                     
-			return (preg_match('/^[a-z]+$/i',$dato) == 1); 
-		}elseif($tipo == 'alpha_num'){                                     
-			return (preg_match('/^[a-z0-9]+$/i',$dato) == 1);
-		}elseif($tipo == 'alpha_dash'){                                     
-			return (preg_match('/^[a-z\-_]+$/i',$dato) == 1);
-		}elseif($tipo == 'alpha_num_dash'){                                     
-			return (preg_match('/^[a-z0-9\-_]+$/i',$dato) == 1);
-		}elseif($tipo == 'alpha_spaces'){                                     
-			return (preg_match('/^[a-z ]+$/i',$dato) == 1);  
-		}elseif($tipo == 'alpha_utf8'){                                     
-			return (preg_match('/^[\pL\pM]+$/u',$dato) == 1); 
-		}elseif($tipo == 'alpha_num_utf8'){                                     
-			return (preg_match('/^[\pL\pM0-9]+$/u',$dato) == 1);
-		}elseif($tipo == 'alpha_dash_utf8'){                                     
-			return (preg_match('/^[\pL\pM\-_]+$/u',$dato) == 1); 	
-		}elseif($tipo == 'alpha_spaces_utf8'){                                     
-			return (preg_match('/^[\pL\pM\p{Zs}]+$/u',$dato) == 1); 		
-		}elseif($tipo == 'not_num'){
-			return preg_match('/[0-9]+/',$dato) == 0;
-		}elseif($tipo == 'email'){
-				return filter_var($dato, FILTER_VALIDATE_EMAIL);
-		}elseif($tipo == 'url'){
-				return filter_var($dato, FILTER_VALIDATE_URL);
-		}elseif($tipo == 'mac'){
-				return filter_var($dato, FILTER_VALIDATE_MAC);
-		}elseif($tipo == 'domain'){
-				return filter_var($dato, FILTER_VALIDATE_DOMAIN);
-		}elseif($tipo == 'date'){
-				return get_class()::isValidDate($dato);
-		}elseif($tipo == 'time'){
-				return get_class()::isValidDate($dato,'H:i:s');	
-		}elseif($tipo == 'datetime'){
-				return preg_match('/[1-2][0-9]{3}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-5][0-9]/',$dato)== 1;
-		// formato: 'regex:/expresion/'			
-		}elseif ((substr($tipo,0,6)=='regex:')){
+			
+		if (substr($tipo,0,6) == 'regex:'){
 			try{
 				$regex = substr($tipo,6);
 				return preg_match($regex,$dato) == 1;	
 			}catch(\Exception $e){
 				throw new \InvalidArgumentException('Invalid regular expression!');
 			}	
-		}elseif($tipo == 'array'){
-				return is_array($dato);			
-		}else
-			throw new \InvalidArgumentException(sprintf(_('Invalid data type for %s'), $dato));	
+		}
+
+		if (static::$rules == []){
+			static::loadRules();
+		}
+
+		if (!in_array($tipo, static::$rule_types)){
+			throw new \InvalidArgumentException(sprintf(_('Invalid data type for %s'), $tipo));	
+		}
+
+		return static::$rules[$tipo]($dato);
 	}	
 
 

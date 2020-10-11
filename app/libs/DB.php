@@ -152,4 +152,20 @@ class DB {
 		return $result;
     }
 		
+	// falta hacer que acepte parámetros
+	//
+	// https://laravel.com/docs/5.0/database
+	//
+	public static function select(string $raw_sql, $params = []){
+		$conn = DB::getConnection();
+        
+        $st = $conn->prepare($raw_sql);
+        $st->execute();
+
+		$result = $st->fetchAll(\PDO::FETCH_ASSOC);
+		return $result;
+	}
+
+	// faltan otras funciones raw para DELETE, UPDATE e INSERT
+
 }

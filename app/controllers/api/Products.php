@@ -12,6 +12,5 @@ class Products extends MyApiController
     {       
         parent::__construct();
     }
-    
-        
+       
 } // end class

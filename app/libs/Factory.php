@@ -11,6 +11,16 @@ class Factory {
 		return \simplerest\core\Request::getInstance();
 	}
 
+	static function validador(){
+		static $instance;
+
+		if ($instance == null){
+			$instance = new  \simplerest\libs\Validator();
+		}
+
+        return $instance;
+	}
+
 	static function acl(){
 		static $instance;
 

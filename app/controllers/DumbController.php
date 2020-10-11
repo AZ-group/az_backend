@@ -12,6 +12,7 @@ use simplerest\models\ProductsModel;
 use simplerest\models\UserRolesModel;
 use PHPMailer\PHPMailer\PHPMailer;
 use simplerest\libs\Utils;
+use simplerest\libs\Strings;
 use simplerest\libs\Validator;
 //use GuzzleHttp\Client;
 //use Guzzle\Http\Message\Request;
@@ -1566,6 +1567,11 @@ class DumbController extends Controller
         echo '</pre>';
     }
 
+    function test_raw(){
+        $res = DB::select('SELECT * FROM baz');
+        var_dump($res);
+    }
+
     function get_role_permissions(){
         $acl = Factory::acl();
 
@@ -1582,37 +1588,35 @@ class DumbController extends Controller
     }
 
   
-    function speed(){
-        $n = 5;
+    function xxx(){ 
+        var_dump(Validator::isType('8', 'str'));
+    }
 
-        function config(){
-            static $arr;
-    
-            if ($arr == null){
-                $arr = include CONFIG_PATH . 'config.php';
-            }
-    
-            return $arr;
-        }
+    function speed(){
+        $rules = [
+            'nombre' => ['type' => 'alpha_spaces_utf8', 'min'=>3, 'max'=>40],
+            'username' => ['type' => 'alpha_dash', 'min'=> 3, 'max' => '15'],
+            'rol' => ['type' => 'int', 'not_in' => [2, 4, 5]],
+            'poder' => ['not_between' => [4,7] ],
+            'edad' => ['between' => [18, 100]],
+            'magia' => [ 'in' => [3,21,81] ]
+        ];
+        
+        $data = [
+            'nombre' => 'Juan Español',
+            'username' => 'juan_el_mejor',
+            'rol' => 5,
+            'poder' => 6,
+            'edad' => 101,
+            'magia' => 22
+        ];
 
         Time::setUnit('MILI');
-        $t1 = Time::exec_speed(function(){ 
-            $config = include CONFIG_PATH . 'config.php';
-        }, $n); 
+        $t1 = Time::exec_speed(function() use($data, $rules){ 
+            Factory::validador()->validate($rules,$data);
+        }, 1000); 
         
-        print_r("$t1 mili seconds \n");
-
-
-        $t2 = Time::exec_speed(function(){ 
-            $config = config();
-        }, $n); 
-        
-        print_r("$t2 mili seconds \n");
-
-        $times = $t1/$t2;
-        print_r("Es $times veces más rápido \n");
-
-        //Files::logger("$t mili seconds");
+        Debug::dd("Time: $t1 ms");
     }
 
     function get_con(){
@@ -1645,5 +1649,31 @@ class DumbController extends Controller
 
         DB::closeAllConnections();
         Debug::export(DB::countConnections(), 'Number of active connections'); // 0
+    }
+
+    function read_table(){
+        $tb = 'products';
+
+        $fields = DB::select("SHOW COLUMNS FROM $tb");
+        
+        $field_names = [];
+        $nullables = [];
+
+        foreach ($fields as $field){
+            $field_names[] = $field['Field'];
+            if ($field['Null']  == 'YES') { $nullables[] = $field['Field']; }
+            if ($field['Extra'] == 'auto_increment') { $not_fillable[] = $field['Field']; }
+        }
+
+        Debug::dd($field_names);
+    }
+
+    function zzz(){
+        $arr = ['el', 'dia', 'que', 'me', 'quieras'];
+        $arr = array_map(function($x){ return "'$x'"; }, $arr);
+        
+        var_dump($arr);
+        
+        //echo implode('-', $arr);
     }
 }

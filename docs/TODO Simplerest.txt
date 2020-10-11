@@ -14,7 +14,7 @@
 
 Prueba: 
 
-  GET /api/v1/users?fields=email                70 mili - 6300 mili seg  
+  GET /api/v1/users?fields=email                33 mili - 6300 mili seg  
 
 Valores hallados:
 
@@ -583,6 +583,27 @@ Algo interesante es que cuando se piden más registros por página del límite u
 
 - Incluir el nombre del proyecto en un salt sobre las secret keys para evitar que un token generado en un proyecto funcione en otro con las mismas secret keys. O sea aplicar una secret_key = fn(secret_key, nombre_proyecto)
 
+- ¿ Cuándo se activa la cache para una petición HTTP? cuando es idempotente? por qué un GET no se cachea????
+
+  <?php
+
+  header('Cache-Control: max-age=2592000, public');
+
+  sleep(1);
+  echo json_encode(['msg'=> 'Some msg']); // +1 seg desp
+
+
+Será que requiero de un proxy?  
+
+https://developer.mozilla.org/en-US/docs/Web/HTTP/Caching
+https://www.mnot.net/cache_docs/
+https://www.imperva.com/learn/performance/cache-control/
+https://developers.google.com/web/fundamentals/performance/get-started/httpcaching-6
+https://www.ibm.com/support/knowledgecenter/SSMAMS/com.ibm.mif.doc/gp_intfrmwk/rest_api/c_rest_get_caching.html
+https://web.dev/http-cache/
+https://tech.ebayinc.com/engineering/caching-http-post-requests-and-responses/
+https://developer.cdn.mozilla.net/es/docs/Web/HTTP/Caching
+
 
 - Implementar una forma sencilla de enviar correos, quizás como en Laravel
 
@@ -620,6 +641,8 @@ Algo interesante es que cuando se piden más registros por página del límite u
 
 - Redis con API Rest ? SI ! implementar serializacion del ACL y caché para todo incluidas las consultas 
 https://docs.phalcon.io/4.0/en/acl#serialization
+
+- Redis para el Validator ! si se repite la misma regla + dato o los arrays de datos o datos + reglas, entregar la misma respuesta. Igualmente el validador parece ser bastante eficiente. Usar versión compilada y cacheada de las reglas. 
 
 - Implementar  (colas) como en Laravel para tareas pesadas como enviar correos o procesar imágenes o elaborar reportes en cuyo caso debería devolver Accepted.
 
@@ -955,6 +978,10 @@ https://stackoverflow.com/a/49611482/980631
 Swagger is a widely-used tool to document REST APIs that provides a way to explore the use of a specific API, therefore allowing developers to understand the underlying semantic behavior. It’s a declarative way of adding documentation using annotations which further generates a JSON describing APIs and their usage.
 
 - Al generar los modelos..... opcionalmente modificar la tabla correspondiente agregando el campo `deleted_at` y `belongs_to` 
+
+- Eventualmente agregar más comandos a Make como Laravel
+
+https://quickadminpanel.com/blog/list-of-21-artisan-make-commands-with-parameters/
 
 - Ofrecer la forma de filtrado compatible con JSON:API
 

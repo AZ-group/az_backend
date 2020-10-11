@@ -8,7 +8,7 @@ use simplerest\core\Response;
 use simplerest\libs\Factory;
 use simplerest\libs\DB;
 
-class __NAME__Controller extends Controller
+class __NAME__ extends Controller
 {
     function __construct()
     {

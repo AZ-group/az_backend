@@ -890,7 +890,7 @@ class AuthController extends Controller implements IAuth
         sino no hacer nada.
     */
 	function rememberme(){
-		$data  = Factory::request()->getBody(false);
+		$data  = Factory::request()->getBody();
 
 		if ($data == null)
 			Factory::response()->sendError('Invalid JSON',400);

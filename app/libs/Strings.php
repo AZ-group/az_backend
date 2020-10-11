@@ -56,6 +56,10 @@ class Strings {
 		return $haystack;
     }
 
+	static function replace($search, $replace, &$subject, $count = NULL){
+		$subject = str_replace($search, $replace, $subject, $count);
+	}
+
     /**
 	 * gen_secret_key - scretet_key generator
 	 *
