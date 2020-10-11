@@ -244,7 +244,7 @@ class Validator implements IValidator
 				
 				if (isset($rule['in'])){
 					if (!is_array($rule['in']))
-						throw new \InvalidArgumentException("in requieres an array");
+						throw new \InvalidArgumentException("IN requieres an array");
 
 					$err = (isset($msg[$field]['in'])) ? $msg[$field]['in'] :  sprintf(_("%s is not a valid value"),$dato);
 					if (!in_array($dato, $rule['in'])){
@@ -288,7 +288,7 @@ class Validator implements IValidator
 					}					
 				}
 
-				if (isset($rule['type']) && in_array($rule['type'],['numeric','number','int','integer','float','double','decimal']) && trim($dato)=='')
+				if (isset($rule['type']) && in_array($rule['type'],['number','int','float','decimal']) && trim($dato)=='')
 					$avoid_type_check = true;
 				
 				if (isset($rule['type']) && !$avoid_type_check)
@@ -299,7 +299,7 @@ class Validator implements IValidator
 					
 						
 				if(isset($rule['type'])){	
-					if (in_array($rule['type'],['str','string','not_num','email']) || strpos($rule['type'], 'regex:') === 0 ){
+					if (in_array($rule['type'],['str','not_num','email']) || strpos($rule['type'], 'regex:') === 0 ){
 							
 							if(isset($rule['min'])){ 
 								$rule['min'] = (int) $rule['min'];
@@ -319,10 +319,10 @@ class Validator implements IValidator
 							}
 					}	
 					
-					if(in_array($rule['type'],['numeric','number','int','integer','float','double','decimal'])){
+					if(in_array($rule['type'],['number','int','float','decimal'])){
 							
 							if(isset($rule['min'])){ 
-								$rule['min'] = (int) $rule['min'];
+								$rule['min'] = (float) $rule['min']; // cast
 								if($dato<$rule['min']){
 									$err = (isset($msg[$field]['min'])) ? $msg[$field]['min'] :  'Minimum is %d';
 									$push_error($field,['data'=>$dato, 'error'=>'min', 'error_detail' => sprintf(_($err), $rule['min'])],$errores);
@@ -331,7 +331,7 @@ class Validator implements IValidator
 							}
 							
 							if(isset($rule['max'])){ 
-								$rule['max'] = (int) $rule['max'];
+								$rule['max'] = (float) $rule['max']; // cast
 								if($dato>$rule['max']){
 									$err = (isset($msg[$field]['max'])) ? $msg[$field]['max'] :  'Maximum is %d';
 

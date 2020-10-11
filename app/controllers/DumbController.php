@@ -1201,10 +1201,11 @@ class DumbController extends Controller
         $rules = [
             'nombre' => ['type' => 'alpha_spaces_utf8', 'min'=>3, 'max'=>40],
             'username' => ['type' => 'alpha_dash', 'min'=> 3, 'max' => '15'],
-            'rol' => ['type' => 'integer', 'not_in' => [2, 4, 5]],
+            'rol' => ['type' => 'int', 'not_in' => [2, 4, 5]],
             'poder' => ['not_between' => [4,7] ],
             'edad' => ['between' => [18, 100]],
-            'magia' => [ 'in' => [3,21,81] ]
+            'magia' => [ 'in' => [3,21,81] ],
+            'active' => ['type' => 'bool', 'messages' => [ 'type' => 'Value should be 0 or 1'] ]
         ];
         
         $data = [
@@ -1213,7 +1214,8 @@ class DumbController extends Controller
             'rol' => 5,
             'poder' => 6,
             'edad' => 101,
-            'magia' => 22
+            'magia' => 22,
+            'active' => 3
         ];
 
         $v = new Validator();
@@ -1599,7 +1601,8 @@ class DumbController extends Controller
             'rol' => ['type' => 'int', 'not_in' => [2, 4, 5]],
             'poder' => ['not_between' => [4,7] ],
             'edad' => ['between' => [18, 100]],
-            'magia' => [ 'in' => [3,21,81] ]
+            'magia' => [ 'in' => [3,21,81] ],
+            'active' => ['type' => 'bool', 'messages' => [ 'type' => 'Value should be 0 or 1'] ]
         ];
         
         $data = [
@@ -1608,13 +1611,14 @@ class DumbController extends Controller
             'rol' => 5,
             'poder' => 6,
             'edad' => 101,
-            'magia' => 22
+            'magia' => 22,
+            'active' => 3
         ];
 
         Time::setUnit('MILI');
         $t1 = Time::exec_speed(function() use($data, $rules){ 
             Factory::validador()->validate($rules,$data);
-        }, 1000); 
+        }, 100); 
         
         Debug::dd("Time: $t1 ms");
     }
@@ -1675,5 +1679,16 @@ class DumbController extends Controller
         var_dump($arr);
         
         //echo implode('-', $arr);
+    }
+
+    function speed2(){
+        Time::setUnit('MILI');
+        Time::noOutput();
+
+        $t = Time::exec_speed(function(){ 
+            $this->filter_products3();
+        }, 1000);       
+        
+        Debug::dd("Time: $t ms");
     }
 }

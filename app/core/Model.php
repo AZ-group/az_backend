@@ -5,6 +5,7 @@ namespace simplerest\core;
 use simplerest\libs\Arrays;
 use simplerest\libs\Strings;
 use simplerest\libs\Validator;
+use simplerest\libs\ValidationRules;
 use simplerest\libs\Factory;
 use simplerest\libs\Debug;
 use simplerest\core\interfaces\IValidator;
@@ -72,6 +73,7 @@ class Model {
 	protected $soft_delete;
 	protected $last_inserted_id;
 	protected $paginator = true;
+	protected $rules = [];
 	protected $fetch_mode_default = \PDO::FETCH_ASSOC;
 	protected $data = []; 
 
@@ -165,6 +167,10 @@ class Model {
 		}		
 	}
 
+
+	function addRules(ValidationRules $vr){
+		$this->rules = array_merge($this->rules, $vr->getRules());
+	}
 
 	/*
 		Returns prmary key

@@ -4,9 +4,15 @@ namespace simplerest\libs;
 
 class Time {
     static $unit;   
+    static $capture_buffer = false;
 
     static function setUnit($u){
         static::$unit = $u;
+    }
+
+    static function noOutput(){
+        ob_start();
+        static::$capture_buffer = true;
     }
 
 	static function exec_speed(callable $callback, int $iterations = 100000){
@@ -28,7 +34,11 @@ class Time {
 
         if (static::$unit == 'NANO'){
             $t = $t * 1000000000;
-         }
+        }
+
+        if (static::$capture_buffer){
+            ob_end_clean(); 
+        }
 
         return $t;
     }

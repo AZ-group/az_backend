@@ -1,5 +1,14 @@
 # TODO
 
+
+- Implementación de migraciones:
+
+make model :  DB -----> Model [ done ]
+migration  :  Model --> DB
+
+No se implementará una migración que pase de la DB a modelo, en todo caso hay que evitar tocar la base de datos directamente luego de creado el modelo o borrar el modelo y re-generarlo con "make model".
+
+
 - Definir DB !!!
 
 - Descular porque un POST puede tardar 2000 ms y rara vez 60 ms que sería algo "normal" 

@@ -134,8 +134,20 @@ abstract class ApiController extends ResourceController
                 */
 
                 case 'GET': 
-                    $this->is_listable     = ($perms & 16) AND 1 || ($perms & 64) AND 1;
-                    $this->is_retrievable  = ($perms & 8 ) AND 1 || ($perms & 32) AND 1;
+                    // sería más eficiente chequear read_all directamente si existe.
+                    // usar isAllowed()
+
+                    if ($this->acl->hasResourcePermission('list_all', $this->roles, $this->model_table)){
+                        $this->is_listable    = true;
+                    } else {
+                        $this->is_listable     = (($perms & 16) AND 1) || (($perms & 64) AND 1);
+                    }
+
+                    if ($this->acl->hasResourcePermission('show_all', $this->roles, $this->model_table)){
+                        $this->is_retrievable    = true;
+                    } else {
+                        $this->is_retrievable  = (($perms & 8 ) AND 1) || (($perms & 32) AND 1);
+                    } 
 
                     if ($this->is_listable || $this->is_retrievable){
                         $this->addCallable('get');
@@ -267,7 +279,7 @@ abstract class ApiController extends ResourceController
         // Si el rol no le permite a un usuario ver un recurso aunque se le comparta un folder tampoco podrá listarlo
         
         if ($id == null && !$this->is_listable)
-            Factory::response()->sendError('Unauthorized', 403, "You are not allowed to list");    
+            Factory::response()->sendError('Unauthorized', 403, "You are not allowed to list!!!");    
 
         if ($id != null && !$this->is_retrievable)
             Factory::response()->sendError('Unauthorized', 401, "You are not allowed to retrieve");  

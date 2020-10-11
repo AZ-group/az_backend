@@ -2,6 +2,7 @@
 namespace simplerest\models;
 
 use simplerest\core\Model;
+use simplerest\libs\ValidationRules;
 
 /*
 	Product extends Model to have access to reflection
@@ -42,7 +43,7 @@ class ProductsModel extends Model
 	
 	protected $nullable = ['id', 'description', 'size', 'active', 'locked', 'workspace', 'created_at', 'updated_at', 'deleted_at', 'deleted_by' ];
 
-
+	/*
 	protected $rules = [
         'name' 			=> ['min'=>3, 'max'=>40],
 		'description' 	=> ['max'=>50],
@@ -50,8 +51,18 @@ class ProductsModel extends Model
 		'workspace'		=> ['max'=>20],
 		'active'		=> ['type' => 'bool', 'messages' => [ 'type' => 'Value should be 0 or 1'] ]
 	];
+	*/
 
-    function __construct($db = NULL){
+	function __construct($db = NULL){
+		$this->addRules((new ValidationRules())
+			->field('id')->type('int')->required()
+			->field('name')->type('str')->max(40)->min(3)
+			->field('description')->type('str')->max(50)
+			->field('size')->type('str')->max(20)
+			->field('workspace')->type('str')->max(20)
+			->field('active')->type('bool', 'Value should be 0 or 1')
+		);
+		
 		parent::__construct($db);
 	}
 
