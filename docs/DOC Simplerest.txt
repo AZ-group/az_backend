@@ -2055,24 +2055,31 @@ Borrar un archivo
 
 Para generar modelos, controladores y apis se utiliza el comando make de la siguiente forma: 
 
-	php index.php make controller SuperUtilController
-o
-	php index.php make controller super_util
+	make schema SuperAwesome [-f | --force]
+    make schema super_awesome  [-f | --force]
 
-Inclusive para controladores es posible especificar la ruta:
+    make model SuperAwesomeModel  [-f | --force]
+    make model SuperAwesome [-f | --force]
+    make model super_awesome  [-f | --force]
+
+    make controller SuperAwesome  [-f | --force]
+
+    make api SuperAwesome  [-f | --force]
+    make api super_awesome  [-f | --force]
+
+    make any SuperAwesome  [-s | --schema ] 
+                            [-m | --model] 
+                            [-c | --controller ] 
+                            [-a | --api ] 
+                            [-f | --force]
+
+Ejemplo:
+    
+    make any baz -s -m -a -f
+
+Para controladores es posible especificar la ruta:
 
 	php index.php make controller sub1\a\cosas
-
-Para modelos:
-
-	php index.php make model SuperAlfaBetaModel
-o
-	php index.php make model super_alfa_beta
-
-Para ApiRestul controlers
-
-	php index.php make api SuperAlfaBeta
-	php index.php make api super_alfa_beta
 
 <-- el index.php está en la carpeta public
 

@@ -14,23 +14,28 @@ use simplerest\libs\Strings;
 
     Commands:
 
-    maker schema SuperAwesome [-f | --force]
-    maker schema super_awesome  [-f | --force]
+    make schema SuperAwesome [-f | --force]
+    make schema super_awesome  [-f | --force]
 
-    maker model SuperAwesomeModel  [-f | --force]
-    maker model SuperAwesome [-f | --force]
-    maker model super_awesome  [-f | --force]
+    make model SuperAwesomeModel  [-f | --force]
+    make model SuperAwesome [-f | --force]
+    make model super_awesome  [-f | --force]
 
-    maker controller SuperAwesome  [-f | --force]
+    make controller SuperAwesome  [-f | --force]
 
-    maker api SuperAwesome  [-f | --force]
-    maker api super_awesome  [-f | --force]
+    make api SuperAwesome  [-f | --force]
+    make api super_awesome  [-f | --force]
 
-    maker any SuperAwesome  [ -s | --schema ] 
-                            [ -m | --model] 
+    make any SuperAwesome  [-s | --schema ] 
+                            [-m | --model] 
                             [-c | --controller ] 
-                            [ -a | --api ] 
+                            [-a | --api ] 
                             [-f | --force]
+
+    Example:
+    
+    make any baz -s -m -a -f
+
 */
 class MakeController extends Controller
 {
@@ -40,6 +45,12 @@ class MakeController extends Controller
     const SCHEMA_TEMPLATE = CORE_PATH . 'templates' . DIRECTORY_SEPARATOR. 'Schema.php';
     const CONTROLLER_TEMPLATE = CORE_PATH . 'templates' . DIRECTORY_SEPARATOR. 'Controller.php';
     const API_TEMPLATE = CORE_PATH . 'templates' . DIRECTORY_SEPARATOR. 'ApiRestfulController.php';
+
+    protected $class_name;
+    protected $model_name;
+    protected $ctr_name;
+    protected $api_name; 
+    protected $model_table;
 
     function __construct()
     {
@@ -51,6 +62,9 @@ class MakeController extends Controller
     }
 
     function setup($name) {
+        if ($this->class_name != NULL)
+            return;
+
         $name_lo = strtolower($name);
 
         if (Strings::endsWith('model', $name_lo)){
@@ -83,6 +97,29 @@ class MakeController extends Controller
         
         //Debug::export($this->model_name,  'model name');
         //Debug::export($this->model_table, 'table name');
+    }
+
+    /*
+        make any SuperAwesome  [-s | --schema ] 
+                                [-m | --model] 
+                                [-c | --controller ] 
+                                [-a | --api ] 
+                                [-f | --force]
+    */
+    function any($name, ...$opt){
+        if (in_array('-s', $opt) || in_array('--schema', $opt)){
+            $this->schema($name, ...$opt);
+        }
+        if (in_array('-m', $opt) || in_array('--model', $opt)){
+            $this->model($name, ...$opt);
+        }
+        if (in_array('-a', $opt) || in_array('--api', $opt)){
+            $this->api($name, ...$opt);
+        }
+        if (in_array('-c', $opt) || in_array('--controller', $opt)){
+            $opt = array_intersect($opt, ['-f', '--force']);
+            $this->controller($name, ...$opt);
+        }
     }
 
     function controller($name, ...$opt) {
@@ -257,7 +294,7 @@ class MakeController extends Controller
 
         // destination
         $dest_path = MODELS_PATH . $filename;
-      
+
         if (file_exists($dest_path) && !in_array('-f', $options) && !in_array('--force', $options)){
             throw new \Exception("File $dest_path alreay exists. Use -f or --force if you want to override.");
         }
