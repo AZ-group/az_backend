@@ -576,6 +576,14 @@ class DumbController extends Controller
         ->get());
     }
 
+    function testx(){
+        $rows = DB::table('products')
+        ->whereNotNull('name')
+        ->get();
+
+        Debug::dd($rows);
+    }
+
     // SELECT * FROM products WHERE name IN ('CocaCola', 'PesiLoca') OR cost IN (100, 200)  OR cost >= 550 AND deleted_at IS NULL
     function filter_products3(){
 

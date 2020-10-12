@@ -5,12 +5,12 @@ namespace simplerest\models;
 use simplerest\core\Model;
 use simplerest\libs\Factory;
 use simplerest\libs\DB;
-### ADDITIONAL IMPORTS
+### IMPORTS
 
 class SuperCoolTableModel extends Model
  { 
 	### TRAITS
-	### ADDITIONAL PROPERTIES
+	### PROPERTIES
 
 	/*
 		Types are INT, STR and BOOL among others

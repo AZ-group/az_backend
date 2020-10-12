@@ -14,19 +14,30 @@ use simplerest\libs\Strings;
 
     Commands:
 
-    maker model SuperAwesome
-    maker model super_awesome
+    maker schema SuperAwesome [-f | --force]
+    maker schema super_awesome  [-f | --force]
 
-    maker controller SuperAwesome
+    maker model SuperAwesomeModel  [-f | --force]
+    maker model SuperAwesome [-f | --force]
+    maker model super_awesome  [-f | --force]
 
-    maker api SuperAwesome
-    maker api super_awesome
+    maker controller SuperAwesome  [-f | --force]
 
-    maker all SuperAwesome <-- sin implementar
+    maker api SuperAwesome  [-f | --force]
+    maker api super_awesome  [-f | --force]
+
+    maker any SuperAwesome  [ -s | --schema ] 
+                            [ -m | --model] 
+                            [-c | --controller ] 
+                            [ -a | --api ] 
+                            [-f | --force]
 */
 class MakeController extends Controller
 {
-    const MODEL_TEMPLATE = CORE_PATH . 'templates' . DIRECTORY_SEPARATOR. 'Model.php';
+    const SCHEMAS_PATH = MODELS_PATH . 'schemas' . DIRECTORY_SEPARATOR;
+
+    const MODEL_TEMPLATE  = CORE_PATH . 'templates' . DIRECTORY_SEPARATOR. 'Model.php';
+    const SCHEMA_TEMPLATE = CORE_PATH . 'templates' . DIRECTORY_SEPARATOR. 'Schema.php';
     const CONTROLLER_TEMPLATE = CORE_PATH . 'templates' . DIRECTORY_SEPARATOR. 'Controller.php';
     const API_TEMPLATE = CORE_PATH . 'templates' . DIRECTORY_SEPARATOR. 'ApiRestfulController.php';
 
@@ -65,6 +76,7 @@ class MakeController extends Controller
         }
 
         $this->model_table  = $model_table;
+        $this->class_name   = $class_name;
         $this->model_name   = $class_name . 'Model';
         $this->ctr_name     = $class_name . 'Controller';
         $this->api_name     = $class_name;     
@@ -73,7 +85,7 @@ class MakeController extends Controller
         //Debug::export($this->model_table, 'table name');
     }
 
-    function controller($name) {
+    function controller($name, ...$opt) {
         $name = str_replace('/', DIRECTORY_SEPARATOR, $name);
         $namespace = 'simplerest\\controllers';
 
@@ -91,8 +103,8 @@ class MakeController extends Controller
         $filename = $this->ctr_name.'.php';
         $path = CONTROLLERS_PATH . $sub_path . $filename;
 
-        if (file_exists($path)){
-            throw new \Exception("File $path alreay exists");
+        if (file_exists($path) && !in_array('-f', $options) && !in_array('--force', $options)){
+            throw new \Exception("File $path alreay exists. Use -f or --force if you want to override.");
         }
 
         $data = file_get_contents(self::CONTROLLER_TEMPLATE);
@@ -108,14 +120,14 @@ class MakeController extends Controller
         } 
     }
 
-    function api($name) { 
+    function api($name, ...$options) { 
         $this->setup($name);    
     
         $filename = $this->api_name.'.php';
 
         $path = API_PATH . $filename;
-        if (file_exists($path)){
-            throw new \Exception("File $path alreay exists");
+        if (file_exists($path) && !in_array('-f', $options) && !in_array('--force', $options)){
+            throw new \Exception("File $path alreay exists. Use -f or --force if you want to override.");
         }
 
         $data = file_get_contents(self::API_TEMPLATE);
@@ -131,23 +143,21 @@ class MakeController extends Controller
         } 
     }
 
-    
-    function model($name) { 
+    function schema($name) { 
         $this->setup($name);    
     
-        $filename = $this->model_name.'.php';
+        $filename = $this->class_name.'Schema.php';
 
-        $path = MODELS_PATH . $filename;
-        if (file_exists($path)){
-            throw new \Exception("File $path alreay exists");
-        }
+        // destination
+        $dest_path = self::SCHEMAS_PATH . $filename;
 
-        $data = file_get_contents(self::MODEL_TEMPLATE);
-        $data = str_replace('__NAME__', $this->model_name, $data);
-
+        $file = file_get_contents(self::SCHEMA_TEMPLATE);
+        $file = str_replace('__NAME__', $this->class_name.'Schema', $file);
 
         $fields = DB::select("SHOW COLUMNS FROM {$this->model_table}");
         
+        $id_name =  NULL;
+        $uuid = false;
         $field_names  = [];
         $types = [];
         $types_raw = [];
@@ -167,6 +177,14 @@ class MakeController extends Controller
         foreach ($fields as $field){
             $field_names[] = $field['Field'];
             if ($field['Null']  == 'YES') { $nullables[] = $field['Field']; }
+            
+            if ($field['Key'] == 'PRI'){ 
+                if ($id_name != NULL){
+                    throw new \Exception("Only one Primary Key is allowed by convention");
+                }
+                
+                $id_name = $field['Field'];
+            }
             if ($field['Extra'] == 'auto_increment') { 
                 //$not_fillable[] = $field['Field'];
                 $nullables[] = $field['Field']; 
@@ -174,14 +192,20 @@ class MakeController extends Controller
             $types[$field['Field']] = $get_pdo_const($field['Type']);
             $types_raw[$field['Field']] = $field['Type'];
 
-            $field_name_lo = strtolower($field['Field']);
-            if ($field_name_lo == 'uuid' || $field_name_lo == 'guid'){
-                if ($types[$field['Field']] != 'STR'){
-                    printf("Warning: {$field['Field']} has not a valid type for UUID ***\r\n");
-                }
+            if ($field['Key'] == 'PRI'){ 
+                $field_name_lo = strtolower($field['Field']);
+                if ($field_name_lo == 'uuid' || $field_name_lo == 'guid'){
+                    if ($types[$field['Field']] != 'STR'){
+                        printf("Warning: {$field['Field']} has not a valid type for UUID ***\r\n");
+                    }
 
-                $uuid_name = $field['Field'];
-            }
+                    $uuid = true;
+                }
+            }    
+        }
+
+        if ($id_name == NULL){
+            throw new \Exception("No Primary Key found!");
         }
 
         $nullables = array_unique($nullables);
@@ -201,29 +225,55 @@ class MakeController extends Controller
             }
         }
 
-        $schema = "[\r\n". implode(",\r\n", $_schema). "\r\n\t]";
-        $rules  = "[\r\n". implode(",\r\n", $_rules). "\r\n\t]";
+        $schema = "[\r\n". implode(",\r\n", $_schema). "\r\n\t\t]";
+        $rules  = "[\r\n". implode(",\r\n", $_rules). "\r\n\t\t]";
 
-        if (isset($uuid_name)){
-            $nullables[] = $uuid_name;
-            Strings::replace('### ADDITIONAL IMPORTS', 'use simplerest\traits\Uuids;', $data); 
-            Strings::replace('### TRAITS', "use Uuids;\r\n", $data);
-            Strings::replace('### ADDITIONAL PROPERTIES', "protected \$id_name = '$uuid_name';", $data);          
+        if ($uuid){
+            $nullables[] = $id_name;
+            Strings::replace('### IMPORTS', 'use simplerest\traits\Uuids;', $file); 
+            Strings::replace('### TRAITS', "use Uuids;", $file);        
         }
 
-        Strings::replace('__SCHEMA__', $schema, $data);
-        Strings::replace('__NULLABLES__', '['. implode(', ',array_map($escf, $nullables)). ']',$data);        
-        Strings::replace('__NOT_FILLABLE__', '['.implode(', ',array_map($escf, $not_fillable)). ']',$data);
-        Strings::replace('__RULES__', $rules, $data);
+        Strings::replace('__ID__', "'$id_name'", $file);  
+        Strings::replace('__SCHEMA__', $schema, $file);
+        Strings::replace('__NULLABLES__', '['. implode(', ',array_map($escf, $nullables)). ']',$file);        
+        Strings::replace('__NOT_FILLABLE__', '['.implode(', ',array_map($escf, $not_fillable)). ']',$file);
+        Strings::replace('__RULES__', $rules, $file);
         
 
-        $ok = (bool) file_put_contents($path, $data);
+        $ok = (bool) file_put_contents($dest_path, $file);
         
         if (!$ok) {
-            throw new \Exception("Failed trying to write $path");
+            throw new \Exception("Failed trying to write $dest_path");
         } else {
-            print_r("$path was generated\r\n");
+            print_r("$dest_path was generated\r\n");
         } 
     }
 
+    function model($name, ...$options) { 
+        $this->setup($name);    
+
+        $filename = $this->model_name.'.php';
+
+        // destination
+        $dest_path = MODELS_PATH . $filename;
+      
+        if (file_exists($dest_path) && !in_array('-f', $options) && !in_array('--force', $options)){
+            throw new \Exception("File $dest_path alreay exists. Use -f or --force if you want to override.");
+        }
+
+        $file = file_get_contents(self::MODEL_TEMPLATE);
+        $file = str_replace('__NAME__', $this->class_name.'Model', $file);
+
+        Strings::replace('### IMPORTS', "use simplerest\\models\\schemas\\{$this->class_name}Schema;", $file); 
+        Strings::replace('### TRAITS', "use {$this->class_name}Schema;", $file); 
+            
+        $ok = (bool) file_put_contents($dest_path, $file);
+        
+        if (!$ok) {
+            throw new \Exception("Failed trying to write $dest_path");
+        } else {
+            print_r("$dest_path was generated\r\n");
+        } 
+    }
 }
