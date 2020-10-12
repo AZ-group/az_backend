@@ -157,7 +157,7 @@ class MakeController extends Controller
         $rules = [];
 
         $get_pdo_const = function (string $sql_type){
-            if (preg_match('/^int\([0-9]+\)$/', $sql_type) == 1){
+            if (preg_match('/int\([0-9]+\)$/', $sql_type) == 1){
                 return 'INT';
             } else {
                 return 'STR';

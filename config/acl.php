@@ -4,7 +4,7 @@ use simplerest\core\Acl;
 use simplerest\libs\Debug;
 
 
-$acl_cache = true;
+$acl_cache = false;
 $acl_file = '../app/security/acl.cache';
 
 // Check whether ACL data already exist
@@ -28,11 +28,14 @@ if (!$acl_cache || is_file($acl_file) !== true) {
     ->addInherit('guest')
     ->addResourcePermissions('roles', ['read'])
     ->addResourcePermissions('products', ['write'])
+    ->addResourcePermissions('products', ['write'])
+    ->addResourcePermissions('super_cool_table', ['read', 'write'])
+       
 
     ->addRole('basic', 2)
     ->addInherit('registered')
     ->addResourcePermissions('products', ['write'])
-    ->addResourcePermissions('foo', ['read'])
+ 
 
     //->addRole('registeredO', 1)
     //->addRole('registered', 10)
@@ -41,8 +44,7 @@ if (!$acl_cache || is_file($acl_file) !== true) {
     ->addInherit('registered')
     ->addResourcePermissions('products', ['read', 'write'])
     ->addResourcePermissions('foo', ['read', 'update'])
-    ->addResourcePermissions('super_cool_table', ['read', 'write'])
-
+    
     ->addRole('supervisor', 502)  // salta sino especifico el id al leerlo
     ->addInherit('registered')
     ->addResourcePermissions('users', ['read_all'])  // <--
@@ -70,7 +72,7 @@ if (!$acl_cache || is_file($acl_file) !== true) {
     //Debug::export($acl->hasResourcePermission('list', ['basic'], 'super_cool_table'));
     //Debug::export($acl->getSpPermissions());
     //Debug::export($acl->getRolePermissions(), 'perms');
-
+    //exit;    
     /////////////////////
 
     // Store serialized list into plain file

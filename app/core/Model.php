@@ -104,8 +104,7 @@ class Model {
 			if ($this->inSchema(['id'])){
 				$this->id_name = 'id';
 			} else {
-			throw new \Exception("Undefined Id for ".$this->table_name. '. Use \'id\' or $id_name to specify another field name');
-
+				throw new \Exception("Undefined Id for ".$this->table_name. '. Use \'id\' or $id_name to specify another field name');
 			}
 		}	
 		
@@ -188,8 +187,8 @@ class Model {
 	}
 
 
-	function registerInputMutator(string $field, callable $fn, bool $null_lock = false){
-		$this->input_mutators[$field] = [$fn, $null_lock];
+	function registerInputMutator(string $field, callable $fn, ?callable $apply_if_fn){
+		$this->input_mutators[$field] = [$fn, $apply_if_fn];
 		return $this;
 	}
 
@@ -206,20 +205,20 @@ class Model {
 		return $this;
 	}
 	
-	function applyInputMutator(array $data){	
-		foreach ($this->input_mutators as $field => list($fn, $null_lock)){
+	function applyInputMutator(array $data, string $current_op){	
+		if ($current_op != 'CREATE' && $current_op != 'UPDATE'){
+			throw new \InvalidArgumentException("Operation '$current_op' is invalid for Input Mutator");
+		}
+
+		foreach ($this->input_mutators as $field => list($fn, $apply_if_fn)){
 			if (!in_array($field, $this->getProperties()))
 				throw new \Exception("Invalid accesor: $field field is not present in " . $this->table_name); 
 
 			$dato = $data[$field] ?? NULL;
 					
-			if ($null_lock){
-				if ($dato !== null){
-					$data[$field] = $fn($dato);
-				}	
-			} else {
+			if ($apply_if_fn(...[$current_op, $dato])){				
 				$data[$field] = $fn($dato);
-			}					
+			} 				
 		}
 
 		return $data;
@@ -1482,10 +1481,15 @@ class Model {
 			
 		if (isset($data['created_by']))
 			unset($data['created_by']);
+	
 
-		$data = $this->applyInputMutator($data);
+		$data = $this->applyInputMutator($data, 'UPDATE');
 		$vars   = array_keys($data);
 		$values = array_values($data);
+
+		
+		//var_dump($data); ///
+		//exit;
 
 		if(!empty($this->fillable) && is_array($this->fillable)){
 			foreach($vars as $var){
@@ -1531,6 +1535,7 @@ class Model {
 		//var_export($q);
 		//var_export($vars);
 		//var_export($values);
+		//exit;
 
 		foreach($values as $ix => $val){			
 			if(is_null($val)){
@@ -1552,6 +1557,10 @@ class Model {
 		$this->last_bindings = $values;
 		$this->last_pre_compiled_query = $q;
 	 
+		if (!$this->exec){
+			return 0;
+		}
+
 		if($st->execute()) {
 			$count = $st->rowCount();
 			$this->onUpdated($data, $count);
@@ -1624,7 +1633,7 @@ class Model {
 		$this->last_bindings = $this->getBindings();
 		$this->last_pre_compiled_query = $q;
 
-		if($st->execute()) {
+		if($this->exec && $st->execute()) {
 			$count = $st->rowCount();
 			$this->onDeleted($count);
 		} else 
@@ -1646,7 +1655,7 @@ class Model {
 	
 		$this->data = $data;	
 		
-		$data = $this->applyInputMutator($data);
+		$data = $this->applyInputMutator($data, 'CREATE');
 		$vars = array_keys($data);
 		$vals = array_values($data);
 
@@ -1702,6 +1711,10 @@ class Model {
 
 		$this->last_bindings = $vals;
 		$this->last_pre_compiled_query = $q;
+
+		if (!$this->exec){
+			return NULL;
+		}	
 
 		$result = $st->execute();
 

@@ -289,13 +289,14 @@ abstract class ApiController extends ResourceController
             $this->conn = $conn = DB::getConnection();
 
             $model    = 'simplerest\\models\\'.$this->model_name;
-            $this->instance = $instance = (new $model($conn))->setFetchMode('ASSOC'); 
+            $this->instance = (new $model($conn))->setFetchMode('ASSOC'); 
+                        
+            $data    = []; 
             
-            $data    = [];
-                
             // event hook
             $this->onGettingAfterCheck($id);
 
+            $id_name = $this->instance->getIdName();
 
             if ($id == null) {            
                 foreach (['created_by', 'updated_by', 'deleted_by', 'belongs_to', 'user_id'] as $f){
@@ -345,7 +346,7 @@ abstract class ApiController extends ResourceController
             //var_export($_get);
             //exit;
                 
-            $owned = $instance->inSchema(['belongs_to']);
+            $owned = $this->instance->inSchema(['belongs_to']);
 
             $_q      = Arrays::shift($_get,'q'); /* search */
             
@@ -353,7 +354,7 @@ abstract class ApiController extends ResourceController
             $fields  = Arrays::shift($_get,'fields');
             $fields  = $fields != NULL ? explode(',',$fields) : NULL;
 
-            $properties = $instance->getProperties();
+            $properties = $this->instance->getProperties();
             
             foreach ((array) $fields as $field){
                 if (!in_array($field,$properties))
@@ -371,7 +372,7 @@ abstract class ApiController extends ResourceController
             $ignored = [];
 
             if ($exclude != null)
-                $instance->hide($exclude);
+                $this->instance->hide($exclude);
                        
             $pretty  = Arrays::shift($_get,'pretty');
 
@@ -404,14 +405,14 @@ abstract class ApiController extends ResourceController
             if ($id != null)
             {
                 $_get = [
-                    ['id', $id]
+                    [$id_name, $id]
                 ];  
 
                 if (empty($this->folder)){               
                     // root, by id          
                          
                     if ($this->isGuest()){                        
-                        if ($instance->inSchema(['guest_access'])){
+                        if ($this->instance->inSchema(['guest_access'])){
                             $_get[] = ['guest_access', 1];
                         } elseif (!empty(static::$folder_field)) {
                             $_get[] = [static::$folder_field, NULL, 'IS'];
@@ -435,7 +436,7 @@ abstract class ApiController extends ResourceController
 
                 //var_export($_get);
 
-                $rows = $instance->where($_get)->get($fields); 
+                $rows = $this->instance->where($_get)->get($fields); 
                 if (empty($rows))
                     Factory::response()->sendError('Not found', 404, $id != null ? "Registry with id=$id in table '{$this->model_table}' was not found" : '');
                 else{
@@ -649,9 +650,8 @@ abstract class ApiController extends ResourceController
                 }
                 
                 if ($id == null){
-                    $validation = (new Validator())->setRequired(false)->ignoreFields($ignored)->validate($instance->getRules(),$data);
-                    //var_export(['data' => $data, 'rules'=> $instance->getRules(), 'validation' => $validation]);
-
+                    $validation = (new Validator())->setRequired(false)->ignoreFields($ignored)->validate($this->instance->getRules(),$data);
+                    
                     if ($validation !== true)
                         throw new InvalidValidationException(json_encode($validation));
                 }      
@@ -698,13 +698,13 @@ abstract class ApiController extends ResourceController
                 }
 
                 // WHERE
-                $instance->where($_get);
+                $this->instance->where($_get);
                 //var_export($_get);
 
                 // GROUP BY
                 if ($group_by != NULL){
                     $group_by = explode(',', $group_by);
-                    $instance->groupBy($group_by);                   
+                    $this->instance->groupBy($group_by);                   
                 }                    
 
                 // HAVING
@@ -715,41 +715,41 @@ abstract class ApiController extends ResourceController
                     $hv_vv = $matches[4];                   
 
                     //var_export($matches);                    
-                    $instance->having(["$hv_fn($hv_ff)", $hv_vv, $hv_op]);
+                    $this->instance->having(["$hv_fn($hv_ff)", $hv_vv, $hv_op]);
                 }elseif (preg_match('/([a-z]+)([><=]+)([0-9\.]+)/i', $having, $matches)){
                     $hv_fn_alias = $matches[1];
                     $hv_op = $matches[2];
                     $hv_vv = $matches[3]; 
 
-                    $instance->having([$hv_fn_alias, $hv_vv, $hv_op]);
+                    $this->instance->having([$hv_fn_alias, $hv_vv, $hv_op]);
                 }
 
                 // ORDER BY
                 if ($order !=  NULL)
-                    $instance->orderBy($order);
+                    $this->instance->orderBy($order);
                 
                 // LIMIT
                 if ($limit != NULL)
-                    $instance->limit($limit);
+                    $this->instance->limit($limit);
 
                 // OFFSET
                 if ($offset != NULL)
-                    $instance->offset($offset);
+                    $this->instance->offset($offset);
 
                 /*
                     Debe incluir los alias 
                 */
                 if (!empty($fields))
-                    $instance->select($fields);
+                    $this->instance->select($fields);
 
 
                 if (isset($ag_fn)){
-                    $rows = $instance->$ag_fn($ag_ff, $ag_alias);
+                    $rows = $this->instance->$ag_fn($ag_ff, $ag_alias);
                 }else                               
-                    $rows = $instance->get();
+                    $rows = $this->instance->get();
                 
                     
-                //Debug::export($instance->dd2(), 'SQL');
+                //Debug::export($this->instance->dd2(), 'SQL');
             
                 $res = Factory::response()->setPretty($pretty);
 
@@ -805,7 +805,7 @@ abstract class ApiController extends ResourceController
         } catch (SqlException $e) { 
             Factory::response()->sendError('SQL Exception', 500, json_decode($e->getMessage())); 
         } catch (\PDOException $e) {    
-            Factory::response()->sendError('PDO Exception', 500, $e->getMessage(). ' - '. $instance->getLog()); 
+            Factory::response()->sendError('PDO Exception', 500, $e->getMessage(). ' - '. $this->instance->getLog()); 
         } catch (\Exception $e) {   
             Factory::response()->sendError($e->getMessage());
         }	    
@@ -824,14 +824,14 @@ abstract class ApiController extends ResourceController
             Factory::response()->sendError('Invalid JSON',400);
         
         $model    = '\\simplerest\\models\\'.$this->model_name;
-        $this->instance = $instance = (new $model())->setFetchMode('ASSOC');
+        $this->instance = (new $model())->setFetchMode('ASSOC');
 
-        $id = $data[$instance->getIdName()] ?? null;
+        $id = $data[$this->instance->getIdName()] ?? null;
         $this->folder = $this->folder = $data['folder'] ?? null;
 
         try {
             $this->conn = $conn = DB::getConnection();
-            $instance->setConn($conn);
+            $this->instance->setConn($conn);
 
             // event hook             
             $this->onPostingBeforeCheck($id, $data);
@@ -844,7 +844,7 @@ abstract class ApiController extends ResourceController
                             'updated_by'
                 ];    
 
-                if ($instance->inSchema(['created_by'])){
+                if ($this->instance->inSchema(['created_by'])){
                     if (isset($data['created_by'])){
                         Factory::response()->sendError("'created_by' is not fillable", 400);
                     }
@@ -853,11 +853,11 @@ abstract class ApiController extends ResourceController
                 }  
 
             }else{
-                $instance->fillAll();
+                $this->instance->fillAll();
             }
     
             if (!$this->acl->hasSpecialPermission('transfer', $this->roles)){    
-                if ($instance->inSchema(['belongs_to'])){
+                if ($this->instance->inSchema(['belongs_to'])){
                     $data['belongs_to'] = $this->uid;
                 }
             }   
@@ -884,7 +884,7 @@ abstract class ApiController extends ResourceController
                 $data['belongs_to'] = $f_rows[0]['belongs_to'];    
             }    
 
-            $validado = (new Validator)->validate($instance->getRules(), $data);
+            $validado = (new Validator)->validate($this->instance->getRules(), $data);
             if ($validado !== true){
                 Factory::response()->sendError('Data validation error', 400, $validado);
             }  
@@ -898,10 +898,10 @@ abstract class ApiController extends ResourceController
             $this->onPostingAfterCheck($id, $data);
 
             try {
-                $last_inserted_id = $instance->create($data);
+                $last_inserted_id = $this->instance->create($data);
             } catch (\PDOException $e){
                 // solo para debug !
-                Factory::response()->sendError("Error: creation of resource fails: ". $e->getMessage(), 500, $instance->dd2());
+                Factory::response()->sendError("Error: creation of resource fails: ". $e->getMessage(), 500, $this->instance->dd2());
             }
 
             if ($last_inserted_id !==false){
@@ -909,7 +909,7 @@ abstract class ApiController extends ResourceController
                 $this->onPostFolder($last_inserted_id, $data, $this->folder);
                 $this->onPost($last_inserted_id, $data);
 
-                Factory::response()->send([$instance->getKeyName() => $last_inserted_id], 201);
+                Factory::response()->send([$this->instance->getKeyName() => $last_inserted_id], 201);
             }	
             else
                 Factory::response()->sendError("Error: creation of resource fails!");
@@ -945,16 +945,18 @@ abstract class ApiController extends ResourceController
 
 			if (!$this->acl->hasSpecialPermission('lock', $this->roles)){
                 $instance0 = (new $model($conn))->setFetchMode('ASSOC');
-                $row = $instance0->where(['id', $id])->first();
+                $row = $instance0->where([$instance0->getIdName(), $id])->first();
 
                 if (isset($row['locked']) && $row['locked'] == 1)
                     Factory::response()->sendError("Forbidden", 403, "Locked by Admin");
             }
 
             // Creo una instancia
-            $this->instance = $instance = new $model();
-            $instance->setConn($conn)->setFetchMode('ASSOC');
+            $this->instance = (new $model())
+            ->setConn($conn)->setFetchMode('ASSOC');
             
+            $id_name = $this->instance->getIdName();
+
             if (!$this->acl->hasSpecialPermission('fill_all', $this->roles)){
                 $unfill = [ 
                             'deleted_at',
@@ -963,7 +965,7 @@ abstract class ApiController extends ResourceController
                             'created_by'
                 ];    
 
-                if ($instance->inSchema(['updated_by'])){
+                if ($this->instance->inSchema(['updated_by'])){
                     if (isset($data['updated_by'])){
                         Factory::response()->sendError("'updated_by' is not fillable", 400);
                     }
@@ -972,11 +974,10 @@ abstract class ApiController extends ResourceController
                 }  
 
             }else{
-                $instance->fillAll();
+                $this->instance->fillAll();
             }
 
-            $owned = $instance->inSchema(['belongs_to']);
-            
+            $owned = $this->instance->inSchema(['belongs_to']);            
 
             if ($this->folder !== null)
             {
@@ -1016,7 +1017,7 @@ abstract class ApiController extends ResourceController
                 // event hook    
                 $this->onPuttingBeforeCheck2($id, $data);
 
-                $rows = $this->instance2->where(['id' => $id])->get();
+                $rows = $this->instance2->where([$id_name => $id])->get();
 
                 if (count($rows) == 0){
                     Factory::response()->code(404)->sendError("Register for id=$id does not exists!");
@@ -1029,11 +1030,11 @@ abstract class ApiController extends ResourceController
             }        
 
             foreach ($data as $k => $v){
-                if (strtoupper($v) == 'NULL' && $instance->isNullable($k)) 
+                if (strtoupper($v) == 'NULL' && $this->instance->isNullable($k)) 
                     $data[$k] = NULL;
             }
             
-            $validado = (new Validator())->setRequired($put_mode)->validate($instance->getRules(), $data);
+            $validado = (new Validator())->setRequired($put_mode)->validate($this->instance->getRules(), $data);
             if ($validado !== true){
                 Factory::response()->sendError('Data validation error', 400, $validado);
             }
@@ -1047,9 +1048,10 @@ abstract class ApiController extends ResourceController
             $this->onPuttingAfterCheck($id, $data);
 
             try {
-                $affected = $instance->where(['id' => $id])->update($data);
+                $affected = $this->instance->where([$id_name => $id])->update($data);
             } catch (\Exception $e){
-                Factory::response()->sendError("Error: update of resource fails: ". $e->getMessage(), 500, $instance->dd2());
+                $affected = $this->instance->where([$id_name => $id])->dontExec()->update($data);
+                Debug::dd($this->instance->dd2());
             }
 
             if ($affected !== false) {
@@ -1067,7 +1069,7 @@ abstract class ApiController extends ResourceController
             Factory::response()->sendError('Validation Error', 400, json_decode($e->getMessage()));
         } catch (\PDOException $e){
             // solo para debug !
-            Factory::response()->sendError("Error: creation of resource fails: ". $e->getMessage(), 500, $instance->getQueryLog());
+            Factory::response()->sendError("Error: creation of resource fails: ". $e->getMessage(), 500);
         } catch (\Exception $e) {
             Factory::response()->sendError("Error during PATCH for id=$id with message: {$e->getMessage()}");
         }
@@ -1119,19 +1121,20 @@ abstract class ApiController extends ResourceController
 
             $model    = 'simplerest\\models\\'.$this->model_name;
             
-            $this->instance = $instance = (new $model($conn))
+            $this->instance = (new $model($conn))
             ->setFetchMode('ASSOC')
             ->fill(['deleted_at']); //
 
-            $owned = $instance->inSchema(['belongs_to']);
+            $id_name = $this->instance->getIdName();
+            $owned   = $this->instance->inSchema(['belongs_to']);
 
-            $rows  = $instance->where(['id', $id]);
+            $rows  = $this->instance->where([$id_name, $id]);
         
             // event hook
             $this->onDeletingBeforeCheck($id);
 
-            $rows = $instance->get();
-            //Debug::export($instance->getLastPrecompiledQuery(), 'SQL');
+            $rows = $this->instance->get();
+            //Debug::export($this->instance->getLastPrecompiledQuery(), 'SQL');
             
             if (count($rows) == 0){
                 Factory::response()->code(404)->sendError("Register for id=$id does not exists");
@@ -1146,7 +1149,7 @@ abstract class ApiController extends ResourceController
                 $this->onDeletingFolderBeforeCheck($id, $this->folder);
 
                 $f = DB::table('folders')->setFetchMode('ASSOC');
-                $f_rows = $f->where(['id' => $this->folder])->get();
+                $f_rows = $f->where([$id_name => $this->folder])->get();
                       
                 if (count($f_rows) == 0 || $f_rows[0]['tb'] != $this->model_table)
                     Factory::response()->sendError('Folder not found', 404); 
@@ -1160,7 +1163,7 @@ abstract class ApiController extends ResourceController
                 $instance2 = new $model();
                 $instance2->setConn($conn)->setFetchMode('ASSOC');
 
-                if (count($instance2->where(['id' => $id, static::$folder_field => $this->folder_name])->get()) == 0)
+                if (count($instance2->where([$id_name => $id, static::$folder_field => $this->folder_name])->get()) == 0)
                     Factory::response()->code(404)->sendError("Register for id=$id does not exists");
 
                 unset($data['folder']);    
@@ -1175,7 +1178,7 @@ abstract class ApiController extends ResourceController
             $extra = [];
 
             if ($this->acl->hasSpecialPermission('lock', $this->roles)){
-                if ($instance->inSchema(['locked'])){
+                if ($this->instance->inSchema(['locked'])){
                     $extra = array_merge($extra, ['locked' => 1]);
                 }   
             }else {
@@ -1184,7 +1187,9 @@ abstract class ApiController extends ResourceController
                 }
             }
 
-            if ($instance->inSchema(['deleted_by'])){
+            $soft_is_supported  = $this->instance->inSchema(['deleted_by']);
+
+            if ($soft_is_supported){
                 $extra = array_merge($extra, ['deleted_by' => $this->impersonated_by != null ? $this->impersonated_by : $this->uid]);
             }               
        
@@ -1193,12 +1198,12 @@ abstract class ApiController extends ResourceController
                 $this->onDeletingFolderAfterCheck($id, $this->folder);
             }
 
-            $instance->setSoftDelete(static::$soft_delete);
+            $this->instance->setSoftDelete($soft_is_supported && static::$soft_delete);
 
             // event hook
             $this->onDeletingAfterCheck($id);
 
-            $affected = $instance->delete($extra);
+            $affected = $this->instance->delete($extra);
             
             if($affected){
                 
@@ -1214,7 +1219,7 @@ abstract class ApiController extends ResourceController
                 Factory::response()->sendError("Record not found",404);
 
         } catch (\Exception $e) {
-            Factory::response()->sendError("Error during DELETE for id=$id with message: {$e->getMessage()}");
+            Factory::response()->sendError("Error during DELETE for $id_name=$id with message: {$e->getMessage()}");
         }
 
     } // 

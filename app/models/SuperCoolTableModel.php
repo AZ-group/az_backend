@@ -1,42 +1,41 @@
 <?php
+
 namespace simplerest\models;
 
 use simplerest\core\Model;
+use simplerest\libs\Factory;
+use simplerest\libs\DB;
+### ADDITIONAL IMPORTS
 
+class SuperCoolTableModel extends Model
+ { 
+	### TRAITS
+	### ADDITIONAL PROPERTIES
 
-class SuperCoolTableModel extends Model 
-{
-	//protected $table_name = 'super_cool_table';
-	//protected $id_name = 'id';
-	protected $nullable = ['id', 'active'];
-
+	/*
+		Types are INT, STR and BOOL among others
+		see: https://secure.php.net/manual/en/pdo.constants.php 
+	*/
 	protected $schema = [
-		'id' 		 => 'INT',
-		'name'		 => 'STR',
-		'active'	 => 'INT',
-		'belongs_to' => 'INT',
-		//'created_at' => 'STR',
-		//'created_by' => 'INT',
-		//'updated_at' => 'STR',
-		//'updated_by' => 'INT', 
-		'deleted_at' => 'STR',
-		//'deleted_by' => 'INT',
-		'locked'	 => 'INT' 
+			'id' => 'INT',
+			'name' => 'STR',
+			'active' => 'INT',
+			'belongs_to' => 'INT',
+			'deleted_at' => 'STR',
+			'locked' => 'INT'
 	];
+
+	protected $not_fillable = [];
+	protected $nullable = ['id', 'deleted_at'];
+	protected $hidden   = [];
 
 	protected $rules = [
-		'active' => ['type' => 'bool']
+			'name' => ['max' => 45]
 	];
 
-    function __construct($db = NULL){
-		parent::__construct($db);
+    function __construct($db = NULL){		
+        parent::__construct($db);
 	}
-
+	
 }
-
-
-
-
-
-
 

@@ -21,11 +21,12 @@ class BarModel extends Model
 			'uuid' => 'STR',
 			'name' => 'STR',
 			'price' => 'STR',
-			'belongs_to' => 'INT'
+			'belongs_to' => 'INT',
+			'updated_at' => 'STR'
 	];
 
 	protected $not_fillable = [];
-	protected $nullable = ['uuid'];
+	protected $nullable = ['updated_at', 'uuid'];
 	protected $hidden   = [];
 
 	protected $rules = [

@@ -639,14 +639,25 @@ class UsersModel extends Model
 	// ...
 
     function __construct($db = NULL){
-		$this->registerInputMutator('password', function($pass){ return password_hash($pass, PASSWORD_DEFAULT); });
+		$this->registerInputMutator('password', function($pass){ 
+			return password_hash($pass, PASSWORD_DEFAULT); 
+		}, function($op, $dato){
+			return ($dato !== null);
+		});
+
         parent::__construct($db);
     }
 }
 
-El procedimiento es registrar los mutators para cada campo del modelo que los requiera.
+El método registerInputMutator() acepta 3 parámetros:
 
-Otro uso de input mutators es para utilizar UUIDs donde dentro de un Trait podemos tener la funcionalidad de generar el uuid:
+- El campo cuyo contenido se quiere mutar (condicionalmente)
+- Un callback que transforma el dato de entrada 
+- Un callback que determina en que caso se debe aplicar la función de entrada y que es alimentada con el tipo de operación ('UPDATE' o 'CREATE') y el dato de entrada 
+
+<-- podría simplificarse con un solo callback que recibe además el tipo de operación !!!!
+
+El procedimiento es registrar los mutators para cada campo del modelo que los requiera. Otro uso de input mutators es para utilizar UUIDs donde dentro de un Trait podemos tener la funcionalidad de generar el uuid:
 
 	namespace simplerest\traits;
 
@@ -657,8 +668,10 @@ Otro uso de input mutators es para utilizar UUIDs donde dentro de un Trait podem
 			parent::boot();
 
 			$this->registerInputMutator('uuid', function($id){ 
-				return $id == NULL ? uuid_create(UUID_TYPE_RANDOM) : $id; 
-			});
+				return uuid_create(UUID_TYPE_RANDOM); 
+			}, function($op, $dato){
+				return ($op == 'CREATE');
+			}); 
 		}    
 	}
 

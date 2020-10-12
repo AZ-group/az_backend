@@ -39,7 +39,12 @@ class UsersModel extends Model
 	];
 
     function __construct($db = NULL){		
-		$this->registerInputMutator('password', function($pass){ return password_hash($pass, PASSWORD_DEFAULT); }, true);
+		$this->registerInputMutator('password', function($pass){ 
+			return password_hash($pass, PASSWORD_DEFAULT); 
+		}, function($op, $dato){
+			return ($dato !== null);
+		});
+
 		//$this->registerOutputMutator('password', function($pass){ return '******'; } );
         parent::__construct($db);
 	}

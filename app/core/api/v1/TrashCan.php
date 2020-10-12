@@ -34,6 +34,10 @@ class TrashCan extends MyApiController
         $this->model    = 'simplerest\\models\\'. $this->model_name;
         $api_ctrl = '\simplerest\\controllers\\api\\' . ucfirst($entity);
         
+        if (!class_exists($api_ctrl)){
+            Factory::response()->sendError("Entity $entity not found", 404);
+        }
+
         if (!$api_ctrl::hasSoftDelete()){
             Factory::response()->sendError('Not implemented', 501, "Trashcan not implemented for $entity");
         }

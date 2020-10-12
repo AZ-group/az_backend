@@ -9,7 +9,9 @@ trait Uuids
         parent::boot();
 
         $this->registerInputMutator('uuid', function($id){ 
-			return $id == NULL ? uuid_create(UUID_TYPE_RANDOM) : $id; 
-		});
+			return uuid_create(UUID_TYPE_RANDOM); 
+		}, function($op, $dato){
+            return ($op == 'CREATE');
+		});  
     }    
 }
