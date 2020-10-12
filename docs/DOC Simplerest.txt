@@ -653,9 +653,7 @@ El método registerInputMutator() acepta 3 parámetros:
 
 - El campo cuyo contenido se quiere mutar (condicionalmente)
 - Un callback que transforma el dato de entrada 
-- Un callback que determina en que caso se debe aplicar la función de entrada y que es alimentada con el tipo de operación ('UPDATE' o 'CREATE') y el dato de entrada 
-
-<-- podría simplificarse con un solo callback que recibe además el tipo de operación !!!!
+- Un callback (opcional) que determina en que caso se debe aplicar la función de entrada y que es alimentada con el tipo de operación ('UPDATE' o 'CREATE') y el dato de entrada. En caso de omitirse aplica siempre el mutator para ese campo.
 
 El procedimiento es registrar los mutators para cada campo del modelo que los requiera. Otro uso de input mutators es para utilizar UUIDs donde dentro de un Trait podemos tener la funcionalidad de generar el uuid:
 
@@ -674,6 +672,8 @@ El procedimiento es registrar los mutators para cada campo del modelo que los re
 			}); 
 		}    
 	}
+
+<-- Como sería un efecto indeseado que se auto-generara un UUID reemplazando el actual al hacer un UPDATE, entonces ponemos como condición que se aplique solo en el CREATE.	
 
 En el modelo donde queremos implementar el uuid, debemos declar el campo como string, importamos y hacemos el "use" del Trait:
 

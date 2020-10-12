@@ -216,7 +216,7 @@ class Model {
 
 			$dato = $data[$field] ?? NULL;
 					
-			if ($apply_if_fn(...[$current_op, $dato])){				
+			if ($apply_if_fn == null || $apply_if_fn(...[$current_op, $dato])){				
 				$data[$field] = $fn($dato);
 			} 				
 		}
