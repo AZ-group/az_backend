@@ -44,6 +44,7 @@ if (!$acl_cache || is_file($acl_file) !== true) {
     ->addInherit('registered')
     ->addResourcePermissions('products', ['read', 'write'])
     ->addResourcePermissions('foo', ['read', 'update'])
+	//->addResourcePermissions('users', ['read', 'update'])
     
     ->addRole('supervisor', 502)  // salta sino especifico el id al leerlo
     ->addInherit('registered')

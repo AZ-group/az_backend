@@ -1049,6 +1049,7 @@ abstract class ApiController extends ResourceController
 
             try {
                 $affected = $this->instance->where([$id_name => $id])->update($data);
+                //var_dump($this->instance->dd2());
             } catch (\Exception $e){
                 $affected = $this->instance->where([$id_name => $id])->dontExec()->update($data);
                 Debug::dd($this->instance->dd2());

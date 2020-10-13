@@ -12,6 +12,7 @@ class __NAME__ extends Model
 	### PROPERTIES
 
 	protected $hidden   = [];
+	protected $not_fillable = [];
 
     function __construct($db = NULL){
 		$this->loadSchema();		

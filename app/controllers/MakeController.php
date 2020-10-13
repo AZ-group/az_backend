@@ -258,7 +258,7 @@ class MakeController extends Controller
         $types_raw = [];
 
         $nullables = [];
-        $not_fillable = [];
+        //$not_fillable = [];
         $rules = [];
 
         $get_pdo_const = function (string $sql_type){
@@ -332,7 +332,7 @@ class MakeController extends Controller
         Strings::replace('__ID__', "'$id_name'", $file);  
         Strings::replace('__SCHEMA__', $schema, $file);
         Strings::replace('__NULLABLES__', '['. implode(', ',array_map($escf, $nullables)). ']',$file);        
-        Strings::replace('__NOT_FILLABLE__', '['.implode(', ',array_map($escf, $not_fillable)). ']',$file);
+        //Strings::replace('__NOT_FILLABLE__', '['.implode(', ',array_map($escf, $not_fillable)). ']',$file);
         Strings::replace('__RULES__', $rules, $file);
         
 

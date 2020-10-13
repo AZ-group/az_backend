@@ -104,7 +104,7 @@ class Model {
 			if ($this->inSchema(['id'])){
 				$this->id_name = 'id';
 			} else {
-				throw new \Exception("Undefined Id for ".$this->table_name. '. Use \'id\' or $id_name to specify another field name');
+				throw new \Exception("Undefined table identifier for '".$this->table_name. "' Use 'id' or \$id_name to specify another field name");
 			}
 		}	
 		

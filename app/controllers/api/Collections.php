@@ -4,7 +4,7 @@ namespace simplerest\controllers\api;
 
 use simplerest\controllers\MyApiController; 
 
-class SuperCoolTable extends MyApiController
+class Collections extends MyApiController
 { 
     static protected $soft_delete = true;
 

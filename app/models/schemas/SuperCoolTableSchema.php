@@ -24,9 +24,8 @@ trait SuperCoolTableSchema
 			'locked' => 'INT'
 		];
 
-		$this->not_fillable = [];
 		$this->nullable 	= ['id', 'deleted_at'];
-	
+
 		$this->rules 		= [
 			'name' => ['max' => 45]
 		];

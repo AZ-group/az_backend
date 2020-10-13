@@ -1,0 +1,4 @@
+models\FilesModel.php
+models\CollectionsModel.php
+models\ProductsModel.php
+controllers\ProductsController.php

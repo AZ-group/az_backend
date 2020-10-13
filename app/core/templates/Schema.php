@@ -17,9 +17,8 @@ trait __NAME__
 		*/
 		$this->schema  = __SCHEMA__;
 
-		$this->not_fillable = __NOT_FILLABLE__;
 		$this->nullable 	= __NULLABLES__;
-	
+
 		$this->rules 		= __RULES__;
 	}	
 }

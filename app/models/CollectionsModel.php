@@ -3,29 +3,19 @@
 namespace simplerest\models;
 
 use simplerest\core\Model;
-use simplerest\libs\Factory;
+use simplerest\libs\ValidationRules;
+use simplerest\models\schemas\CollectionsSchema;
 
 class CollectionsModel extends Model
  { 
-	protected $table_name = "collections";
-	protected $id_name = 'id';
-	
-	protected $schema = [
-		'id' => 'INT',
-		'entity' => 'STR',
-		'refs' => 'STR',		
-		'created_at' => 'STR',
-		'belongs_to' => 'INT'
-	];
+	use CollectionsSchema;
+	### PROPERTIES
 
-	protected $nullable = ['id'];
+	protected $hidden   = [];
 
-	protected $rules = [
-	
-	];
-
-    function __construct($db = NULL){		
+    function __construct($db = NULL){
+		$this->loadSchema();		
         parent::__construct($db);
-    }
-	
+	}	
 }
+

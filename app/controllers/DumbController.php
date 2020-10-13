@@ -381,9 +381,12 @@ class DumbController extends Controller
     
     // random or rand
     function random(){
-        Debug::dd(DB::table('products')->random()->limit(5)->get(['id', 'name']));
+        //Debug::dd(DB::table('products')->random()->get(['id', 'name']), 'ALL');
+        Debug::dd(DB::table('products')->random()->select(['id', 'name'])->get(), 'ALL');
 
-        Debug::dd(DB::table('products')->random()->select(['id', 'name'])->first());
+        Debug::dd(DB::table('products')->random()->limit(5)->get(['id', 'name']), 'N RESULTS');
+
+        Debug::dd(DB::table('products')->random()->select(['id', 'name'])->first(), 'FIRST');
     }
 
     function count(){
@@ -1174,18 +1177,15 @@ class DumbController extends Controller
     }
 
     function fillables(){
-        $str = '';
-        for ($i=0;$i<20;$i++)
-            $str .= chr(rand(97,122));
-
-        $p = DB::table('products');
-        $affected = $p->where(['id' => 121])->update([
-            'id' => 500,
-            'description' => $str
+        $m = DB::table('files');
+        $affected = $m->where(['id' => 240])->update([
+            "filename_as_stored" => "xxxxxxxxxxxxxxxxx.jpg"
         ]);
 
+        Debug::dd($affected, 'Affected:');
+
         // Show result
-        $rows = DB::table('products')->where(['id' => 500])->get();
+        $rows = DB::table('files')->where(['id' => 240])->get();
         Debug::dd($rows);
     }
 
@@ -1486,13 +1486,6 @@ class DumbController extends Controller
 
         Debug::dd($dos);
     }
-
-    function test(){
-        $data = ['tb' => 'foo', 'user_id' => 50];
-
-        $ok = DB::table('user_tb_permissions')->where(['tb' => $data['tb'], 'user_id' => $data['user_id']])->dd();
-        var_dump($ok);
-    }
        
     function insert_messages() {
         function get_words($sentence, $count = 10) {
@@ -1698,5 +1691,11 @@ class DumbController extends Controller
         }, 1000);       
         
         Debug::dd("Time: $t ms");
+    }
+
+    function test(){
+        $rows = DB::table('products')->random()->select(['id', 'name'])->addSelect('cost')->first();
+        Debug::dd($rows);
+        Debug::dd(DB::getQueryLog());
     }
 }
