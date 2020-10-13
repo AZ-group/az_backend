@@ -6,11 +6,10 @@ use simplerest\controllers\MyApiController;
 
 class Products extends MyApiController
 { 
-    static protected $folder_field = 'workspace';
+    static protected $soft_delete = true;
 
     function __construct()
     {       
         parent::__construct();
-    }
-       
-} // end class
+    }        
+} 

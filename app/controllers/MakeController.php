@@ -60,6 +60,44 @@ class MakeController extends Controller
 
         parent::__construct();
     }
+    
+    function help(){
+        echo <<<STR
+        Commmands:
+                        
+        make schema SuperAwesome [-f | --force]
+        make schema super_awesome  [-f | --force]
+                 
+        make model SuperAwesomeModel  [-f | --force]
+        make model SuperAwesome [-f | --force]
+        make model super_awesome  [-f | --force]
+         
+        make controller SuperAwesome  [-f | --force]
+        
+        make api SuperAwesome  [-f | --force]
+        make api super_awesome  [-f | --force]
+         
+        make any SuperAwesome   [-s | --schema ] 
+                                [-m | --model] 
+                                [-c | --controller ] 
+                                [-a | --api ] 
+                                [-f | --force]
+                          
+                                -sam  = -s -a -m
+                                -samf = -s -a -m -f                       
+        Example:
+                 
+        make any baz -s -m -a -f
+        make any baz -samf
+        STR;
+    }
+
+    // Rutear "make -h" y "make --help" a "make index -h" y "make index --help" respectivamente
+    function index(...$opt){
+        if ($opt[0] == '-h' || $opt[0] == '--help'){
+            $this->help();
+        }
+    }
 
     function setup($name) {
         if ($this->class_name != NULL)
@@ -100,13 +138,31 @@ class MakeController extends Controller
     }
 
     /*
-        make any SuperAwesome  [-s | --schema ] 
+        make any SuperAwesome   [-s | --schema ] 
                                 [-m | --model] 
                                 [-c | --controller ] 
                                 [-a | --api ] 
                                 [-f | --force]
+
+                                -sam  = -s -a -m
+                                -samf = -s -a -m -f
+
     */
     function any($name, ...$opt){
+        if (count($opt) == 0){
+            echo "Nothing to do. Please specify action using options.\r\nUse 'make help' for help.\r\n";
+            exit;
+        }
+
+        switch($opt[0]){
+            case '-sam':
+                $opt = ['-s', '-a', '-m'];
+                break;
+            case '-samf':
+                $opt = ['-s', '-a', '-m', '-f'];
+                break;       
+        }
+
         if (in_array('-s', $opt) || in_array('--schema', $opt)){
             $this->schema($name, ...$opt);
         }
@@ -141,7 +197,8 @@ class MakeController extends Controller
         $path = CONTROLLERS_PATH . $sub_path . $filename;
 
         if (file_exists($path) && !in_array('-f', $options) && !in_array('--force', $options)){
-            throw new \Exception("File $path alreay exists. Use -f or --force if you want to override.");
+            echo "[ Skipping ] '$path'. File already exists. Use -f or --force if you want to override.\r\n";
+            return;
         }
 
         $data = file_get_contents(self::CONTROLLER_TEMPLATE);
@@ -164,7 +221,8 @@ class MakeController extends Controller
 
         $path = API_PATH . $filename;
         if (file_exists($path) && !in_array('-f', $options) && !in_array('--force', $options)){
-            throw new \Exception("File $path alreay exists. Use -f or --force if you want to override.");
+            echo "[ Skipping ] '$path'. File already exists. Use -f or --force if you want to override.\r\n";
+            return;
         }
 
         $data = file_get_contents(self::API_TEMPLATE);
@@ -176,7 +234,7 @@ class MakeController extends Controller
         if (!$ok) {
             throw new \Exception("Failed trying to write $path");
         } else {
-            print_r("$path was generated\r\n");
+            echo "[ Done ] '$path' was generated\r\n";
         } 
     }
 
@@ -283,7 +341,7 @@ class MakeController extends Controller
         if (!$ok) {
             throw new \Exception("Failed trying to write $dest_path");
         } else {
-            print_r("$dest_path was generated\r\n");
+            echo "[ Done ] '$dest_path' was generated\r\n";
         } 
     }
 
@@ -296,7 +354,8 @@ class MakeController extends Controller
         $dest_path = MODELS_PATH . $filename;
 
         if (file_exists($dest_path) && !in_array('-f', $options) && !in_array('--force', $options)){
-            throw new \Exception("File $dest_path alreay exists. Use -f or --force if you want to override.");
+            echo "[ Skipping ] '$dest_path'. File already exists. Use -f or --force if you want to override.\r\n";
+            return;
         }
 
         $file = file_get_contents(self::MODEL_TEMPLATE);
@@ -310,7 +369,7 @@ class MakeController extends Controller
         if (!$ok) {
             throw new \Exception("Failed trying to write $dest_path");
         } else {
-            print_r("$dest_path was generated\r\n");
+           echo "[ Done ] '$dest_path' was generated\r\n";
         } 
     }
 }
