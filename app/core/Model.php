@@ -27,7 +27,7 @@ class Model {
 	protected $fillable = [];
 	protected $not_fillable = [];
 	protected $hidden   = [];
-	protected $properties = [];
+	protected $attributes = [];
 	protected $joins  = [];
 	protected $show_deleted = false;
 	protected $conn;
@@ -91,7 +91,7 @@ class Model {
 		}
 
 		
-		$this->properties = array_keys($this->schema);
+		$this->attributes = array_keys($this->schema);
 		
 		if (empty($this->table_name)){
 			$class_name = get_class($this);
@@ -112,7 +112,7 @@ class Model {
 		$this->boot();
 
 		if ($this->fillable == NULL){
-			$this->fillable = $this->properties;
+			$this->fillable = $this->attributes;
 			$this->unfill(['locked', 'created_at', 'created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by']);
 		}
 
@@ -211,7 +211,7 @@ class Model {
 		}
 
 		foreach ($this->input_mutators as $field => list($fn, $apply_if_fn)){
-			if (!in_array($field, $this->getProperties()))
+			if (!in_array($field, $this->getAttr()))
 				throw new \Exception("Invalid accesor: $field field is not present in " . $this->table_name); 
 
 			$dato = $data[$field] ?? NULL;
@@ -240,7 +240,7 @@ class Model {
 		//$by_id = in_array('id', $this->w_vars);	
 		
 		foreach ($this->output_mutators as $field => $fn){
-			if (!in_array($field, $this->getProperties()))
+			if (!in_array($field, $this->getAttr()))
 				throw new \Exception("Invalid transformer: $field field is not present in " . $this->table_name); 
 
 			if ($this->getFetchMode() == \PDO::FETCH_ASSOC){
@@ -395,7 +395,7 @@ class Model {
 		Make all fields fillable
 	*/
 	function fillAll(){
-		$this->fillable = $this->properties;
+		$this->fillable = $this->attributes;
 		return $this;	
 	}
 	
@@ -588,7 +588,7 @@ class Model {
 			
 				if (empty($this->select_raw_q)){
 					if (empty($fields) && $aggregate_func == null) {
-						$fields = $this->properties;
+						$fields = $this->attributes;
 					}
 		
 					foreach ($this->hidden as $h){
@@ -617,7 +617,7 @@ class Model {
 					$fields = array_diff($fields, $remove);
 				}else{
 					if (empty($aggregate_func))
-						$fields = array_diff($this->getProperties(), $remove);
+						$fields = array_diff($this->getAttr(), $remove);
 				}
 			} 		
 
@@ -630,10 +630,10 @@ class Model {
 				if($limit>0 || $order!=NULL){
 					try {
 						$paginator = new Paginator();
-						$paginator->limit  = $limit;
-						$paginator->offset = $offset;
-						$paginator->orders = $order;
-						$paginator->properties = $this->properties;
+						$paginator->setLimit($limit);
+						$paginator->setOffset($offset);
+						$paginator->setOrders($order);
+						$paginator->setAttr($this->attributes);
 						$paginator->compile();
 
 						$this->pag_vals = $paginator->getBinding();
@@ -1746,7 +1746,7 @@ class Model {
 	function isDirty($fields = null) 
 	{
 		if ($fields == null){
-			$fields = $this->properties;
+			$fields = $this->attributes;
 		}
 
 		if (!is_array($fields)){
@@ -1809,10 +1809,10 @@ class Model {
 	function inSchema(array $props){
 
 		if (empty($props))
-			throw new \InvalidArgumentException("Properties not found!");
+			throw new \InvalidArgumentException("Attributes not found!");
 
 		foreach ($props as $prop)
-			if (!in_array($prop, $this->properties)){
+			if (!in_array($prop, $this->attributes)){
 				return false; 
 			}	
 		
@@ -1827,16 +1827,16 @@ class Model {
 	 * @return array
 	 */
 	function getMissing(array $fields){
-		$diff =  array_diff($this->properties, array_keys($fields));
+		$diff =  array_diff($this->attributes, array_keys($fields));
 		return array_diff($diff, $this->nullable);
 	}
 	
 	/**
 	 * Get schema 
 	 */ 
-	function getProperties()
+	function getAttr()
 	{
-		return $this->properties;
+		return $this->attributes;
 	}
 
 	function getIdName(){
@@ -1844,7 +1844,7 @@ class Model {
 	}
 
 	function getNotHidden(){
-		return array_diff($this->properties, $this->hidden);
+		return array_diff($this->attributes, $this->hidden);
 	}
 
 	function isNullable(string $field){
@@ -1876,7 +1876,7 @@ class Model {
 	}
 
 	function getNotNullables(){
-		return array_diff($this->properties, $this->nullable);
+		return array_diff($this->attributes, $this->nullable);
 	}
 
 	function getRules(){

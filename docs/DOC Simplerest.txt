@@ -581,21 +581,15 @@ deleted_at 		datetime		*
 deleted_by		tinyint(4)		*
 locked			tinyint(4)		*
 
-belongs_to		apunta directamente al user_id de quien crea el registro. Si el usuario tiene rol de 'admin' puede cambiar ese valor y hacer que apunte a otro usuario. Un caso especial son los registros creados dentro de un 'folder'.
+belongs_to		apunta directamente al user_id de quien crea el registro. Si el usuario tiene el permiso especial 'transfer' puede cambiar ese valor y hacer que apunte a otro usuario. Un caso especial son los registros creados dentro de un 'folder'.
 
 created_by 		apunta indefectiblemente al user_id quien creó el registro.
-
 update_by		apunta indefectiblemente al user_id del último usuario que modificó un registro. 
-
 deleted_by		apunta indefectiblemente al user_id que hizo un borrado suave un registro.
-
 created_at 		apunta indefectiblemente a la fecha-hora en que se creó un registro.
-
 updated_at 		apunta indefectiblemente a la fecha-hora en que se modificó por última vez un registro.
-
 deleted_at 		apunta indefectiblemente a la fecha-hora en que se creó un registro.
-
-locked 			cuando un registro es mofificado por un 'admin' automáticamente se guarda un 1.
+locked 			cuando un registro es mofificado por un usuario con permiso de 'lock' automáticamente se guarda un 1.
 
 
 Los campos created_ay, update_at y deleted_at son rellenados por Model pero al modelo no le compete si hay un sistema de autenticación y que usuario está haciendo el query así que los campos created_by, update_by, deleted_by y belongs_to son manejados a nivel de la API por ApiController al igual que el campo locked.
@@ -624,7 +618,9 @@ class SuperCoolTableModel extends Model
 	protected $rules = [
 		'active' => ['type' => 'bool']
 	];
+} 
 
+<-- actualmente la definición del Schema se está haciendo en un Trait.
 
 ### Mutators
 

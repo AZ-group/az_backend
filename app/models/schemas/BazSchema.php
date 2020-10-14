@@ -9,11 +9,12 @@ trait BazSchema
 	### TRAITS
 	
 	function loadSchema(){
+
+		// En conjunto deberían definir el 'schema'
 		$this->id_name = 'id_baz';
 
 		/*
-			Types are INT, STR and BOOL among others
-			see: https://secure.php.net/manual/en/pdo.constants.php 
+			debería ser 'attribute_types' 
 		*/
 		$this->schema  = [
 			'id_baz' => 'INT',

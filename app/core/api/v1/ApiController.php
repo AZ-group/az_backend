@@ -354,10 +354,10 @@ abstract class ApiController extends ResourceController
             $fields  = Arrays::shift($_get,'fields');
             $fields  = $fields != NULL ? explode(',',$fields) : NULL;
 
-            $properties = $this->instance->getProperties();
+            $attributes = $this->instance->getAttr();
             
             foreach ((array) $fields as $field){
-                if (!in_array($field,$properties))
+                if (!in_array($field,$attributes))
                     Factory::response()->sendError("Unknown field '$field'", 400);
             }
 
@@ -365,7 +365,7 @@ abstract class ApiController extends ResourceController
             $exclude = $exclude != NULL ? explode(',',$exclude) : NULL;
 
             foreach ((array) $exclude as $field){
-                if (!in_array($field,$properties))
+                if (!in_array($field,$attributes))
                     Factory::response()->sendError("Unknown field '$field' in exclude", 400);
             }
 
@@ -626,7 +626,7 @@ abstract class ApiController extends ResourceController
                                 
                 // Si se pide algo que involucra un campo no está en el schema lanzar error
                 foreach ($_get as $arr){
-                    if (!in_array($arr[0],$properties))
+                    if (!in_array($arr[0],$attributes))
                         Factory::response()->sendError("Unknown field '$arr[0]'", 400);
                 }
                 

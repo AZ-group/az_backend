@@ -539,7 +539,7 @@ class AuthController extends Controller implements IAuth
 
             $missing = $u->getMissing($data);
             if (!empty($missing))
-                Factory::response()->sendError('Bad request', 400, 'There are missing properties in your request: '.implode(',',$missing));
+                Factory::response()->sendError('Bad request', 400, 'There are missing attributes in your request: '.implode(',',$missing));
 
             $email_in_schema = $u->inSchema(['email']);
 
