@@ -1,15 +1,52 @@
 # TODO
 
+- Revisar DB de Fabriiiiiiiiiiiiiiiiiiiiiiiiiiicio
+
+- Revisar documentos de Fabriiiiiiiiiiiiiiiiiiiiiiiiiiicio
+
+- Make:
+
+  - Permitir que los parámetros puedan ir en cualquier órden:
+
+      make schema SuperAwesome -f 
+      make schema -f SuperAwesome
+      
+      
+  - Eliminar any() y hacer que index() tome su lugar:
+
+  En vez de 
+
+      make any baz -s -m -a -f
+          make any baz -samf
+
+  sería,..
+
+      make baz -samf
+      make -samf baz 
+
+    
+  - Permitir agrupar parámetros en cualquier combinación posible:
+
+      make -samf baz 
+      make -safm baz
+      make -fams baz 		
+      etc
 
 - Implementación de migraciones:
 
 make model :  DB -----> Model [ done ]
-migration  :  Model --> DB
+migration  :  Model --> 
 
-No se implementará una migración que pase de la DB a modelo, en todo caso hay que evitar tocar la base de datos directamente luego de creado el modelo o borrar el modelo y re-generarlo con "make model".
+- Actualmente ya que solo guardo las constantes de PDO el validador no puede distinguir entre un campo de decimal (que es STR) y un string por lo que esto a pesar de que no debería "pasa" el Validador:
 
+  { 
+    "name": "xxxy.00",
+    "price": "AAA"    <--- DECIMAL
+  }
 
-- Definir DB !!!
+<-- no es culpa de Validtor sino del SCHEMA que brinda poca información. 
+
+- Con ayuda del Router mover controllers (con algunas excepción) a otras ubicaciones.
 
 - Descular porque un POST puede tardar 2000 ms y rara vez 60 ms que sería algo "normal" 
 
@@ -63,12 +100,14 @@ Conclusiones:
 - He observado que Apache en servir la nada misma introduce una demora de 59 ms, mejorará con otro Web Server?
 
   Probar en Linux con el módulo de Apache PHP-FPM (idealmente en Linux) -> habilita opcode caching
+
   https://kinsta.com/es/blog/nginx-vs-apache/
   https://www.inmotionhosting.com/support/website/php-fpm-the-future-of-php-handling/
   https://www.quora.com/What-are-the-advantages-of-using-PHP-FPM-+-Nginx-over-Apache-and-mod_php
   http://www.orbitale.io/2017/11/11/apache-and-php-fpm-in-windows.html
 
   Hacer pruebas con el built-in web server
+  
   https://www.php.net/manual/en/features.commandline.webserver.php
 
 
@@ -835,7 +874,7 @@ https://github.com/robsonvn/laravel-couchdb
 - Subconsultas:
 
   > En el SELECT 
-  > En el FROM -> funciona pero no acepta parámetros para la subconsulta y la forma de ver la consulta es mediante getLastPrecompiledQuery() ya que getQueryLog() queda apuntando a la consulta "hija".
+  > En el FROM -> funciona pero no acepta parámetros para la subconsulta y la forma de ver la consulta es mediante getLastPrecompiledQuery() ya que getQueryLoggetQueryLog() queda apuntando a la consulta "hija".
   > En el WHERE -> ok
   > En el HAVING 
 

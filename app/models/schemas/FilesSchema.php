@@ -2,20 +2,21 @@
 
 namespace simplerest\models\schemas;
 
+use simplerest\core\interfaces\ISchema;
+
 ### IMPORTS
 
-trait FilesSchema
+class FilesSchema implements ISchema
 { 
 	### TRAITS
 	
-	function loadSchema(){
-		$this->id_name = 'id';
+	function get(){
+		return [
+			'table_name'	=> 'files',
 
-		/*
-			Types are INT, STR and BOOL among others
-			see: https://secure.php.net/manual/en/pdo.constants.php 
-		*/
-		$this->schema  = [
+			'id_name'		=> 'id',
+
+			'attr_types'	=> [
 			'id' => 'INT',
 			'filename' => 'STR',
 			'file_ext' => 'STR',
@@ -26,14 +27,15 @@ trait FilesSchema
 			'broken' => 'INT',
 			'created_at' => 'STR',
 			'deleted_at' => 'STR'
-		];
+		],
 
-		$this->nullable 	= ['id', 'belongs_to', 'guest_access', 'broken', 'deleted_at'];
-	
-		$this->rules 		= [
-			'filename' => ['max' => 255],
-			'file_ext' => ['max' => 30],
-			'filename_as_stored' => ['max' => 60]
+			'nullable'		=> ['id', 'belongs_to', 'guest_access', 'broken', 'deleted_at'],
+
+			'rules' 		=> [
+				'filename' => ['max' => 255],
+				'file_ext' => ['max' => 30],
+				'filename_as_stored' => ['max' => 60]
+			]
 		];
 	}	
 }

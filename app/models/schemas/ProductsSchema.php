@@ -2,20 +2,21 @@
 
 namespace simplerest\models\schemas;
 
+use simplerest\core\interfaces\ISchema;
+
 ### IMPORTS
 
-trait ProductsSchema
+class ProductsSchema implements ISchema
 { 
 	### TRAITS
 	
-	function loadSchema(){
-		$this->id_name = 'id';
+	function get(){
+		return [
+			'table_name'	=> 'products',
 
-		/*
-			Types are INT, STR and BOOL among others
-			see: https://secure.php.net/manual/en/pdo.constants.php 
-		*/
-		$this->schema  = [
+			'id_name'		=> 'id',
+
+			'attr_types'	=> [
 			'id' => 'INT',
 			'name' => 'STR',
 			'description' => 'STR',
@@ -31,16 +32,16 @@ trait ProductsSchema
 			'locked' => 'INT',
 			'workspace' => 'STR',
 			'belongs_to' => 'INT'
-		];
+		],
 
-		$this->not_fillable = [];
-		$this->nullable 	= ['id', 'description', 'created_at', 'created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by', 'active', 'locked', 'workspace', 'belongs_to'];
-	
-		$this->rules 		= [
-			'name' => ['max' => 50],
-			'description' => ['max' => 240],
-			'size' => ['max' => 30],
-			'workspace' => ['max' => 40]
+			'nullable'		=> ['id', 'description', 'created_at', 'created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by', 'active', 'locked', 'workspace', 'belongs_to'],
+
+			'rules' 		=> [
+				'name' => ['max' => 50],
+				'description' => ['max' => 240],
+				'size' => ['max' => 30],
+				'workspace' => ['max' => 40]
+			]
 		];
 	}	
 }

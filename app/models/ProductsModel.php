@@ -8,14 +8,14 @@ use simplerest\models\schemas\ProductsSchema;
 
 class ProductsModel extends Model
  { 
-	use ProductsSchema;
+	### TRAITS
 	### PROPERTIES
 
 	protected $hidden   = [];
+	protected $not_fillable = [];
 
-    function __construct($db = NULL){
-		$this->loadSchema();		
-        parent::__construct($db);
+    function __construct(bool $connect = false){
+        parent::__construct($connect, new ProductsSchema());
 	}	
 }
 

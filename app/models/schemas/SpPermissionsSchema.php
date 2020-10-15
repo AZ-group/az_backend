@@ -6,26 +6,22 @@ use simplerest\core\interfaces\ISchema;
 
 ### IMPORTS
 
-class SuperCoolTableSchema implements ISchema
+class SpPermissionsSchema implements ISchema
 { 
 	### TRAITS
 	
 	function get(){
 		return [
-			'table_name'	=> 'super_cool_table',
+			'table_name'	=> 'sp_permissions',
 
 			'id_name'		=> 'id',
 
 			'attr_types'	=> [
 			'id' => 'INT',
-			'name' => 'STR',
-			'active' => 'INT',
-			'belongs_to' => 'INT',
-			'deleted_at' => 'STR',
-			'locked' => 'INT'
+			'name' => 'STR'
 		],
 
-			'nullable'		=> ['id', 'deleted_at'],
+			'nullable'		=> ['id'],
 
 			'rules' 		=> [
 				'name' => ['max' => 45]

@@ -7,6 +7,8 @@ use simplerest\core\Request;
 use simplerest\libs\Factory;
 use simplerest\libs\Debug;
 use simplerest\libs\DB;
+use simplerest\core\Model;
+use simplerest\models\BarModel;
 use simplerest\models\UsersModel;
 use simplerest\models\ProductsModel;
 use simplerest\models\UserRolesModel;
@@ -62,11 +64,54 @@ class DumbController extends Controller
         $res = (int) $req[0] * (int) $req[1];
         echo "$req[0] + $req[1] = " . $res;
     }
+    */    
+
+    function use_model(){
+        $m = (new Model(true))
+            ->table('products')  // <---------------- 
+            ->select(['id', 'name', 'size'])
+            ->where(['cost', 150, '>=']);
+
+        Debug::dd($m->get());
+    }
+
+    function get_bar(){
+        Debug::dd(DB::table('bar')
+        // ->setFetchMode('ASSOC')
+        ->get());
+    }
+
+    function get_bar2(){
+        Debug::dd((new BarModel())
+        ->connect()
+        // ->setFetchMode('ASSOC')
+        ->get());
+    }
+
+    /*
+        Se utiliza un modelo *sin* schema y sobre el cual no es posible hacer validaciones
     */
+    function create_bar(){
+        Debug::dd((new Model(true))
+        ->table('bar')
+        ->create([
+            'name' => 'ggg',
+			'price' => '88.90',
+        ]));
+    }
+
+    function create_bar1(){
+        $m = DB::table('bar')
+        ->setValidator(new Validator());
+        
+        Debug::dd($m->create([
+            'name' => 'gggggggggg',
+			'price' => '100',
+        ]));
+    }
 
     function get_products(){
         Debug::dd(DB::table('products')->get());
-        //Debug::dd(DB::table('products')->setFetchMode('ASSOC')->get());
     }
 
     function get_products2(){
@@ -263,10 +308,8 @@ class DumbController extends Controller
         $sub = DB::table('products')
         ->select(['name', 'size'])
         ->groupBy(['size']);
-        
-        $conn = DB::getConnection();
-    
-        $m = new \simplerest\core\Model($conn);
+            
+        $m = new Model(true);
         $res = $m->fromRaw("({$sub->toSql()}) as sub")->count();
         
         //Debug::dd($sub->toSql());
@@ -279,9 +322,7 @@ class DumbController extends Controller
         ->select(['id', 'name', 'size'])
         ->where(['cost', 150, '>=']);
     
-        $conn = DB::getConnection();
-    
-        $m = new \simplerest\core\Model($conn);
+        $m = new Model(true);    
         $res = $m->fromRaw("({$sub->toSql()}) as sub")->count();
     
         //Debug::dd($sub->toSql());
@@ -1367,9 +1408,7 @@ class DumbController extends Controller
         ->select(['size'])
         ->groupBy(['size']);
 
-        $conn = DB::getConnection();
-
-        $m = new \simplerest\core\Model($conn);
+        $m = new Model(true);
         $res = $m->fromRaw("({$sub->toSql()}) as sub")->count();
 
         Debug::dd($res);    

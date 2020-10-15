@@ -13,7 +13,7 @@ trait SuperCoolTableModelSchema
 			Types are INT, STR and BOOL among others
 			see: https://secure.php.net/manual/en/pdo.constants.php 
 		*/
-		$this->schema = [
+		$this->attr_types = [
 			'id' => 'INT',
 			'name' => 'STR',
 			'active' => 'INT',

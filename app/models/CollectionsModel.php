@@ -8,14 +8,14 @@ use simplerest\models\schemas\CollectionsSchema;
 
 class CollectionsModel extends Model
  { 
-	use CollectionsSchema;
+	### TRAITS
 	### PROPERTIES
 
 	protected $hidden   = [];
+	protected $not_fillable = [];
 
-    function __construct($db = NULL){
-		$this->loadSchema();		
-        parent::__construct($db);
+    function __construct(bool $connect = false){
+        parent::__construct($connect, new CollectionsSchema());
 	}	
 }
 

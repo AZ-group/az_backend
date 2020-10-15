@@ -6,7 +6,7 @@ SimpleRest utiliza la arquitectura MVC, está orientado a API Restful y es un fr
 Algunas características:
 
 - Arquitectura MVC 
-- APIs funcionan out-the-box o sea sin escribir nada de código ***
+- APIs funcionan out--of-the-box o sea sin escribir nada de código ***
 - ACL centralizado con sistema de roles y de permisos personalizados que decoran los roles
 - Posibilidad de "compartir" recursos via "folders"
 - Impersonate
@@ -400,6 +400,44 @@ En la terminal nos cambiamos al directorio "public" y ejecutamos:
 
 Hay soporte para sub-directorios o sub-sub-(sub)-directorios 
 
+
+# Front Controller y Router 
+
+Es posible configurar el uso del Front Controller y/o del Router. El primero es más sencillo pero se aconseja casi exclusivamente para utilizar los controllers desde la terminal. 
+
+El Router tiene la enorme ventaja de permitir filtrar los requests por su verbo HTTP:
+
+	# ruta: /calc/sum/4/5
+	Route::get('calc/sum', function($a, $b){
+		return "La suma de $a y $b da ". ($a + $b);
+	})->where(['a' => '[0-9]+', 'b' =>'[0-9]+']);
+
+	# ruta: /saludador/sp/hi/Juan/Carlos/44
+	Route::get('saludador/sp/hi/', function($nombre, $apellido, $edad){
+		return "Hola ". ($edad > 30 ? 'Sr. ' : '') . "$nombre $apellido";
+	})->where(['edad' => '[0-9]+', 'nombre' =>'[a-zA-Z]+', 'apellido' =>'[a-zA-Z]+']);
+
+	# ruta: /saludador/en/hi/Juan/Carlos/44
+	Route::get('saludador/en/hi/', function($nombre, $apellido, $edad){
+		return "Hello ". ($edad > 30 ? 'Mr. ' : '') . "$apellido $nombre";
+	})->where(['edad' => '[0-9]+', 'nombre' =>'[a-zA-Z]+', 'apellido' =>'[a-zA-Z]+']);
+
+	# ruta: /tonterias
+	Route::get('tonterias',  'DumbController');
+
+	# ruta: /chatbot/hi
+	Route::get('chatbot/hi', 'DumbController@hi')
+	->where(['name' => '[a-zA-Z]+']);  // <-- where() no implementado con controladores !
+
+	# ruta: /cosas/67
+	Route::delete('cosas', function($id){
+		return "Deleting cosa con id = $id";
+	});
+
+
+El router se habilitan desde el archivo config/config.php y se configura desde /config/route.php
+
+
 ### Resource Controller:
 
 Un ResourceController es un tipo de controlador que mediante un Authorization header identifica al usuario y su rol.
@@ -427,41 +465,28 @@ Api Controller:
 
 Un ApiController es un tipo de ResourceController que sirve para procesar un endpoint y por tanto sus métodos son los verbos correspondientes: get, post, put, patch, delete, head
 
-### Modelo
 
-	Cada modelo es definido en una clase en /app/models que extiende a Model y donde se define el schema y algunas propiedades de los campos. Ejemplo:
-
-	class ProductsModel extends Model 
-	{
-		protected $table_name = "products";
-		protected $id_name = 'id';
-		protected $nullable = ['workspace', 'created'];
-	 
-		/*
-			Types are INT, STR and BOOL among others
-			see: https://secure.php.net/manual/en/pdo.constants.php 
-		*/
-		protected $schema = [
-			'id' => 'INT',
-			'name' => 'STR',
-			'description' => 'STR',
-			'size' => 'STR',
-			'cost' => 'INT',
-			'created' => 'STR',
-			'modified' => 'STR',
-			'workspace' => 'STR', 
-			'belongs_to' => 'INT'  
-		];
-
-	    function __construct($db = NULL){
-			parent::__construct($db);
-		}
-
-	}
-
-Cada campo en el schema es de un tipo, el nombre de la tabla se especifica opcionalmente en $table_name aunque se recomienda que coincida con el nombre de la clase modelo en minúsculas. 
+# El Schema
 
 Todas las tablas deben tener un único id inclusive si son "tablas intermedias" (conocidas también como "tablas puente") y se especifica en la propiedad $id_name.
+
+
+# Modelo
+
+Cada modelo es definido en una clase en /app/models que extiende a Model y donde se define el schema y algunas propiedades de los campos. Ejemplo:
+	
+	class BazModel extends Model
+ 	{ 
+
+		protected $hidden   = [];
+		protected $not_fillable = [];
+
+		function __construct(bool $connect = false){
+			parent::__construct($connect, new BazSchema());
+		}	
+	}
+
+Un modelo extendiende a la clase Model que les provee toda la funcionalidad y acepta un schema. Tanto modelos como schemas pueden ser generados por el comando "make".
 
 Los campos que pueden ser rellenados al hacer un INSERT o un UPDATE pueden especificarse dentro del array $fillable. 
 
@@ -471,16 +496,76 @@ Ej:
 
 Supongamos que el campo confirmed_email no es fillable, entonces para hacerlo fillable desde un controlador:
 
-	$u = DB::table('users');
-	
-	$ok = (bool) $u->where(['email', $payload->email])
+	$u = DB::table('users')
 	->fill(['confirmed_email'])
+	// ...
+	->where(['email', $payload->email])
 	->update(['confirmed_email' => 1]);
 
-					
-Si un campo puede ser NULL, debe incluirse en el array $nullable.
 
-Los modelos heredan de la clase Model y adquieren así funcionalidad de métodos como create() delete() update() join() where() having() etc que provee la clase Model.
+Hay básicamente 3 formas de usar un Model:
+
+a) Instanciando directamente Model en cuyo caso no dispondríamos de un schema a menos que se lo inyectemos:
+
+	$m = (new Model(true))
+		->table('products')   
+		->select(['id', 'name', 'size'])
+		->where(['cost', 150, '>=']);
+
+	Debug::dd($m->get());
+
+	Ventajas: 
+
+	- Puede hacerse uso del Query Builder sin un schema lo cual es útil para probar la validez del mismo (pruebas unitarias)
+	- Puede generar las queries sin una conexión a la base de datos (comportamiento por defecto).
+
+	Desventaja:
+
+	- Verboso
+	- En principio no se dispone del Schema sin lo cual no es posible hacer validaciones contra el mismo. 
+
+b) Instanciando una clase Model derivada
+
+	$m = (new ProductsModel(true))
+		->select(['id', 'name', 'size'])
+		->where(['cost', 150, '>=']);
+
+	Debug::dd($m->get());
+
+	Ventajas: 
+
+	- Se dispone del schema si se inyecta en el modelo derivado (así es generado por "make")
+	- Validación out-of-the-box si se inyectando el validator.
+	- Menos verboso: ya no es necesario llamar al método table('nombre_tabla')   
+
+c) Usando la clase DB para obtener la instancia
+
+    $m = DB::table('products')
+		->select(['id', 'name', 'size'])
+		->where(['cost', 150, '>=']);
+    
+	Debug::dd($m->get());
+    
+	Ventajas:
+
+	- Es la opción menos verbosa.
+	- Se dispone del Schema para hacer validaciones.
+
+	Desventajas:
+
+	- Obtiene una conexión a la base de datos aún antes de hacer cualquier tipo de validación.
+
+
+# Fetch modes 
+
+Los modos de obtención de datos pueden setearse  en cualquera de los casos mediante el método setFetchMode() antes de llamar a un método final como get(), first(), min(), avg(), etc 
+
+Ej:
+
+	Debug::dd((new BarModel())
+	->connect()
+	->setFetchMode('ASSOC')
+	->get());
 
 
 # Debuguear una query
@@ -592,35 +677,10 @@ deleted_at 		apunta indefectiblemente a la fecha-hora en que se creó un registr
 locked 			cuando un registro es mofificado por un usuario con permiso de 'lock' automáticamente se guarda un 1.
 
 
-Los campos created_ay, update_at y deleted_at son rellenados por Model pero al modelo no le compete si hay un sistema de autenticación y que usuario está haciendo el query así que los campos created_by, update_by, deleted_by y belongs_to son manejados a nivel de la API por ApiController al igual que el campo locked.
+Los campos created_by, update_at y deleted_at son rellenados por Model pero al modelo no le compete si hay un sistema de autenticación y que usuario está haciendo el query así que los campos created_by, update_by, deleted_by y belongs_to son manejados a nivel de la API por ApiController al igual que el campo locked.
 
-Nota: no olvides incluir los campos que necesites en las tablas y colocarlos en el schema del modelo correspondiente. Recuerda que los tipos del SCHEMA son INT o STR y se corresponden a los tipos de PDO.
+Nota: no olvides que los campos que necesites deben estar en las tablas y en el schema del modelo correspondiente. 
 
-class SuperCoolTableModel extends Model 
-{
-	protected $table_name = "super_cool_table";
-	protected $id_name = 'id';
-
-	protected $schema = [
-		'id'         => 'INT',
-		'name'       => 'STR',
-		'active'     => 'INT',
-		'belongs_to' => 'INT',
-		'created_at' => 'STR',
-		'created_by' => 'INT',
-		'updated_at' => 'STR',
-		'updated_by' => 'INT', 
-		'deleted_at' => 'STR',
-		'deleted_by' => 'INT',
-		'locked'	 => 'INT' 
-	];
-
-	protected $rules = [
-		'active' => ['type' => 'bool']
-	];
-} 
-
-<-- actualmente la definición del Schema se está haciendo en un Trait.
 
 ### Mutators
 
@@ -683,21 +743,14 @@ En el modelo donde queremos implementar el uuid, debemos declar el campo como st
 	{ 
 		use Uuids;
 		
-		protected $id_name = 'uuid';
-
-		protected $schema = [
-			'uuid' => 'STR', 
-			// ...
-		];
-		
-		protected $nullable = ['uuid'];
-		
 		function __construct($db = NULL){
 			parent::__construct($db);
 		}
 	}
 
-Tenemos también los "output mutators" que permiten aplicar una función sobre la salida de la ejecución de una query.
+Recordar actualizar el Schema donde el campo uuid debe ser un string y pertenecer a los nullables.
+
+Además de los Input Mutators, tenemos también los Output Mutator que permiten aplicar una función sobre la salida de la ejecución de una query. Lógicamente un Output Mutator sobre un campo no es compatible con declarar a ese mismo campo como "hidden". 
 
 Ejemplo:
 
@@ -1021,9 +1074,11 @@ Es posible desactivar el chequeo de campos requeridos para todos los campos llam
 
 Ejemplo:
 
-$data  = [ ..., ... , ...];
-$rules = [ ..., ... , ...];
-$validado = (new Validator())->setRequired(false)->validate($rules,$data);
+	$data  = [ ..., ... , ...];
+	$rules = [ ..., ... , ...];
+
+	$validado = (new Validator())->setRequired(false)
+	->validate($rules,$data);
 
 
 ### Constraints
@@ -1055,16 +1110,16 @@ Ejemplo:
 		'active'		=> ['type' => 'bool', 'messages' => [ 'type' => 'Value should be 0 or 1'] ]
 	];
 
-Es posible utiliza una sintaxis mucho más amigable importando la librería ValidationRules:
+Es posible utiliza una sintaxis mucho más amigable importando la librería ValidationRules. Así en un modelo podríamos tener el constructor:
 
-		$this->addRules((new ValidationRules())
-			->field('id')->type('int')->required()
-			->field('name')->type('str')->max(40)->min(3)
-			->field('description')->type('str')->max(50)
-			->field('size')->type('str')->max(20)
-			->field('workspace')->type('str')->max(20)
-			->field('active')->type('bool', 'Value should be 0 or 1')
-		);
+	$this->addRules((new ValidationRules())
+		->field('id')->type('int')->required()
+		->field('name')->type('str')->max(40)->min(3)
+		->field('description')->type('str')->max(50)
+		->field('size')->type('str')->max(20)
+		->field('workspace')->type('str')->max(20)
+		->field('active')->type('bool', 'Value should be 0 or 1')
+	);
 
 
 # ACL
@@ -2047,6 +2102,42 @@ Borrar un archivo
 	DEL /api/v1/files/241
 
 
+# Modelos y esquemas (schemas)
+
+Modelos y schemas se mantienen separado en distintos archivos. El comando 'make' crea modelos y schemas mientras que el comando 'migrate' impactará en la DB reflejando cambios en los schema.
+
+ 
+   								   Api Rest   
+	  	  [make]                      |
+	DB ------------> Schema           |
+							<------ Model (Query Model) <---- ORM
+	 	  migration		
+	   <------------           
+
+
+make schema foo --include-defaults
+make schema all --include-defaults
+make schema * --include-defaults
+
+make schema-change foo --include-defaults
+make schema-change all --include-defaults
+make schema-change * --include-defaults
+make schema-change * --include-defaults --exclude=belongs_to
+make schema-change foo --remove=algun_campo
+
+<-- estos últimos alteran los schema y generan archivos de migración
+
+make schema xxxx
+
+El parámetro --include-defaults crea o agrega los campos manejados automáticamente por el framework:
+
+created_at
+created_by
+...
+...
+..,
+	
+	
 # Make 
 
 Para generar modelos, controladores y apis se utiliza el comando make de la siguiente forma: 
@@ -2073,12 +2164,40 @@ Ejemplo:
     
     make any baz -s -m -a -f
 
-Para controladores es posible especificar la ruta:
+Lo anterior es equivalente a:
+
+	make any baz -samf
+
+<-- solo existen (hasta ahora) los atajos -sam y -samf 
+
+Para controladores es posible especificar una ruta interior a apps\controllers:
 
 	php index.php make controller sub1\a\cosas
 
 <-- el index.php está en la carpeta public
 
+
+Es posible ignorar controladores, api resful controllers, modelos y schemas colocándo sus nombres en el siguiente archivo en /apps:
+
+	.make_ignore
+
+Ejemplo:
+
+	models\UsersModel.php
+	models\FilesModel.php
+	models\schemas\FooSchema.php
+	# models\CollectionsModel.php
+	models\ProductsModel.php
+	controllers\UsersController.php
+	controllers\sub1\a\OpsController.php
+	ProductsController.php
+
+Puede observarse que:
+
+	- Se pueden especificar rutas relativas a /app
+	- Se pueden especificar solo los nombres de los archivos -sin ruta-
+	- Se pueden anular los ignore comentando la línea con una #almohadilla 
+	
 
 # NGINX web server
 

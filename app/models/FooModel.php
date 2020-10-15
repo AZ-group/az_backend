@@ -1,38 +1,21 @@
 <?php
+
 namespace simplerest\models;
 
 use simplerest\core\Model;
-use simplerest\libs\Debug;
+use simplerest\libs\ValidationRules;
+use simplerest\models\schemas\FooSchema;
 
-class FooModel extends Model 
-{
-	protected $table_name = "foo";
-	protected $id_name = 'id';
+class FooModel extends Model
+ { 
+	### TRAITS
+	### PROPERTIES
 
-	protected $schema = [
-		'id' => 'INT',
-		'bar' => 'STR',
-		'hide' => 'INT',
-		'deleted_at' => 'STR'
-	];
+	protected $hidden   = [];
+	protected $not_fillable = [];
 
-	protected $rules = [
-		'bar' => ['type' => 'alpha']
-	];
-
-    function __construct($db = NULL){
-		parent::__construct($db);
-	}
-
-	function onReading() {
-		$this->where(['hide' => 0]);
-	}
-
+    function __construct(bool $connect = false){
+        parent::__construct($connect, new FooSchema());
+	}	
 }
-
-
-
-
-
-
 

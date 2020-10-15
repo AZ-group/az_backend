@@ -130,9 +130,8 @@ class Collections extends MyApiController
 
                 if (!class_exists($model))
                     Factory::response()->sendError("Entity $entity does not exists", 400);     
-
-                $conn = DB::getConnection();     
-                $instance = (new $model($conn));      
+                
+                $instance = (new $model(true));      
 
                 unset($data['refs']);
 
@@ -211,9 +210,8 @@ class Collections extends MyApiController
 
             if (!class_exists($model))
                 Factory::response()->sendError("Entity $entity does not exists", 400);
-            
-            $conn = DB::getConnection();     
-            $instance = (new $model($conn));     
+                 
+            $instance = (new $model(true));     
 
             // Table must have 'belongs_to' 
             if (!$sp) {

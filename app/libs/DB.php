@@ -4,13 +4,15 @@ namespace simplerest\libs;
 
 use simplerest\core\Model;
 
-class DB {
+class DB 
+{
 	protected static $connections = [];
 	protected static $current_id_conn;
 	protected static $model_instance;  
+	protected static $raw_sql;
 
-    protected function __construct() { }
-
+	protected function __construct() { }
+	
 	public static function setConnection($id){
 		static::$current_id_conn = $id;
 	}
@@ -89,8 +91,12 @@ class DB {
 	}
 
 	// Returns last executed query 
-	public static function getQueryLog(){
-		return static::$model_instance->getLog();
+	public static function getLog(){
+		if (static::$model_instance != NULL){
+			return static::$model_instance->getLog();
+		} else {
+			return static::$raw_sql;
+		}
 	}
 	
 	public static function table($from, $alias = NULL) {
@@ -103,8 +109,8 @@ class DB {
 			$model_instance = implode('', $names).'Model';		
 
 			$class = '\\simplerest\\models\\' . $model_instance;
-			$obj = new $class(self::getConnection(), $alias);
-			
+			$obj = new $class(true);
+
 			if (!is_null($alias))
 				$obj->setTableAlias($alias);
 
@@ -112,7 +118,7 @@ class DB {
 			return $obj;	
 		}
 
-		$model_instance = new Model(self::getConnection());
+		$model_instance = (new Model())->setConn(self::getConnection());
 		static::$model_instance = $model_instance;
 
 		$st = ($model_instance)->fromRaw($from);	
@@ -156,13 +162,16 @@ class DB {
 	//
 	// https://laravel.com/docs/5.0/database
 	//
-	public static function select(string $raw_sql, $params = []){
+	public static function select(string $raw_sql, $fetch_mode = 'ASSOC'){
+		static::$raw_sql = $raw_sql; 
+
 		$conn = DB::getConnection();
         
         $st = $conn->prepare($raw_sql);
         $st->execute();
 
-		$result = $st->fetchAll(\PDO::FETCH_ASSOC);
+		$fetch_const = constant("\PDO::FETCH_{$fetch_mode}");
+		$result = $st->fetchAll($fetch_const);
 		return $result;
 	}
 

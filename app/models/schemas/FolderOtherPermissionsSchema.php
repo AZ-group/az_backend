@@ -6,29 +6,29 @@ use simplerest\core\interfaces\ISchema;
 
 ### IMPORTS
 
-class SuperCoolTableSchema implements ISchema
+class FolderOtherPermissionsSchema implements ISchema
 { 
 	### TRAITS
 	
 	function get(){
 		return [
-			'table_name'	=> 'super_cool_table',
+			'table_name'	=> 'folder_other_permissions',
 
 			'id_name'		=> 'id',
 
 			'attr_types'	=> [
 			'id' => 'INT',
-			'name' => 'STR',
-			'active' => 'INT',
+			'folder_id' => 'INT',
 			'belongs_to' => 'INT',
-			'deleted_at' => 'STR',
-			'locked' => 'INT'
+			'guest' => 'INT',
+			'r' => 'INT',
+			'w' => 'INT'
 		],
 
-			'nullable'		=> ['id', 'deleted_at'],
+			'nullable'		=> ['id'],
 
 			'rules' 		=> [
-				'name' => ['max' => 45]
+
 			]
 		];
 	}	

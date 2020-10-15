@@ -14,9 +14,8 @@ class __NAME__ extends Model
 	protected $hidden   = [];
 	protected $not_fillable = [];
 
-    function __construct($db = NULL){
-		$this->loadSchema();		
-        parent::__construct($db);
+    function __construct(bool $connect = false){
+        parent::__construct($connect, new __SCHEMA_CLASS__());
 	}	
 }
 

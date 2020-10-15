@@ -2,6 +2,7 @@
 
 namespace simplerest\core;
 
+use simplerest\libs\DB;
 use simplerest\libs\Arrays;
 use simplerest\libs\Strings;
 use simplerest\libs\Validator;
@@ -18,11 +19,21 @@ use simplerest\traits\ExceptionHandler;
 class Model {
 	use ExceptionHandler;
 
-	protected $table_name;
+	// for internal use
 	protected $table_alias = '';
+	protected $table_name;
+
+	// Schema
+	protected $schema;
+
+	/*
+	protected $table_name;
 	protected $id_name;
-	protected $schema   = [];
+	protected $attr_types   = [];
 	protected $nullable = [];
+	protected $rules = [];
+	*/
+	
 	protected $not_nullable = [];
 	protected $fillable = [];
 	protected $not_fillable = [];
@@ -73,15 +84,18 @@ class Model {
 	protected $soft_delete;
 	protected $last_inserted_id;
 	protected $paginator = true;
-	protected $rules = [];
 	protected $fetch_mode_default = \PDO::FETCH_ASSOC;
 	protected $data = []; 
 
 	
-	function __construct(\PDO $conn = null){
+	function __construct(bool $connect = false, $schema = null){
+		if ($connect){
+			$this->connect();
+		}
 
-		if($conn){
-			$this->conn = $conn;
+		if ($schema != null){
+			$this->schema = $schema->get();
+			$this->table_name = $this->schema['table_name'];
 		}
 
 		$this->config = Factory::config();
@@ -89,27 +103,36 @@ class Model {
 		if ($this->config['error_handling']) {
             set_exception_handler([$this, 'exception_handler']);
 		}
-
 		
-		$this->attributes = array_keys($this->schema);
-		
+		/////////////// ***
+		/*
 		if (empty($this->table_name)){
 			$class_name = get_class($this);
 			$class_name = substr($class_name, strrpos($class_name, '\\')+1);
 			$str = Strings::fromCamelCase($class_name);
 			$this->table_name = strtolower(substr($str, 0, strlen($str)-6));
-		}			
+		}
+		*/
+	
+
+		//Debug::export($this->table_name, 'table_name:');  // mode <-- por "model" recortado!!
 		
-		if ($this->id_name == NULL){
+		if ($this->schema == null){
+			return;
+		}	
+
+		//Debug::dd($this->schema, 'SCHEMA:');
+
+		$this->attributes = array_keys($this->schema['attr_types']);
+		
+		if ($this->schema['id_name'] == NULL){
 			if ($this->inSchema(['id'])){
-				$this->id_name = 'id';
+				$this->schema['id_name'] = 'id';
 			} else {
 				throw new \Exception("Undefined table identifier for '".$this->table_name. "' Use 'id' or \$id_name to specify another field name");
 			}
-		}	
-		
-		// event handler
-		$this->boot();
+		}			
+
 
 		if ($this->fillable == NULL){
 			$this->fillable = $this->attributes;
@@ -118,16 +141,17 @@ class Model {
 
 		$this->unfill($this->not_fillable);
 
-		$this->nullable[] = 'locked';
-		$this->nullable[] = 'belongs_to';
-		$this->nullable[] = 'created_at';
-		$this->nullable[] = 'updated_at';
-		$this->nullable[] = 'deleted_at';
-		$this->nullable[] = 'created_by';
-		$this->nullable[] = 'updated_by';
-		$this->nullable[] = 'deleted_by';
+		// innecesario, debería provenir del propio schema !
+		$this->schema['nullable'][] = 'locked';
+		$this->schema['nullable'][] = 'belongs_to';
+		$this->schema['nullable'][] = 'created_at';
+		$this->schema['nullable'][] = 'updated_at';
+		$this->schema['nullable'][] = 'deleted_at';
+		$this->schema['nullable'][] = 'created_by';
+		$this->schema['nullable'][] = 'updated_by';
+		$this->schema['nullable'][] = 'deleted_by';
 
-		$to_fill = [$this->id_name];
+		$to_fill = [$this->schema['id_name']];
 
 		if ($this->inSchema(['created_by'])){
 			$to_fill[] = 'created_by';
@@ -138,44 +162,44 @@ class Model {
 		}
 
 		$this->fill($to_fill);				
-		//Debug::dd($this->fillable, 'fillables');
-
 		
 		$this->soft_delete = $this->inSchema(['deleted_at']);
-
+	
 		/*
 		 Validations
 		*/
-		if (!empty($this->rules)){
-			foreach ($this->rules as $field => $rule){
-				if (!isset($this->rules[$field]['type']) || empty($this->rules[$field]['type'])){
-					$this->rules[$field]['type'] = strtolower($this->schema[$field]);
+		if (!empty($this->schema['rules'])){
+			foreach ($this->schema['rules'] as $field => $rule){
+				if (!isset($this->schema['rules'][$field]['type']) || empty($this->schema['rules'][$field]['type'])){
+					$this->schema['rules'][$field]['type'] = strtolower($this->schema['attr_types'][$field]);
 				}
 			}
 		}
 		
-		
-		foreach ($this->schema as $field => $type){
-			if (!isset($this->rules[$field])){
-				$this->rules[$field]['type'] = strtolower($type);
+		foreach ($this->schema['attr_types'] as $field => $type){
+			if (!isset($this->schema['rules'][$field])){
+				$this->schema['rules'][$field]['type'] = strtolower($type);
 			}
 
 			if (!$this->isNullable($field)){
-				$this->rules[$field]['required'] = true;
+				$this->schema['rules'][$field]['required'] = true;
 			}
-		}		
+		}
+		
+		// event handler
+		$this->boot();
 	}
 
 
 	function addRules(ValidationRules $vr){
-		$this->rules = array_merge($this->rules, $vr->getRules());
+		$this->schema['rules'] = array_merge($this->schema['rules'], $vr->getRules());
 	}
 
 	/*
 		Returns prmary key
 	*/
 	function getKeyName(){
-		return $this->id_name;
+		return $this->schema['id_name'];
 	}
 
 	/*
@@ -312,7 +336,7 @@ class Model {
 	function setSoftDelete(bool $status) {
 		if (!$this->inSchema(['deleted_at'])){
 			if ($status){
-				throw new SqlException("There is no 'deleted_at' for table '".$this->from()."' in the schema");
+				throw new SqlException("There is no 'deleted_at' for table '".$this->from()."' in the attr_types");
 			}
 		} 
 		
@@ -329,11 +353,20 @@ class Model {
 		return $this;
 	}
 
-	protected function from(){
-		if (!empty($this->table_raw_q))
-			return $this->table_raw_q. ' ';
+	// set table and alias
+	function table(string $table, $table_alias = null){
+		$this->table_name = $table;
+		$this->table_alias = $table_alias;
+		return $this;		
+	}
 
-		return $this->table_name. ' '.(!empty($this->table_alias) ? 'as '.$this->table_alias : '');
+	protected function from(){
+		if ($this->table_name == null){
+			throw new \Exception("No table_name defined");
+		}
+
+		$from = $this->table_alias != null ? $this->table_name. ' as '.$this->table_alias : $this->table_name.' ';  
+		return $from;
 	}
 
 		
@@ -602,7 +635,7 @@ class Model {
 
 							
 			if ($this->distinct){
-				$remove = [$this->id_name];
+				$remove = [$this->schema['id_name']];
 
 				if ($this->inSchema(['created_at']))
 					$remove[] = 'created_at';
@@ -942,8 +975,8 @@ class Model {
 				
 			if(is_null($val)){
 				$type = \PDO::PARAM_NULL;
-			}elseif(isset($this->w_vars[$ix]) && isset($this->schema[$this->w_vars[$ix]])){
-				$const = $this->schema[$this->w_vars[$ix]];
+			}elseif(isset($this->w_vars[$ix]) && isset($this->schema['attr_types'][$this->w_vars[$ix]])){
+				$const = $this->schema['attr_types'][$this->w_vars[$ix]];
 				$type = constant("PDO::PARAM_{$const}");
 			}elseif(is_int($val))
 				$type = \PDO::PARAM_INT;
@@ -981,8 +1014,8 @@ class Model {
 				
 			if(is_null($val)){
 				$type = \PDO::PARAM_NULL;
-			}elseif(isset($this->h_vars[$ix]) && isset($this->schema[$this->h_vars[$ix]])){
-				$const = $this->schema[$this->h_vars[$ix]];
+			}elseif(isset($this->h_vars[$ix]) && isset($this->schema['attr_types'][$this->h_vars[$ix]])){
+				$const = $this->schema['attr_types'][$this->h_vars[$ix]];
 				$type = constant("PDO::PARAM_{$const}");
 			}elseif(is_int($val))
 				$type = \PDO::PARAM_INT;
@@ -1032,8 +1065,8 @@ class Model {
 		foreach($bindings as $ix => $val){			
 			if(is_null($val)){
 				$bindings[$ix] = 'NULL';
-			}elseif(isset($vars[$ix]) && isset($this->schema[$vars[$ix]])){
-				$const = $this->schema[$vars[$ix]];
+			}elseif(isset($vars[$ix]) && isset($this->schema['attr_types'][$vars[$ix]])){
+				$const = $this->schema['attr_types'][$vars[$ix]];
 				if ($const == 'STR')
 					$bindings[$ix] = "'$val'";
 			}elseif(is_int($val)){
@@ -1066,9 +1099,14 @@ class Model {
 
 	function get(array $fields = null, array $order = null, int $limit = NULL, int $offset = null, $pristine = false){
 		$this->onReading();
-		
+
 		$q = $this->toSql($fields, $order, $limit, $offset);
 		$st = $this->bind($q);
+
+
+		//Debug::dd($q, 'Q'); ////////
+		//var_dump($this->from());
+		//exit;
 
 		$count = null;
 		if ($this->exec && $st->execute()){
@@ -1269,7 +1307,7 @@ class Model {
 
 					if(is_array($cond[1]) && (empty($cond[2]) || in_array($cond[2], ['IN', 'NOT IN']) ))
 					{						
-						if($this->schema[$cond[0]] == 'STR')	
+						if($this->schema['attr_types'][$cond[0]] == 'STR')	
 							$cond[1] = array_map(function($e){ return "'$e'";}, $cond[1]);   
 						
 						$in_val = implode(', ', $cond[1]);
@@ -1339,7 +1377,7 @@ class Model {
 	}
 
 	function find(int $id){
-		return $this->where([$this->id_name => $id])->get();
+		return $this->where([$this->schema['id_name'] => $id])->get();
 	}
 
 	function whereNull(string $field){
@@ -1540,8 +1578,8 @@ class Model {
 		foreach($values as $ix => $val){			
 			if(is_null($val)){
 				$type = \PDO::PARAM_NULL;
-			}elseif(isset($vars[$ix]) && isset($this->schema[$vars[$ix]])){
-				$const = $this->schema[$vars[$ix]];
+			}elseif(isset($vars[$ix]) && isset($this->schema['attr_types'][$vars[$ix]])){
+				$const = $this->schema['attr_types'][$vars[$ix]];
 				$type = constant("PDO::PARAM_{$const}");
 			}elseif(is_int($val))
 				$type = \PDO::PARAM_INT;
@@ -1617,8 +1655,8 @@ class Model {
 		foreach($this->w_vals as $ix => $val){			
 			if(is_null($val)){
 				$type = \PDO::PARAM_NULL;
-			}elseif(isset($vars[$ix]) && isset($this->schema[$vars[$ix]])){
-				$const = $this->schema[$vars[$ix]];
+			}elseif(isset($vars[$ix]) && isset($this->schema['attr_types'][$vars[$ix]])){
+				$const = $this->schema['attr_types'][$vars[$ix]];
 				$type = constant("PDO::PARAM_{$const}");
 			}elseif(is_int($val))
 				$type = \PDO::PARAM_INT;
@@ -1696,8 +1734,8 @@ class Model {
 		foreach($vals as $ix => $val){			
 			if(is_null($val)){
 				$type = \PDO::PARAM_NULL;
-			}elseif(isset($vars[$ix]) && isset($this->schema[$vars[$ix]])){
-				$const = $this->schema[$vars[$ix]];
+			}elseif(isset($vars[$ix]) && isset($this->schema['attr_types'][$vars[$ix]])){
+				$const = $this->schema['attr_types'][$vars[$ix]];
 				$type = constant("PDO::PARAM_{$const}");
 			}elseif(is_int($val))
 				$type = \PDO::PARAM_INT;
@@ -1719,8 +1757,8 @@ class Model {
 		$result = $st->execute();
 
 		if ($result){
-			if (isset($data[$this->id_name])){
-				$this->last_inserted_id =	$data[$this->id_name];
+			if (isset($data[$this->schema['id_name']])){
+				$this->last_inserted_id =	$data[$this->schema['id_name']];
 			} else {
 				$this->last_inserted_id = $this->conn->lastInsertId();
 			}
@@ -1795,6 +1833,11 @@ class Model {
 	protected function onUpdating(Array &$data) { }
 	protected function onUpdated(Array &$data, ?int $count) { }
 
+
+	function getSchema(){
+		return $this->schema;
+	}
+
 	/*
 		'''Reflection'''
 	*/
@@ -1828,11 +1871,11 @@ class Model {
 	 */
 	function getMissing(array $fields){
 		$diff =  array_diff($this->attributes, array_keys($fields));
-		return array_diff($diff, $this->nullable);
+		return array_diff($diff, $this->schema['nullable']);
 	}
 	
 	/**
-	 * Get schema 
+	 * Get attr_types 
 	 */ 
 	function getAttr()
 	{
@@ -1840,7 +1883,7 @@ class Model {
 	}
 
 	function getIdName(){
-		return $this->id_name;
+		return $this->schema['id_name'];
 	}
 
 	function getNotHidden(){
@@ -1848,7 +1891,7 @@ class Model {
 	}
 
 	function isNullable(string $field){
-		return in_array($field, $this->nullable);
+		return in_array($field, $this->schema['nullable']);
 	}
 
 	function isFillable(string $field){
@@ -1860,27 +1903,27 @@ class Model {
 	}
 
 	function setNullables(Array $arr){
-		$this->nullable = $arr;
+		$this->schema['nullable'] = $arr;
 	}
 
 	function addNullables(Array $arr){
-		$this->nullable = array_merge($this->nullable, $arr);
+		$this->schema['nullable'] = array_merge($this->schema['nullable'], $arr);
 	}
 
 	function removeNullables(Array $arr){
-		$this->nullable = array_diff($this->nullable, $arr);
+		$this->schema['nullable'] = array_diff($this->schema['nullable'], $arr);
 	}
 
 	function getNullables(){
-		return $this->nullable;
+		return $this->schema['nullable'];
 	}
 
 	function getNotNullables(){
-		return array_diff($this->attributes, $this->nullable);
+		return array_diff($this->attributes, $this->schema['nullable']);
 	}
 
 	function getRules(){
-		return $this->rules;
+		return $this->schema['rules'] ?? NULL;
 	}
 
 	/**
@@ -1888,10 +1931,15 @@ class Model {
 	 *
 	 * @return  self
 	 */ 
-	function setConn(\PDO $conn)
+	function connect()
+	{
+		$this->conn = DB::getConnection();
+		return $this;
+	}
+
+	function setConn($conn)
 	{
 		$this->conn = $conn;
-		return $this;
 	}
 
 }

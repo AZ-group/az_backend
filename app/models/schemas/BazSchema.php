@@ -2,31 +2,31 @@
 
 namespace simplerest\models\schemas;
 
+use simplerest\core\interfaces\ISchema;
+
 ### IMPORTS
 
-trait BazSchema
+class BazSchema implements ISchema
 { 
 	### TRAITS
 	
-	function loadSchema(){
+	function get(){
+		return [
+			'table_name'	=> 'baz',
 
-		// En conjunto deberían definir el 'schema'
-		$this->id_name = 'id_baz';
+			'id_name'		=> 'id_baz',
 
-		/*
-			debería ser 'attribute_types' 
-		*/
-		$this->schema  = [
+			'attr_types'	=> [
 			'id_baz' => 'INT',
 			'name' => 'STR',
 			'cost' => 'STR'
-		];
+		],
 
-		$this->not_fillable = [];
-		$this->nullable 	= [];
-	
-		$this->rules 		= [
-			'name' => ['max' => 45]
+			'nullable'		=> [],
+
+			'rules' 		=> [
+				'name' => ['max' => 45]
+			]
 		];
 	}	
 }

@@ -6,18 +6,16 @@ use simplerest\core\Model;
 use simplerest\libs\ValidationRules;
 use simplerest\models\schemas\FilesSchema;
 
-### readonly
 class FilesModel extends Model
-{ 
-	use FilesSchema;
+ { 
+	### TRAITS
 	### PROPERTIES
 
 	protected $hidden   = [];
-	protected $not_fillable = ['filename_as_stored']; // <--- evitar sobre-escritura via .make_ignore
+	protected $not_fillable = ['filename_as_stored']; 
 
-    function __construct($db = NULL){
-		$this->loadSchema();		
-		parent::__construct($db);
+    function __construct(bool $connect = false){
+        parent::__construct($connect, new FilesSchema());
 	}	
 }
 

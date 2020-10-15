@@ -2,29 +2,34 @@
 
 namespace simplerest\models\schemas;
 
+use simplerest\core\interfaces\ISchema;
+
 use simplerest\traits\Uuids;
 
-trait BarSchema
+class BarSchema implements ISchema
 { 
 	use Uuids;
 	
-	function loadSchema(){
-		$this->id_name = 'uuid';
+	function get(){
+		return [
+			'table_name'	=> 'bar',
 
-		$this->schema  = [
+			'id_name'		=> 'uuid',
+
+			'attr_types'	=> [
 			'uuid' => 'STR',
 			'name' => 'STR',
 			'price' => 'STR',
 			'belongs_to' => 'INT',
 			'updated_at' => 'STR'
-		];
+		],
 
-		$this->not_fillable = [];
-		$this->nullable 	= ['updated_at', 'uuid'];
-	
-		$this->rules 		= [
-			'uuid' => ['max' => 36],
-			'name' => ['max' => 50]
+			'nullable'		=> ['updated_at', 'uuid'],
+
+			'rules' 		=> [
+				'uuid' => ['max' => 36],
+				'name' => ['max' => 50]
+			]
 		];
 	}	
 }

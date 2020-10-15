@@ -48,6 +48,11 @@ class Strings {
         return substr($haystack, -strlen($needle))===$needle;
     }
 
+	static function contains($needle, $haystack)
+	{
+		return (strpos($haystack, $needle) !== false);
+	}
+
 	static function removeRTrim($needle, $haystack)
     {
         if (substr($haystack, -strlen($needle)) === $needle){

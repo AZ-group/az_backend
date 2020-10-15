@@ -4,9 +4,9 @@ namespace simplerest\models;
 
 use simplerest\core\Model;
 use simplerest\libs\ValidationRules;
-use simplerest\models\schemas\FolderPermissionsSchema;
+use simplerest\models\schemas\ProductCategoriesSchema;
 
-class FolderPermissionsModel extends Model
+class ProductCategoriesModel extends Model
  { 
 	### TRAITS
 	### PROPERTIES
@@ -15,7 +15,7 @@ class FolderPermissionsModel extends Model
 	protected $not_fillable = [];
 
     function __construct(bool $connect = false){
-        parent::__construct($connect, new FolderPermissionsSchema());
+        parent::__construct($connect, new ProductCategoriesSchema());
 	}	
 }
 

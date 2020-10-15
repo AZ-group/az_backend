@@ -51,11 +51,38 @@ class MakeController extends Controller
     protected $ctr_name;
     protected $api_name; 
     protected $model_table;
+    protected $excluded_files = [];
 
     function __construct()
     {
         if (php_sapi_name() != 'cli'){
             Factory::response()->send("Error: Make can only be excecuted in console", 403);
+        }
+
+        if (file_exists(APP_PATH. '.make_ignore')){
+            $this->excluded_files = preg_split('/\R/', file_get_contents(APP_PATH. '.make_ignore'));
+            
+            foreach ($this->excluded_files as $ix => $f){
+                $f = trim($f);
+                if (empty($f) || $f == "\r" || $f == "\n" || $f == "\r\n"){
+                    unset($this->excluded_files[$ix]);
+                    continue;
+                } 
+
+                if (Strings::contains('#', $f)){
+                    unset($this->excluded_files[$ix]);
+                    continue;
+                }
+
+                $this->excluded_files[$ix] = str_replace(array('/', '\\'), DIRECTORY_SEPARATOR, $f);
+
+                if (Strings::contains(DIRECTORY_SEPARATOR, $this->excluded_files[$ix])){
+                    $this->excluded_files[$ix] = APP_PATH . $this->excluded_files[$ix];    
+                }                 
+            }
+
+            //Debug::dd($this->excluded_files);
+            //exit; ///
         }
 
         parent::__construct();
@@ -94,13 +121,32 @@ class MakeController extends Controller
 
     // Rutear "make -h" y "make --help" a "make index -h" y "make index --help" respectivamente
     function index(...$opt){
+        if (!isset($opt[0])){
+            $this->help();
+            return;
+        }
+        
+        /*
         if ($opt[0] == '-h' || $opt[0] == '--help'){
             $this->help();
         }
+        */
     }
 
+    function getTables(){
+        static $tables;
+
+        if ($tables == NULL){
+            $tables = DB::select('SHOW TABLES', 'COLUMN');
+        }
+
+        return $tables;
+    } 
+
     function setup($name) {
-        if ($this->class_name != NULL)
+        static $prev_name;
+
+        if ($this->class_name != null && $this->class_name == $prev_name)
             return;
 
         $name_lo = strtolower($name);
@@ -135,6 +181,8 @@ class MakeController extends Controller
         
         //Debug::export($this->model_name,  'model name');
         //Debug::export($this->model_table, 'table name');
+
+        $prev_name = $name;
     }
 
     /*
@@ -147,13 +195,17 @@ class MakeController extends Controller
                                 -sam  = -s -a -m
                                 -samf = -s -a -m -f
 
+             any  *             options                   
+
     */
-    function any($name, ...$opt){
+    function any($name, ...$opt){        
         if (count($opt) == 0){
             echo "Nothing to do. Please specify action using options.\r\nUse 'make help' for help.\r\n";
             exit;
         }
 
+        $names = $name == '*' ? $this->getTables() : [$name];
+        
         switch($opt[0]){
             case '-sam':
                 $opt = ['-s', '-a', '-m'];
@@ -162,20 +214,22 @@ class MakeController extends Controller
                 $opt = ['-s', '-a', '-m', '-f'];
                 break;       
         }
-
-        if (in_array('-s', $opt) || in_array('--schema', $opt)){
-            $this->schema($name, ...$opt);
-        }
-        if (in_array('-m', $opt) || in_array('--model', $opt)){
-            $this->model($name, ...$opt);
-        }
-        if (in_array('-a', $opt) || in_array('--api', $opt)){
-            $this->api($name, ...$opt);
-        }
-        if (in_array('-c', $opt) || in_array('--controller', $opt)){
-            $opt = array_intersect($opt, ['-f', '--force']);
-            $this->controller($name, ...$opt);
-        }
+        
+        foreach ($names as $name){
+            if (in_array('-s', $opt) || in_array('--schema', $opt)){
+                $this->schema($name, ...$opt);
+            }
+            if (in_array('-m', $opt) || in_array('--model', $opt)){
+                $this->model($name, ...$opt);
+            }
+            if (in_array('-a', $opt) || in_array('--api', $opt)){
+                $this->api($name, ...$opt);
+            }
+            if (in_array('-c', $opt) || in_array('--controller', $opt)){
+                $opt = array_intersect($opt, ['-f', '--force']);
+                $this->controller($name, ...$opt);
+            }
+        }            
     }
 
     function controller($name, ...$opt) {
@@ -194,62 +248,136 @@ class MakeController extends Controller
         $this->setup($name);    
     
         $filename = $this->ctr_name.'.php';
-        $path = CONTROLLERS_PATH . $sub_path . $filename;
+        $dest_path = CONTROLLERS_PATH . $sub_path . $filename;
 
-        if (file_exists($path) && !in_array('-f', $options) && !in_array('--force', $options)){
-            echo "[ Skipping ] '$path'. File already exists. Use -f or --force if you want to override.\r\n";
-            return;
+        if (in_array($dest_path, $this->excluded_files)){
+            echo "[ Skipping ] '$dest_path'. File was ignored\r\n"; 
+            return; 
+        } elseif (file_exists($dest_path)){
+            if (!in_array('-f', $opt) && !in_array('--force', $opt)){
+                echo "[ Skipping ] '$dest_path'. File already exists. Use -f or --force if you want to override.\r\n";
+                return;
+            } elseif (!is_writable($dest_path)){
+                echo "[ Error ] '$dest_path'. File is not writtable. Please check permissions.\r\n";
+                return;
+            }
         }
-
+    
+        if (in_array($filename, $this->excluded_files)){
+            echo "[ Skipping ] '$dest_path'. File was ignored\r\n"; 
+            return; 
+        } elseif (file_exists($dest_path)){
+            if (!in_array('-f', $opt) && !in_array('--force', $opt)){
+                echo "[ Skipping ] '$dest_path'. File already exists. Use -f or --force if you want to override.\r\n";
+                return;
+            } elseif (!is_writable($dest_path)){
+                echo "[ Error ] '$dest_path'. File is not writtable. Please check permissions.\r\n";
+                return;
+            }
+        }
+        
         $data = file_get_contents(self::CONTROLLER_TEMPLATE);
         $data = str_replace('__NAME__', $this->ctr_name, $data);
         $data = str_replace('__NAMESPACE', $namespace, $data);
 
-        $ok = (bool) file_put_contents($path, $data);
+        $ok = (bool) file_put_contents($dest_path, $data);
         
         if (!$ok) {
-            throw new \Exception("Failed trying to write $path");
+            throw new \Exception("Failed trying to write $dest_path");
         } else {
-            print_r("$path was generated\r\n");
+            print_r("$dest_path was generated\r\n");
         } 
     }
 
-    function api($name, ...$options) { 
+    function api($name, ...$opt) { 
         $this->setup($name);    
     
         $filename = $this->api_name.'.php';
 
-        $path = API_PATH . $filename;
-        if (file_exists($path) && !in_array('-f', $options) && !in_array('--force', $options)){
-            echo "[ Skipping ] '$path'. File already exists. Use -f or --force if you want to override.\r\n";
-            return;
+        $dest_path = API_PATH . $filename;
+
+        if (in_array($dest_path, $this->excluded_files)){
+            echo "[ Skipping ] '$dest_path'. File was ignored\r\n"; 
+            return; 
+        } elseif (file_exists($dest_path)){
+            if (!in_array('-f', $opt) && !in_array('--force', $opt)){
+                echo "[ Skipping ] '$dest_path'. File already exists. Use -f or --force if you want to override.\r\n";
+                return;
+            } elseif (!is_writable($dest_path)){
+                echo "[ Error ] '$dest_path'. File is not writtable. Please check permissions.\r\n";
+                return;
+            }
+        }
+    
+        if (in_array($filename, $this->excluded_files)){
+            echo "[ Skipping ] '$dest_path'. File was ignored\r\n"; 
+            return; 
+        } elseif (file_exists($dest_path)){
+            if (!in_array('-f', $opt) && !in_array('--force', $opt)){
+                echo "[ Skipping ] '$dest_path'. File already exists. Use -f or --force if you want to override.\r\n";
+                return;
+            } elseif (!is_writable($dest_path)){
+                echo "[ Error ] '$dest_path'. File is not writtable. Please check permissions.\r\n";
+                return;
+            }
         }
 
         $data = file_get_contents(self::API_TEMPLATE);
         $data = str_replace('__NAME__', $this->api_name, $data);
         $data = str_replace('__SOFT_DELETE__', 'true', $data); // debe depender del schema
 
-        $ok = (bool) file_put_contents($path, $data);
+        $ok = (bool) file_put_contents($dest_path, $data);
         
         if (!$ok) {
-            throw new \Exception("Failed trying to write $path");
+            throw new \Exception("Failed trying to write $dest_path");
         } else {
-            echo "[ Done ] '$path' was generated\r\n";
+            echo "[ Done ] '$dest_path' was generated\r\n";
         } 
     }
 
-    function schema($name) { 
+    function schema($name, ...$opt) { 
         $this->setup($name);    
-    
+
         $filename = $this->class_name.'Schema.php';
 
         // destination
         $dest_path = self::SCHEMAS_PATH . $filename;
 
+        if (in_array($dest_path, $this->excluded_files)){
+            echo "[ Skipping ] '$dest_path'. File was ignored\r\n"; 
+            return; 
+        } elseif (file_exists($dest_path)){
+            if (!in_array('-f', $opt) && !in_array('--force', $opt)){
+                echo "[ Skipping ] '$dest_path'. File already exists. Use -f or --force if you want to override.\r\n";
+                return;
+            } elseif (!is_writable($dest_path)){
+                echo "[ Error ] '$dest_path'. File is not writtable. Please check permissions.\r\n";
+                return;
+            }
+        }
+    
+        if (in_array($filename, $this->excluded_files)){
+            echo "[ Skipping ] '$dest_path'. File was ignored\r\n"; 
+            return; 
+        } elseif (file_exists($dest_path)){
+            if (!in_array('-f', $opt) && !in_array('--force', $opt)){
+                echo "[ Skipping ] '$dest_path'. File already exists. Use -f or --force if you want to override.\r\n";
+                return;
+            } elseif (!is_writable($dest_path)){
+                echo "[ Error ] '$dest_path'. File is not writtable. Please check permissions.\r\n";
+                return;
+            }
+        }
+
         $file = file_get_contents(self::SCHEMA_TEMPLATE);
         $file = str_replace('__NAME__', $this->class_name.'Schema', $file);
 
-        $fields = DB::select("SHOW COLUMNS FROM {$this->model_table}");
+        try {
+            $fields = DB::select("SHOW COLUMNS FROM {$this->model_table}");
+        } catch (\Exception $e) {
+            echo '[ SQL Error ] '. DB::getLog(). "\r\n";
+            echo $e->getMessage().  "\r\n";
+        }
         
         $id_name =  NULL;
         $uuid = false;
@@ -309,19 +437,19 @@ class MakeController extends Controller
             return "'$x'"; 
         };
 
-        $_schema = [];
+        $_attr_types = [];
         $_rules  = [];
         foreach ($types as $f => $type){
-            $_schema[] = "\t\t\t'$f' => '$type'";
+            $_attr_types[] = "\t\t\t'$f' => '$type'";
 
             if (preg_match('/^varchar\(([0-9]+)\)$/', $types_raw[$f], $matches)){
                 $len = $matches[1];
-                $_rules [] = "\t\t\t'$f' => ['max' => $len]";
+                $_rules [] = "\t\t\t\t'$f' => ['max' => $len]";
             }
         }
 
-        $schema = "[\r\n". implode(",\r\n", $_schema). "\r\n\t\t]";
-        $rules  = "[\r\n". implode(",\r\n", $_rules). "\r\n\t\t]";
+        $attr_types = "[\r\n". implode(",\r\n", $_attr_types). "\r\n\t\t]";
+        $rules  = "[\r\n". implode(",\r\n", $_rules). "\r\n\t\t\t]";
 
         if ($uuid){
             $nullables[] = $id_name;
@@ -329,8 +457,9 @@ class MakeController extends Controller
             Strings::replace('### TRAITS', "use Uuids;", $file);        
         }
 
+        Strings::replace('__TABLE_NAME__', "'{$this->model_table}'", $file);  
         Strings::replace('__ID__', "'$id_name'", $file);  
-        Strings::replace('__SCHEMA__', $schema, $file);
+        Strings::replace('__ATTR_TYPES__', $attr_types, $file);
         Strings::replace('__NULLABLES__', '['. implode(', ',array_map($escf, $nullables)). ']',$file);        
         //Strings::replace('__NOT_FILLABLE__', '['.implode(', ',array_map($escf, $not_fillable)). ']',$file);
         Strings::replace('__RULES__', $rules, $file);
@@ -345,7 +474,7 @@ class MakeController extends Controller
         } 
     }
 
-    function model($name, ...$options) { 
+    function model($name, ...$opt) { 
         $this->setup($name);    
 
         $filename = $this->model_name.'.php';
@@ -353,17 +482,40 @@ class MakeController extends Controller
         // destination
         $dest_path = MODELS_PATH . $filename;
 
-        if (file_exists($dest_path) && !in_array('-f', $options) && !in_array('--force', $options)){
-            echo "[ Skipping ] '$dest_path'. File already exists. Use -f or --force if you want to override.\r\n";
-            return;
+        if (in_array($dest_path, $this->excluded_files)){
+            echo "[ Skipping ] '$dest_path'. File was ignored\r\n"; 
+            return; 
+        } elseif (file_exists($dest_path)){
+            if (!in_array('-f', $opt) && !in_array('--force', $opt)){
+                echo "[ Skipping ] '$dest_path'. File already exists. Use -f or --force if you want to override.\r\n";
+                return;
+            } elseif (!is_writable($dest_path)){
+                echo "[ Error ] '$dest_path'. File is not writtable. Please check permissions.\r\n";
+                return;
+            }
+        }
+    
+        if (in_array($filename, $this->excluded_files)){
+            echo "[ Skipping ] '$dest_path'. File was ignored\r\n"; 
+            return; 
+        } elseif (file_exists($dest_path)){
+            if (!in_array('-f', $opt) && !in_array('--force', $opt)){
+                echo "[ Skipping ] '$dest_path'. File already exists. Use -f or --force if you want to override.\r\n";
+                return;
+            } elseif (!is_writable($dest_path)){
+                echo "[ Error ] '$dest_path'. File is not writtable. Please check permissions.\r\n";
+                return;
+            }
         }
 
         $file = file_get_contents(self::MODEL_TEMPLATE);
         $file = str_replace('__NAME__', $this->class_name.'Model', $file);
 
         Strings::replace('### IMPORTS', "use simplerest\\models\\schemas\\{$this->class_name}Schema;", $file); 
-        Strings::replace('### TRAITS', "use {$this->class_name}Schema;", $file); 
-            
+        ###Strings::replace('### TRAITS', "use {$this->class_name}Schema;", $file); 
+        Strings::replace('__SCHEMA_CLASS__', "{$this->class_name}Schema", $file); 
+
+
         $ok = (bool) file_put_contents($dest_path, $file);
         
         if (!$ok) {

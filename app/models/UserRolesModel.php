@@ -1,35 +1,21 @@
 <?php
+
 namespace simplerest\models;
 
 use simplerest\core\Model;
+use simplerest\libs\ValidationRules;
+use simplerest\models\schemas\UserRolesSchema;
 
 class UserRolesModel extends Model
- {
-	protected $table_name = "user_roles";
-	protected $id_name = 'id';
+ { 
+	### TRAITS
+	### PROPERTIES
 
-	/*
-		Types are INT, STR and BOOL among others
-		see: https://secure.php.net/manual/en/pdo.constants.php 
-	*/
-	protected $schema = [
-		'id' => 'INT',
-		'user_id' => 'INT',
-		'role_id' => 'INT',
-		'created_at'  => 'STR',
-		'updated_at'  => 'STR'
-	];
+	protected $hidden   = [];
+	protected $not_fillable = [];
 
-	protected $nullable = ['id'];
-	protected $hidden = [ ];
-
-	protected $rules = [
-	
-	];
-
-    function __construct($db = NULL){
-        parent::__construct($db);
-    }
-	
-	
+    function __construct(bool $connect = false){
+        parent::__construct($connect, new UserRolesSchema());
+	}	
 }
+

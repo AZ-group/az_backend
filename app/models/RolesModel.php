@@ -3,18 +3,19 @@
 namespace simplerest\models;
 
 use simplerest\core\Model;
+use simplerest\libs\ValidationRules;
+use simplerest\models\schemas\RolesSchema;
 
-class RolesModel extends Model {
+class RolesModel extends Model
+ { 
+	### TRAITS
+	### PROPERTIES
 
-	protected $schema = [
-		'id' 	=> 'INT',
-		'name' 	=> 'STR'
-	];
+	protected $hidden   = [];
+	protected $not_fillable = [];
 
-	protected $rules = [
-	];
-
-    function __construct($db = NULL){
-		parent::__construct($db);
-	}
+    function __construct(bool $connect = false){
+        parent::__construct($connect, new RolesSchema());
+	}	
 }
+

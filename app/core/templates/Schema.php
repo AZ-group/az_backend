@@ -2,24 +2,26 @@
 
 namespace simplerest\models\schemas;
 
+use simplerest\core\interfaces\ISchema;
+
 ### IMPORTS
 
-trait __NAME__
+class __NAME__ implements ISchema
 { 
 	### TRAITS
 	
-	function loadSchema(){
-		$this->id_name = __ID__;
+	function get(){
+		return [
+			'table_name'	=> __TABLE_NAME__,
 
-		/*
-			Types are INT, STR and BOOL among others
-			see: https://secure.php.net/manual/en/pdo.constants.php 
-		*/
-		$this->schema  = __SCHEMA__;
+			'id_name'		=> __ID__,
 
-		$this->nullable 	= __NULLABLES__;
+			'attr_types'	=> __ATTR_TYPES__,
 
-		$this->rules 		= __RULES__;
+			'nullable'		=> __NULLABLES__,
+
+			'rules' 		=> __RULES__
+		];
 	}	
 }
 

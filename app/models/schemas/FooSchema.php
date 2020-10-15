@@ -6,28 +6,27 @@ use simplerest\core\interfaces\ISchema;
 
 ### IMPORTS
 
-class CollectionsSchema implements ISchema
+class FooSchema implements ISchema
 { 
 	### TRAITS
 	
 	function get(){
 		return [
-			'table_name'	=> 'collections',
+			'table_name'	=> 'foo',
 
 			'id_name'		=> 'id',
 
 			'attr_types'	=> [
 			'id' => 'INT',
-			'entity' => 'STR',
-			'refs' => 'STR',
-			'belongs_to' => 'INT',
-			'created_at' => 'STR'
+			'bar' => 'STR',
+			'hide' => 'INT',
+			'deleted_at' => 'STR'
 		],
 
-			'nullable'		=> ['id'],
+			'nullable'		=> ['deleted_at'],
 
 			'rules' 		=> [
-				'entity' => ['max' => 80]
+				'bar' => ['max' => 45]
 			]
 		];
 	}	

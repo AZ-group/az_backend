@@ -285,11 +285,8 @@ abstract class ApiController extends ResourceController
             Factory::response()->sendError('Unauthorized', 401, "You are not allowed to retrieve");  
 
         try {            
-
-            $this->conn = $conn = DB::getConnection();
-
             $model    = 'simplerest\\models\\'.$this->model_name;
-            $this->instance = (new $model($conn))->setFetchMode('ASSOC'); 
+            $this->instance = (new $model(true))->setFetchMode('ASSOC'); 
                         
             $data    = []; 
             
@@ -624,7 +621,7 @@ abstract class ApiController extends ResourceController
                     }                         
                 }
                                 
-                // Si se pide algo que involucra un campo no está en el schema lanzar error
+                // Si se pide algo que involucra un campo no está en el attr_types lanzar error
                 foreach ($_get as $arr){
                     if (!in_array($arr[0],$attributes))
                         Factory::response()->sendError("Unknown field '$arr[0]'", 400);
@@ -761,7 +758,7 @@ abstract class ApiController extends ResourceController
 
                 //  pagino solo sino hay funciones agregativas
                 if (!isset($ag_fn)){
-                    $total = (int) (new $model($conn))->where($_get)->setFetchMode('COLUMN')->count();
+                    $total = (int) (new $model(true))->where($_get)->setFetchMode('COLUMN')->count();
                     
                     $page_count = ceil($total / $limit);
 
@@ -944,7 +941,7 @@ abstract class ApiController extends ResourceController
             $this->onPuttingBeforeCheck($id, $data);
 
 			if (!$this->acl->hasSpecialPermission('lock', $this->roles)){
-                $instance0 = (new $model($conn))->setFetchMode('ASSOC');
+                $instance0 = (new $model(true))->setFetchMode('ASSOC');
                 $row = $instance0->where([$instance0->getIdName(), $id])->first();
 
                 if (isset($row['locked']) && $row['locked'] == 1)
@@ -1122,7 +1119,7 @@ abstract class ApiController extends ResourceController
 
             $model    = 'simplerest\\models\\'.$this->model_name;
             
-            $this->instance = (new $model($conn))
+            $this->instance = (new $model(true))
             ->setFetchMode('ASSOC')
             ->fill(['deleted_at']); //
 
@@ -1226,7 +1223,7 @@ abstract class ApiController extends ResourceController
     } // 
 
 
-    // It does Not check if 'deleted_at' is in schema.
+    // It does Not check if 'deleted_at' is in attr_types.
     public static function hasSoftDelete(){
         return static::$soft_delete;
     }

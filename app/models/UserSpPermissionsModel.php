@@ -1,35 +1,21 @@
 <?php
+
 namespace simplerest\models;
 
 use simplerest\core\Model;
+use simplerest\libs\ValidationRules;
+use simplerest\models\schemas\UserSpPermissionsSchema;
 
+class UserSpPermissionsModel extends Model
+ { 
+	### TRAITS
+	### PROPERTIES
 
-class UserSpPermissionsModel extends Model 
-{
-	protected $table_name = "user_sp_permissions";
-	protected $id_name = 'id';
+	protected $hidden   = [];
+	protected $not_fillable = [];
 
-	protected $schema = [
-		'id' 				=> 'INT',
-		'sp_permission_id' 	=> 'INT',
-		'user_id' 			=> 'INT',
-		'created_by' 		=> 'INT',
-		'created_at' 		=> 'STR',
-		'updated_at' 		=> 'STR'
-	];
-
-	protected $rules = [
-	];
-
-    function __construct($db = NULL){
-		parent::__construct($db);
-	}
-
+    function __construct(bool $connect = false){
+        parent::__construct($connect, new UserSpPermissionsSchema());
+	}	
 }
-
-
-
-
-
-
 
