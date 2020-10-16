@@ -19,6 +19,7 @@ class SuperCoolTableSchema implements ISchema
 			'attr_types'	=> [
 			'id' => 'INT',
 			'name' => 'STR',
+			'age' => 'INT',
 			'active' => 'INT',
 			'belongs_to' => 'INT',
 			'deleted_at' => 'STR',

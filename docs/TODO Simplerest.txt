@@ -11,6 +11,14 @@
         "belongs_to": "168"
     }
 
+- Crear alias entre
+
+  ?orderBy=cost  (incorrecto)
+
+y 
+
+  ?orderBy[cost]=ASC (corecto)
+
 - Revisar documentos de Fabriiiiiiiiiiiiiiiiiiiiiiiiiiicio
 
 - Make:

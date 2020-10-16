@@ -73,6 +73,9 @@ class DumbController extends Controller
             ->where(['cost', 150, '>=']);
 
         Debug::dd($m->get());
+
+        // No hay Schema
+        var_dump($m->getSchema());
     }
 
     function get_bar(){
@@ -87,22 +90,64 @@ class DumbController extends Controller
         // ->assoc()
         ->get());
     }
+    
+
+    /*
+        Se utiliza un modelo *sin* schema y sobre el cual no es posible hacer validaciones
+    */
+    function create_s(){
+        $m = (new Model(true))
+        ->table('super_cool_table');
+
+        // No hay schema ?
+        Debug::dd($m->getSchema());
+        
+        Debug::dd($m->create([
+            'name' => 'SUPER',
+			'age' => 22,
+        ]));
+    }
+
+    /*
+        Se utiliza un modelo *sin* schema y sobre el cual no es posible hacer validaciones
+    */
+    function create_baz0(){
+        $m = (new Model(true))
+        ->table('baz');
+
+        // No hay Schema
+        var_dump($m->getSchema());
+        
+        Debug::dd($m->create([
+            'id_baz' => 1800,
+            'name' => 'BAZ',
+			'cost' => '100',
+        ]));
+    }
+
 
     /*
         Se utiliza un modelo *sin* schema y sobre el cual no es posible hacer validaciones
     */
     function create_bar(){
-        Debug::dd((new Model(true))
-        ->table('bar')
-        ->create([
+        $m = (new Model(true))
+        ->table('bar');
+
+        // No hay Schema
+        Debug::dd($m->getSchema());
+        
+        Debug::dd($m->create([
             'name' => 'ggg',
 			'price' => '88.90',
         ]));
     }
 
     function create_bar1(){
-        $m = DB::table('bar')
-        ->setValidator(new Validator());
+        $m = DB::table('bar');
+        $m->setValidator(new Validator());
+
+        // SI hay schema
+        Debug::dd($m->getSchema());
         
         Debug::dd($m->create([
             'name' => 'gggggggggg',
@@ -155,6 +200,7 @@ class DumbController extends Controller
         Debug::dd($id, 'las_inserted_id');
     }
 
+    
     // implementada y funcionando en register() 
     function transaction(){
         DB::beginTransaction();
@@ -274,10 +320,10 @@ class DumbController extends Controller
         ->limit(10)
         ->get());
         
-        Debug::dd(DB::getQueryLog());
+        Debug::dd(DB::getLog());
 
         Debug::dd(DB::table('products')->limit(10)->get());
-        Debug::dd(DB::getQueryLog());
+        Debug::dd(DB::getLog());
     }
 
     function limit0(){
@@ -288,19 +334,19 @@ class DumbController extends Controller
         ->setPaginator(false)
         ->get());
         
-        Debug::dd(DB::getQueryLog());
+        Debug::dd(DB::getLog());
 
         Debug::dd(DB::table('products')->limit(10)->get());
-        Debug::dd(DB::getQueryLog());
+        Debug::dd(DB::getLog());
     }
     
     ///
     function limite(){
         DB::table('products')->offset(20)->limit(10)->get();
-        Debug::dd(DB::getQueryLog());
+        Debug::dd(DB::getLog());
 
         DB::table('products')->limit(10)->get();
-        Debug::dd(DB::getQueryLog());
+        Debug::dd(DB::getLog());
     }
 
     function sub1(){
@@ -314,7 +360,7 @@ class DumbController extends Controller
         
         //Debug::dd($sub->toSql());
         Debug::dd($m->getLastPrecompiledQuery());
-        //Debug::dd(DB::getQueryLog());     
+        //Debug::dd(DB::getLog());     
     }
 
     function sub1a(){
@@ -327,7 +373,7 @@ class DumbController extends Controller
     
         //Debug::dd($sub->toSql());
         //Debug::dd($m->getLastPrecompiledQuery());
-        //Debug::dd(DB::getQueryLog());     
+        //Debug::dd(DB::getLog());     
     }
 
     function distinct(){
@@ -378,16 +424,16 @@ class DumbController extends Controller
     function exists(){
        
         Debug::dd(DB::table('products')->where(['belongs_to' => 103])->exists());
-        //Debug::dd(DB::getQueryLog());
+        //Debug::dd(DB::getLog());
 
         Debug::dd(DB::table('products')->where([ 
             ['cost', 200, '<'],
             ['name', 'CocaCola'] 
         ])->exists());
-        //Debug::dd(DB::  getQueryLog());
+        //Debug::dd(DB::  getLog());
 		
         Debug::dd(DB::table('users')->where(['username' => 'boctulus'])->exists());
-        //Debug::dd(DB::  getQueryLog());
+        //Debug::dd(DB::  getLog());
     }
            
     function first(){
@@ -447,7 +493,7 @@ class DumbController extends Controller
         ->count('*', 'count');
 
         Debug::dd($c);
-        Debug::dd(DB::getQueryLog());
+        Debug::dd(DB::getLog());
     }
 
     function count1b(){
@@ -458,7 +504,7 @@ class DumbController extends Controller
         ->count();
 
         Debug::dd($res);
-        Debug::dd(DB::getQueryLog());
+        Debug::dd(DB::getLog());
     } 
 
     function count2(){
@@ -470,7 +516,7 @@ class DumbController extends Controller
         ->count('description');
 
         Debug::dd($res);
-        Debug::dd(DB::getQueryLog());
+        Debug::dd(DB::getLog());
     }
 
     function count2b(){
@@ -482,7 +528,7 @@ class DumbController extends Controller
         ->count('description', 'count');
 
         Debug::dd($res);
-        Debug::dd(DB::getQueryLog());
+        Debug::dd(DB::getLog());
     }
 
     function count3(){
@@ -493,7 +539,7 @@ class DumbController extends Controller
 		->count();
 		
         var_dump($count);
-        Debug::dd(DB::getQueryLog());
+        Debug::dd(DB::getLog());
     }
 
     function avg(){
@@ -591,7 +637,7 @@ class DumbController extends Controller
     function select_group_count(){
         Debug::dd(DB::table('products')->showDeleted()
         ->groupBy(['size'])->select(['size'])->count());
-		Debug::dd(DB::getQueryLog());
+		Debug::dd(DB::getLog());
     }
 
     /*
@@ -933,7 +979,7 @@ class DumbController extends Controller
 			->selectRaw('AVG(cost)')
 			->get());
 			
-		Debug::dd(DB::getQueryLog()); 
+		Debug::dd(DB::getLog()); 
     }  
 
 	/*
@@ -964,7 +1010,7 @@ class DumbController extends Controller
 			->selectRaw('COUNT(name) as c')
 			->get());
 			
-		Debug::dd(DB::getQueryLog()); 
+		Debug::dd(DB::getLog()); 
     }  
 	
 	/*
@@ -1001,7 +1047,7 @@ class DumbController extends Controller
 			->selectRaw('COUNT(name) as c')
 			->get());
 			
-		Debug::dd(DB::getQueryLog()); 
+		Debug::dd(DB::getLog()); 
     }  
 
     /*       
@@ -1030,7 +1076,7 @@ class DumbController extends Controller
             ->having(['cost', 100])
             ->get(['cost', 'size']));
 		
-		Debug::dd(DB::getQueryLog()); 
+		Debug::dd(DB::getLog()); 
     }    
 	
 	// SELECT cost, size FROM products GROUP BY cost,size HAVING cost = 100
@@ -1040,7 +1086,7 @@ class DumbController extends Controller
             ->having(['cost', 100])
             ->get(['cost', 'size']));
 		
-		Debug::dd(DB::getQueryLog()); 
+		Debug::dd(DB::getLog()); 
     }   
 	
     /*
@@ -1140,7 +1186,7 @@ class DumbController extends Controller
             ])
         ->where(['belongs_to' =>  90])->get(); 
         
-        Debug::dd(DB::getQueryLog()); 
+        Debug::dd(DB::getLog()); 
     }
 
     /*
@@ -1312,7 +1358,7 @@ class DumbController extends Controller
         ->whereRaw('belongs_to IN (SELECT id FROM users WHERE password IS NULL)')
         ->get();
 
-        Debug::dd(DB::getQueryLog());  
+        Debug::dd(DB::getLog());  
         Debug::dd($st);         
     }
 
@@ -1332,7 +1378,7 @@ class DumbController extends Controller
         ->whereRaw("belongs_to IN ({$sub->toSql()})")
         ->get();
 
-        Debug::dd(DB::getQueryLog());
+        Debug::dd(DB::getLog());
         Debug::dd($st);            
     }
 
@@ -1352,7 +1398,7 @@ class DumbController extends Controller
         ->whereRaw("belongs_to IN ({$sub->toSql()})")
         ->get();
 
-        Debug::dd(DB::getQueryLog());
+        Debug::dd(DB::getLog());
         Debug::dd($res);    
     }
 
@@ -1376,7 +1422,7 @@ class DumbController extends Controller
         ->orderBy(['id' => 'desc'])
         ->get();
 
-        Debug::dd(DB::getQueryLog());  
+        Debug::dd(DB::getLog());  
         Debug::dd($res);    
     }
 
@@ -1463,7 +1509,7 @@ class DumbController extends Controller
         ->where(['belongs_to', 90])
         ->get();
 
-        Debug::dd(DB::getQueryLog()); 
+        Debug::dd(DB::getLog()); 
         Debug::dd($res);
     }
 
@@ -1502,7 +1548,7 @@ class DumbController extends Controller
         ->orderBy(['id' => 'ASC'])
         ->get();
 
-        //Debug::dd(DB::getQueryLog());
+        //Debug::dd(DB::getLog());
         //Debug::dd($m2->getLastPrecompiledQuery());
         //Debug::dd($dos);
     }
@@ -1588,7 +1634,7 @@ class DumbController extends Controller
 
     function test_get(){
         Debug::dd(DB::table('products')->first()); 
-        Debug::dd(DB::getQueryLog());
+        Debug::dd(DB::getLog());
     }
 
     function test_get_raw(){
@@ -1723,18 +1769,30 @@ class DumbController extends Controller
 
     function speed2(){
         Time::setUnit('MILI');
-        Time::noOutput();
+        //Time::noOutput();
+
+        $this->model_name  = null;
+        $this->model_table = 'users';
 
         $t = Time::exec_speed(function(){ 
-            $this->filter_products3();
+            
+            new UsersModel();
+
         }, 1000);       
         
         Debug::dd("Time: $t ms");
     }
 
     function test(){
-        $rows = DB::table('products')->random()->select(['id', 'name'])->addSelect('cost')->first();
-        Debug::dd($rows);
-        Debug::dd(DB::getQueryLog());
+        $rows = DB::table('users')
+        ->where([ 'email'=> 'nano@g.c' ]) 
+        ->orWhere(['username' => 'nano' ])
+        ->setValidator((new Validator())->setRequired(false))  
+        //->hide(['confirmed_email'])
+        //->unhide(['password'])
+        //->showDeleted()
+        ->get();
+
+        Debug::dd(DB::getLog());
     }
 }

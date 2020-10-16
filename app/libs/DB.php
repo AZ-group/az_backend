@@ -99,7 +99,7 @@ class DB
 		}
 	}
 	
-	public static function table($from, $alias = NULL) {
+	public static function table($from, $alias = NULL, bool $connect = true) {
 		// Usar un wrapper y chequear el tipo
 		if (stripos($from, ' FROM ') === false){
 			$tb_name = $from;
@@ -109,7 +109,7 @@ class DB
 			$model_instance = implode('', $names).'Model';		
 
 			$class = '\\simplerest\\models\\' . $model_instance;
-			$obj = new $class(true);
+			$obj = new $class($connect);
 
 			if (!is_null($alias))
 				$obj->setTableAlias($alias);
@@ -118,10 +118,9 @@ class DB
 			return $obj;	
 		}
 
-		$model_instance = (new Model())->setConn(self::getConnection());
-		static::$model_instance = $model_instance;
+		static::$model_instance = (new Model($connect));
 
-		$st = ($model_instance)->fromRaw($from);	
+		$st = static::$model_instance->fromRaw($from);	
 		return $st;
 	}
 

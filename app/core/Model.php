@@ -300,7 +300,7 @@ class Model {
 	}
 
 
-	function setFetchMode($mode){
+	function setFetchMode(string $mode){
 		$this->fetch_mode = constant("PDO::FETCH_{$mode}");
 		return $this;
 	}
@@ -803,7 +803,7 @@ class Model {
 				if (empty($where))
 					$where = "deleted_at IS NULL";
 				else
-					$where =  ($where[0]=='(' && $where[strlen($where)-1]==')' ? $where :   ($where) ) . " AND deleted_at IS NULL";
+					$where =  ($where[0]=='(' && $where[strlen($where)-1] ==')' ? $where :   "($where)" ) . " AND deleted_at IS NULL";
 
 			}
 		}
@@ -1697,6 +1697,9 @@ class Model {
 			throw new \InvalidArgumentException('Array of data should be associative');
 	
 		$this->data = $data;	
+
+		//Debug::dd($data, 'DATA');
+		//exit;
 		
 		$data = $this->applyInputMutator($data, 'CREATE');
 		$vars = array_keys($data);
@@ -1739,7 +1742,7 @@ class Model {
 		foreach($vals as $ix => $val){			
 			if(is_null($val)){
 				$type = \PDO::PARAM_NULL;
-			}elseif(isset($vars[$ix]) && isset($this->schema['attr_types'][$vars[$ix]])){
+			}elseif(isset($vars[$ix]) && $this->schema != NULL && isset($this->schema['attr_types'][$vars[$ix]])){
 				$const = $this->schema['attr_types'][$vars[$ix]];
 				$type = constant("PDO::PARAM_{$const}");
 			}elseif(is_int($val))
@@ -1748,6 +1751,8 @@ class Model {
 				$type = \PDO::PARAM_BOOL;
 			elseif(is_string($val))
 				$type = \PDO::PARAM_STR;	
+
+			//Debug::export($type, "TYPE for $val");	
 
 			$st->bindValue($ix+1, $val, $type);
 		}
@@ -1762,8 +1767,11 @@ class Model {
 		$result = $st->execute();
 
 		if ($result){
-			if (isset($data[$this->schema['id_name']])){
-				$this->last_inserted_id =	$data[$this->schema['id_name']];
+			// sin schema no hay forma de saber la PRI Key. Intento con 'id' 
+			$id_name = ($this->schema != NULL) ? $this->schema['id_name'] : 'id';		
+
+			if (isset($data[$id_name])){
+				$this->last_inserted_id =	$data[$id_name];
 			} else {
 				$this->last_inserted_id = $this->conn->lastInsertId();
 			}

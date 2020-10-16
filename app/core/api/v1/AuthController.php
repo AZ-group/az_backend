@@ -164,8 +164,9 @@ class AuthController extends Controller implements IAuth
                 Factory::response()->sendError('Incorrect username / email or password', 401);
 
             $active = $row['active']; 
+            //Debug::export($active, 'active');
 
-            if ($row['active'] == null) {
+            if ($active == null) {
 
                 if ($row['confirmed_email'] === "0") {
                     Factory::response()->sendError('Non authorized', 403, 'Please confirm your e-mail');
@@ -174,7 +175,7 @@ class AuthController extends Controller implements IAuth
                 }
             }
 
-            if ((string) $row['active'] === "0") {
+            if ($active == 0 || (string) $active === "0") {
                 Factory::response()->sendError('Non authorized', 403, 'Deactivated account !');
             }
 
@@ -467,9 +468,9 @@ class AuthController extends Controller implements IAuth
                 if (!$row)
                     throw new Exception("User not found");
 
-                $active = $row['active'];     
+                $active = $row['active']; 
 
-                if ((string) $row['active'] === "0") {
+                if ($active == 0 || (string) $active === "0") {
                     Factory::response()->sendError('Non authorized', 403, 'Deactivated account !');
                 }
 

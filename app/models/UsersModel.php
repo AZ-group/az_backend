@@ -14,7 +14,7 @@ class UsersModel extends Model
 	protected $hidden   = [	'password' ];
 	protected $not_fillable = ['confirmed_email', 'active'];
 
-    function __construct($db = NULL){		
+    function __construct(bool $connect = false){		
 		$this->registerInputMutator('password', function($pass){ 
 			return password_hash($pass, PASSWORD_DEFAULT); 
 		}, function($op, $dato){
@@ -22,7 +22,7 @@ class UsersModel extends Model
 		});
 
 		//$this->registerOutputMutator('password', function($pass){ return '******'; } );
-        parent::__construct($db);
+        parent::__construct($connect, new UsersSchema());
 	}
 	
 	// Hooks

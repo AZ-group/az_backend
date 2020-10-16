@@ -505,7 +505,7 @@ Supongamos que el campo confirmed_email no es fillable, entonces para hacerlo fi
 
 Hay básicamente 3 formas de usar un Model:
 
-a) Instanciando directamente Model en cuyo caso no dispondríamos de un schema a menos que se lo inyectemos:
+a) Instanciando directamente Model en cuyo caso *no* dispondríamos de un schema a menos que se lo inyectemos:
 
 	$m = (new Model(true))
 		->table('products')   
