@@ -285,8 +285,8 @@ abstract class ApiController extends ResourceController
             Factory::response()->sendError('Unauthorized', 401, "You are not allowed to retrieve");  
 
         try {            
-            $model    = 'simplerest\\models\\'.$this->model_name;
-            $this->instance = (new $model(true))->setFetchMode('ASSOC'); 
+            $model    = 'simplerest\\models\\' . $this->model_name;
+            $this->instance = (new $model(true))->assoc(); 
                         
             $data    = []; 
             
@@ -387,7 +387,7 @@ abstract class ApiController extends ResourceController
                 // event hook
                 $this->onGettingFolderBeforeCheck($id, $this->folder);  
 
-                $f = DB::table('folders')->setFetchMode('ASSOC');
+                $f = DB::table('folders')->assoc();
                 $f_rows = $f->where(['id' => $this->folder])->get();
         
                 if (count($f_rows) == 0 || $f_rows[0]['tb'] != $this->model_table)
@@ -821,14 +821,13 @@ abstract class ApiController extends ResourceController
             Factory::response()->sendError('Invalid JSON',400);
         
         $model    = '\\simplerest\\models\\'.$this->model_name;
-        $this->instance = (new $model())->setFetchMode('ASSOC');
+        $this->instance = (new $model())->assoc();
 
         $id = $data[$this->instance->getIdName()] ?? null;
         $this->folder = $this->folder = $data['folder'] ?? null;
 
         try {
-            $this->conn = $conn = DB::getConnection();
-            $this->instance->setConn($conn);
+            $this->instance->connect();
 
             // event hook             
             $this->onPostingBeforeCheck($id, $data);
@@ -934,14 +933,13 @@ abstract class ApiController extends ResourceController
         $this->folder = $this->folder = $data['folder'] ?? null;
         
         try {
-            $model    = 'simplerest\\models\\'.$this->model_name;            
-            $this->conn = $conn = DB::getConnection();       
+            $model    = 'simplerest\\models\\'.$this->model_name; 
             
             // event hook
             $this->onPuttingBeforeCheck($id, $data);
 
 			if (!$this->acl->hasSpecialPermission('lock', $this->roles)){
-                $instance0 = (new $model(true))->setFetchMode('ASSOC');
+                $instance0 = (new $model(true))->assoc();
                 $row = $instance0->where([$instance0->getIdName(), $id])->first();
 
                 if (isset($row['locked']) && $row['locked'] == 1)
@@ -949,8 +947,8 @@ abstract class ApiController extends ResourceController
             }
 
             // Creo una instancia
-            $this->instance = (new $model())
-            ->setConn($conn)->setFetchMode('ASSOC');
+            $this->instance = (new $model(true))
+            ->assoc();
             
             $id_name = $this->instance->getIdName();
 
@@ -984,7 +982,7 @@ abstract class ApiController extends ResourceController
                 // event hook    
                 $this->onPuttingFolderBeforeCheck($id, $data, $this->folder);
 
-                $f = DB::table('folders')->setFetchMode('ASSOC');
+                $f = DB::table('folders')->assoc();
                 $f_rows = $f->where(['id' => $this->folder])->get();
                       
                 if (count($f_rows) == 0 || $f_rows[0]['tb'] != $this->model_table)
@@ -996,8 +994,8 @@ abstract class ApiController extends ResourceController
                 $this->folder_name = $f_rows[0]['name'];
 
                 // Creo otra nueva instancia
-                $instance2 = new $model();
-                $instance2->setConn($conn)->setFetchMode('ASSOC');
+                $instance2 = (new $model(true))
+                ->assoc();
 
                 if (count($instance2->where(['id => $id', static::$folder_field => $this->folder_name])->get()) == 0)
                     Factory::response()->code(404)->sendError("Register for id=$id does not exists");
@@ -1008,8 +1006,8 @@ abstract class ApiController extends ResourceController
                 
             } else {
 
-                $this->instance2 = new $model();
-                $this->instance2->setConn($conn)->setFetchMode('ASSOC'); 
+                $this->instance2 = (new $model(true))
+                ->assoc(); 
 
                 // event hook    
                 $this->onPuttingBeforeCheck2($id, $data);
@@ -1114,13 +1112,11 @@ abstract class ApiController extends ResourceController
         $this->id = $id;
         $this->folder = $this->folder = $data['folder'] ?? null;
 
-        try {    
-            $this->conn = $conn = DB::getConnection();
-
+        try {
             $model    = 'simplerest\\models\\'.$this->model_name;
             
             $this->instance = (new $model(true))
-            ->setFetchMode('ASSOC')
+            ->assoc()
             ->fill(['deleted_at']); //
 
             $id_name = $this->instance->getIdName();
@@ -1135,7 +1131,7 @@ abstract class ApiController extends ResourceController
             //Debug::export($this->instance->getLastPrecompiledQuery(), 'SQL');
             
             if (count($rows) == 0){
-                Factory::response()->code(404)->sendError("Register for id=$id does not exists");
+                Factory::response()->code(404)->sendError("Register for $id_name=$id does not exists");
             }
 
             if ($this->folder !== null)
@@ -1146,7 +1142,7 @@ abstract class ApiController extends ResourceController
                 // event hook    
                 $this->onDeletingFolderBeforeCheck($id, $this->folder);
 
-                $f = DB::table('folders')->setFetchMode('ASSOC');
+                $f = DB::table('folders')->assoc();
                 $f_rows = $f->where([$id_name => $this->folder])->get();
                       
                 if (count($f_rows) == 0 || $f_rows[0]['tb'] != $this->model_table)
@@ -1158,11 +1154,11 @@ abstract class ApiController extends ResourceController
                 $this->folder_name = $f_rows[0]['name'];
 
                 // Creo otra nueva instancia
-                $instance2 = new $model();
-                $instance2->setConn($conn)->setFetchMode('ASSOC');
+                $instance2 = (new $model(true))
+                ->assoc();
 
                 if (count($instance2->where([$id_name => $id, static::$folder_field => $this->folder_name])->get()) == 0)
-                    Factory::response()->code(404)->sendError("Register for id=$id does not exists");
+                    Factory::response()->code(404)->sendError("Register for $id_name=$id does not exists");
 
                 unset($data['folder']);    
                 $data[static::$folder_field] = $f_rows[0]['name'];

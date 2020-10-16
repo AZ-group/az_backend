@@ -88,7 +88,7 @@ class FacebookController extends Controller
             try 
             {        
                 $conn = $this->getConnection();	
-                $u = (new UsersModel($conn))->setFetchMode('ASSOC');
+                $u = (new UsersModel($conn))->assoc();
     
                 // exits	
                 $rows = $u->where(['email', $email])->get(['id']);
@@ -98,7 +98,7 @@ class FacebookController extends Controller
                     // Email already exists
                     $uid = $rows[0]['id'];
     
-                    $ur = (new UserRolesModel($conn))->setFetchMode('ASSOC');
+                    $ur = (new UserRolesModel($conn))->assoc();
                     $rows = $ur->where(['belongs_to', $uid])->get(['role_id']);
     
                     $roles = [];
@@ -109,7 +109,7 @@ class FacebookController extends Controller
                         }
                     }
 
-                    $_permissions = DB::table('user_tb_permissions')->setFetchMode('ASSOC')->select(['tb', 'can_create as c', 'can_show as r', 'can_update as u', 'can_delete as d', 'can_list as l'])->where(['user_id' => $uid])->get();
+                    $_permissions = DB::table('user_tb_permissions')->assoc()->select(['tb', 'can_create as c', 'can_show as r', 'can_update as u', 'can_delete as d', 'can_list as l'])->where(['user_id' => $uid])->get();
 
                     $perms = [];
                     foreach ($_permissions as $p){

@@ -305,6 +305,11 @@ class Model {
 		return $this;
 	}
 
+	function assoc(){
+		$this->fetch_mode = \PDO::FETCH_ASSOC;
+		return $this;
+	}
+
 	protected function getFetchMode($mode_wished = null){
 		if ($this->fetch_mode == NULL){
 			if ($mode_wished != NULL) {
@@ -1940,6 +1945,7 @@ class Model {
 	function setConn($conn)
 	{
 		$this->conn = $conn;
+		return $this;
 	}
 
 }

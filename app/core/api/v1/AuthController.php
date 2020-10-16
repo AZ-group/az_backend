@@ -78,7 +78,7 @@ class AuthController extends Controller implements IAuth
 
     private function fetchRoles($uid) : Array {
         $rows = DB::table('user_roles')
-        ->setFetchMode('ASSOC')
+        ->assoc()
         ->where(['user_id', $uid])
         ->select(['role_id as role'])
         ->get();	
@@ -97,7 +97,7 @@ class AuthController extends Controller implements IAuth
 
     private function fetchTbPermissions($uid) : Array {
         $_permissions = DB::table('user_tb_permissions')
-        ->setFetchMode('ASSOC')
+        ->assoc()
         ->select(['tb', 'can_list_all as la', 'can_show_all as ra', 'can_list as l', 'can_show as r', 'can_create as c', 'can_update as u', 'can_delete as d'])
         ->where(['user_id' => $uid])
         ->get();
@@ -113,7 +113,7 @@ class AuthController extends Controller implements IAuth
 
     private function fetchSpPermissions($uid) : Array {
         $perms = DB::table('user_sp_permissions')
-        ->setFetchMode('ASSOC')
+        ->assoc()
         ->where(['user_id' => $uid])
         ->join('sp_permissions', 'user_sp_permissions.sp_permission_id', '=', 'sp_permissions.id')
         ->pluck('name');
@@ -150,7 +150,7 @@ class AuthController extends Controller implements IAuth
 
         try {              
 
-            $row = DB::table('users')->setFetchMode('ASSOC')->unhide(['password'])
+            $row = DB::table('users')->assoc()->unhide(['password'])
             ->where([ 'email'=> $email, 'username' => $username ], 'OR')
             ->setValidator((new Validator())->setRequired(false))  
             ->first();
@@ -288,7 +288,7 @@ class AuthController extends Controller implements IAuth
             if (!empty($impersonate_user)){ 
                 $uid = $impersonate_user;
 
-                $row = DB::table('users')->setFetchMode('ASSOC')
+                $row = DB::table('users')->assoc()
                 ->where([ 'id' =>  $uid ] ) 
                 ->first();
                 
@@ -462,7 +462,7 @@ class AuthController extends Controller implements IAuth
 
             if (!$impersonated_by || $impersonated_by_role) {
 
-                $row = DB::table('users')->setFetchMode('ASSOC')->where(['id' => $payload->uid])->first();
+                $row = DB::table('users')->assoc()->where(['id' => $payload->uid])->first();
 
                 if (!$row)
                     throw new Exception("User not found");
@@ -744,7 +744,7 @@ class AuthController extends Controller implements IAuth
 
                 $u = DB::table('users');
 
-                $rows = DB::table('users')->setFetchMode('ASSOC')->where(['email', $payload->email])->get(['id', 'active']);
+                $rows = DB::table('users')->assoc()->where(['email', $payload->email])->get(['id', 'active']);
 
                 if (count($rows) == 0){
                     Factory::response()->sendError("Not found", 404, "Email not found");
@@ -835,7 +835,7 @@ class AuthController extends Controller implements IAuth
                     Factory::response()->sendError('Token expired',401);
 			
 				
-				$rows = DB::table('users')->setFetchMode('ASSOC')->where(['email', $payload->email])->get(['id', 'active']);
+				$rows = DB::table('users')->assoc()->where(['email', $payload->email])->get(['id', 'active']);
                 $uid = $rows[0]['id'];
                 
                 $active = $rows[0]['active'];
@@ -902,7 +902,7 @@ class AuthController extends Controller implements IAuth
 
 		try {	
 
-			$u = (DB::table('users'))->setFetchMode('ASSOC');
+			$u = (DB::table('users'))->assoc();
 			$rows = $u->where(['email', $email])->get(['id', 'active']);
 
 			if (count($rows) === 0){
@@ -973,7 +973,7 @@ class AuthController extends Controller implements IAuth
                     $roles = $this->fetchRoles($uid);
                     $perms = $this->fetchPermissions($uid);
 
-                    $row = DB::table('users')->setFetchMode('ASSOC')
+                    $row = DB::table('users')->assoc()
                     ->where(['id'=> $uid]) 
                     ->first();
 

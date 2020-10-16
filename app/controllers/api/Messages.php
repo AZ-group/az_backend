@@ -4,7 +4,7 @@ namespace simplerest\controllers\api;
 
 use simplerest\controllers\MyApiController; 
 
-class FolderOtherPermissions extends MyApiController
+class Messages extends MyApiController
 { 
     static protected $soft_delete = true;
 

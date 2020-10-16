@@ -45,7 +45,7 @@ class TrashCan extends MyApiController
         if (!class_exists($this->model))
             Factory::response()->sendError("Entity $entity does not exists", 400);
 
-        $this->instance = (new $this->model())->setFetchMode('ASSOC');  
+        $this->instance = (new $this->model())->assoc();  
         
         if (!$this->instance->inSchema(['belongs_to']) || !$this->instance->inSchema(['deleted_at'])){
             Factory::response()->sendError('Not implemented', 501, "Trashcan not implemented for $entity");

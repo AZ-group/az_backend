@@ -224,7 +224,7 @@ class ApiTest extends TestCase
             isset($res['data']) && isset($res['paginator'])
         );
 
-        $model_arr = DB::table('products')->where(['belongs_to', $this->uid])->setFetchMode('ASSOC')->limit($this->config['paginator']['default_limit'])->get();
+        $model_arr = DB::table('products')->where(['belongs_to', $this->uid])->assoc()->limit($this->config['paginator']['default_limit'])->get();
 
         $this->assertEquals($model_arr,$res['data']); 
     }
@@ -283,7 +283,7 @@ class ApiTest extends TestCase
             empty($res['error'])
         );
 
-        $item = DB::table('products')->where(['id', $id])->setFetchMode('ASSOC')->first();
+        $item = DB::table('products')->where(['id', $id])->assoc()->first();
         //Debug::dd(DB::getQueryLog());
 
         //Debug::dd($item);
@@ -560,7 +560,7 @@ class ApiTest extends TestCase
         );
 
         $model_arr = DB::table('products')
-        ->where(['belongs_to' => $this->uid, $field => $vals[0]])->setFetchMode('ASSOC')->limit($this->config['paginator']['default_limit'])->get();
+        ->where(['belongs_to' => $this->uid, $field => $vals[0]])->assoc()->limit($this->config['paginator']['default_limit'])->get();
 
         $this->assertEquals($model_arr,$res['data']); 
     }
@@ -612,7 +612,7 @@ class ApiTest extends TestCase
         );
 
         $model_arr = DB::table('products')
-        ->where(['belongs_to' => $this->uid, $field => $vals[0]])->setFetchMode('ASSOC')->limit($this->config['paginator']['default_limit'])->get();
+        ->where(['belongs_to' => $this->uid, $field => $vals[0]])->assoc()->limit($this->config['paginator']['default_limit'])->get();
 
         if ($model_arr != $res['data']){
             Debug::dd(DB::getQueryLog());
@@ -696,7 +696,7 @@ class ApiTest extends TestCase
 
         $model_arr = DB::table('products')
         ->where(['belongs_to', $this->uid])
-        ->where($w)->setFetchMode('ASSOC')->limit($this->config['paginator']['default_limit'])->get();
+        ->where($w)->assoc()->limit($this->config['paginator']['default_limit'])->get();
 
         //Debug::dd(DB::getQueryLog()); 
 
@@ -757,7 +757,7 @@ class ApiTest extends TestCase
             ['belongs_to', $this->uid], 
             [$field, $values ]
         ])
-        ->setFetchMode('ASSOC')->limit($this->config['paginator']['default_limit'])->get();
+        ->assoc()->limit($this->config['paginator']['default_limit'])->get();
 
         $this->assertEquals($model_arr, $res['data']); 
     }
@@ -816,7 +816,7 @@ class ApiTest extends TestCase
             ['belongs_to', $this->uid], 
             [$field, $values ]
         ])
-        ->setFetchMode('ASSOC')->limit($this->config['paginator']['default_limit'])->get();
+        ->assoc()->limit($this->config['paginator']['default_limit'])->get();
 
         $this->assertEquals($model_arr, $res['data']);     
     }
@@ -875,7 +875,7 @@ class ApiTest extends TestCase
             ['belongs_to', $this->uid], 
             [$field, $values, 'NOT IN' ]
         ])
-        ->setFetchMode('ASSOC')->limit($this->config['paginator']['default_limit'])->get();
+        ->assoc()->limit($this->config['paginator']['default_limit'])->get();
 
         $this->assertEquals($model_arr, $res['data']);
     }
@@ -928,7 +928,7 @@ class ApiTest extends TestCase
             ['belongs_to', $this->uid], 
             ['name', 'Caja %', 'LIKE']
         ])
-        ->setFetchMode('ASSOC')->limit($this->config['paginator']['default_limit'])->get();
+        ->assoc()->limit($this->config['paginator']['default_limit'])->get();
 
         $this->assertEquals($model_arr,$res['data']); 
     }
@@ -981,7 +981,7 @@ class ApiTest extends TestCase
             ['belongs_to', $this->uid], 
             ['name', 'Caja %', 'NOT LIKE']
         ])
-        ->setFetchMode('ASSOC')->limit($this->config['paginator']['default_limit'])->get();
+        ->assoc()->limit($this->config['paginator']['default_limit'])->get();
 
         $this->assertEquals($model_arr,$res['data']); 
     }
@@ -1039,7 +1039,7 @@ class ApiTest extends TestCase
             ['belongs_to', $this->uid], 
             ['name', '%ora', 'LIKE']
         ])
-        ->setFetchMode('ASSOC')->limit($this->config['paginator']['default_limit'])->get();
+        ->assoc()->limit($this->config['paginator']['default_limit'])->get();
 
         $this->assertEquals($model_arr,$res['data']); 
     }
@@ -1097,7 +1097,7 @@ class ApiTest extends TestCase
             ['belongs_to', $this->uid], 
             ['name', '%ora', 'NOT LIKE']
         ])
-        ->setFetchMode('ASSOC')->limit($this->config['paginator']['default_limit'])->get();
+        ->assoc()->limit($this->config['paginator']['default_limit'])->get();
 
         $this->assertEquals($model_arr,$res['data']); 
     }
@@ -1153,7 +1153,7 @@ class ApiTest extends TestCase
             ['belongs_to', $this->uid], 
             ['name', '% de %', 'LIKE']
         ])
-        ->setFetchMode('ASSOC')->limit($this->config['paginator']['default_limit'])->get();
+        ->assoc()->limit($this->config['paginator']['default_limit'])->get();
 
         $this->assertEquals($model_arr,$res['data']); 
     }
@@ -1209,7 +1209,7 @@ class ApiTest extends TestCase
             ['belongs_to', $this->uid], 
             ['name', '% de %', 'NOT LIKE']
         ])
-        ->setFetchMode('ASSOC')->limit($this->config['paginator']['default_limit'])->get();
+        ->assoc()->limit($this->config['paginator']['default_limit'])->get();
 
         $this->assertEquals($model_arr,$res['data']); 
     }
@@ -1269,7 +1269,7 @@ class ApiTest extends TestCase
             ['belongs_to', $this->uid], 
             ['cost', 100, '!=']
         ])
-        ->setFetchMode('ASSOC')->limit($this->config['paginator']['default_limit'])->get();
+        ->assoc()->limit($this->config['paginator']['default_limit'])->get();
 
         $this->assertEquals($model_arr,$res['data']); 
     }
@@ -1325,7 +1325,7 @@ class ApiTest extends TestCase
             ['belongs_to', $this->uid], 
             ['cost', 100, '>']
         ])
-        ->setFetchMode('ASSOC')->limit($this->config['paginator']['default_limit'])->get();
+        ->assoc()->limit($this->config['paginator']['default_limit'])->get();
 
         $this->assertEquals($model_arr,$res['data']); 
     }
@@ -1381,7 +1381,7 @@ class ApiTest extends TestCase
             ['belongs_to', $this->uid], 
             ['cost', 100, '<']
         ])
-        ->setFetchMode('ASSOC')->limit($this->config['paginator']['default_limit'])->get();
+        ->assoc()->limit($this->config['paginator']['default_limit'])->get();
 
         $this->assertEquals($model_arr,$res['data']); 
     }
@@ -1437,7 +1437,7 @@ class ApiTest extends TestCase
             ['belongs_to', $this->uid], 
             ['cost', 100, '>=']
         ])
-        ->setFetchMode('ASSOC')->limit($this->config['paginator']['default_limit'])->get();
+        ->assoc()->limit($this->config['paginator']['default_limit'])->get();
 
         $this->assertEquals($model_arr,$res['data']); 
     }
@@ -1493,7 +1493,7 @@ class ApiTest extends TestCase
             ['belongs_to', $this->uid], 
             ['cost', 100, '<=']
         ])
-        ->setFetchMode('ASSOC')->limit($this->config['paginator']['default_limit'])->get();
+        ->assoc()->limit($this->config['paginator']['default_limit'])->get();
 
         $this->assertEquals($model_arr,$res['data']); 
     }
@@ -1550,7 +1550,7 @@ class ApiTest extends TestCase
             ['cost', 100, '<='],
             ['cost', 50, '>=']
         ])
-        ->setFetchMode('ASSOC')->limit($this->config['paginator']['default_limit'])->orderBy(['cost' => 'ASC'])->get();
+        ->assoc()->limit($this->config['paginator']['default_limit'])->orderBy(['cost' => 'ASC'])->get();
 
         $this->assertEquals($model_arr,$res['data']); 
     }
@@ -1607,7 +1607,7 @@ class ApiTest extends TestCase
             ['created_at', '2019-11-02 16:07:10', '>='],
             ['created_at', '2019-11-03 21:33:20', '<=']
         ])
-        ->setFetchMode('ASSOC')->limit($this->config['paginator']['default_limit'])->orderBy(['created_at' => 'ASC'])->get();
+        ->assoc()->limit($this->config['paginator']['default_limit'])->orderBy(['created_at' => 'ASC'])->get();
 
         $this->assertEquals($model_arr,$res['data']); 
     }
@@ -1677,7 +1677,7 @@ class ApiTest extends TestCase
         $model_arr = DB::table('products')->where([
             ['belongs_to', $this->uid]
         ])
-        ->setFetchMode('ASSOC')->limit($this->config['paginator']['default_limit'])->get($fields);
+        ->assoc()->limit($this->config['paginator']['default_limit'])->get($fields);
 
         $this->assertEquals($model_arr,$res['data']); 
     }
@@ -1747,7 +1747,7 @@ class ApiTest extends TestCase
         $model_arr = DB::table('products')->where([
             'id' => $id
         ])
-        ->setFetchMode('ASSOC')->first($fields);
+        ->assoc()->first($fields);
 
         $this->assertEquals($model_arr,$res['data']); 
     }
@@ -1805,7 +1805,7 @@ class ApiTest extends TestCase
         $model_arr = DB::table('products')->where([
             'id' => $id
         ])
-        ->setFetchMode('ASSOC')->hide([$field])->first();
+        ->assoc()->hide([$field])->first();
 
         //Debug::dd(DB::getQueryLog()); 
 
@@ -1864,7 +1864,7 @@ class ApiTest extends TestCase
         ->where([ 
             $nullables[0] => NULL
         ])
-        ->setFetchMode('ASSOC')->get();
+        ->assoc()->get();
 
         //Debug::dd(DB::getQueryLog()); 
 
@@ -1923,7 +1923,7 @@ class ApiTest extends TestCase
         ->where([ 
             $nullables[0],  NULL, 'IS NOT'
         ])
-        ->setFetchMode('ASSOC')->limit($this->config['paginator']['default_limit'])->get();
+        ->assoc()->limit($this->config['paginator']['default_limit'])->get();
 
         //Debug::dd(DB::getQueryLog()); 
         //Debug::dd($model_arr);

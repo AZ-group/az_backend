@@ -1,6 +1,15 @@
 # TODO
 
-- Revisar DB de Fabriiiiiiiiiiiiiiiiiiiiiiiiiiicio
+- Ser concistente con los campos not_fillables: informo que son no fillables o simplemente hago un unset() silecioso? para belongs_to no estoy informando y para los demás campos si. 
+
+  POST
+  
+  {
+        "uuid": "0b42cfba-a343-4cf1-aaa7-e7ef7bf43171",
+        "name": "BAR",
+        "price": "600.50",
+        "belongs_to": "168"
+    }
 
 - Revisar documentos de Fabriiiiiiiiiiiiiiiiiiiiiiiiiiicio
 

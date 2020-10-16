@@ -116,7 +116,7 @@ abstract class ResourceController extends Controller
         if ($operation != 'r' && $operation != 'w')
             throw new \InvalidArgumentException("Invalid operation '$operation'. It should be 'r' or 'w'.");
 
-        $o = (new FolderOtherPermissionsModel($this->conn))->setFetchMode('ASSOC');
+        $o = (new FolderOtherPermissionsModel($this->conn))->assoc();
 
         $rows = $o->where(['folder_id', $folder])->get();
 
@@ -133,7 +133,7 @@ abstract class ResourceController extends Controller
             return true;
         }
         
-        $g = (new FolderPermissionsModel($this->conn))->setFetchMode('ASSOC');
+        $g = (new FolderPermissionsModel($this->conn))->assoc();
         $rows = $g->where([
                                     ['folder_id', $folder], 
                                     ['access_to', $this->uid]

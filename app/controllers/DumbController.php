@@ -77,14 +77,14 @@ class DumbController extends Controller
 
     function get_bar(){
         Debug::dd(DB::table('bar')
-        // ->setFetchMode('ASSOC')
+        // ->assoc()
         ->get());
     }
 
     function get_bar2(){
         Debug::dd((new BarModel())
         ->connect()
-        // ->setFetchMode('ASSOC')
+        // ->assoc()
         ->get());
     }
 
@@ -362,7 +362,7 @@ class DumbController extends Controller
 
     function pluck2($uid) {
         $perms = DB::table('user_sp_permissions')
-        ->setFetchMode('ASSOC')
+        ->assoc()
         ->where(['user_id' => $uid])
         ->join('sp_permissions', 'user_sp_permissions.sp_permission_id', '=', 'sp_permissions.id')
         ->pluck('name');
@@ -442,7 +442,7 @@ class DumbController extends Controller
 
     function count1(){
         $c = DB::table('products')
-        //->setFetchMode('ASSOC')
+        //->assoc()
         ->where([ 'belongs_to'=> 90] )
         ->count('*', 'count');
 
@@ -811,7 +811,7 @@ class DumbController extends Controller
         $email = 'nano@g.c';
         $username = 'nano';
 
-        $rows = DB::table('users')->setFetchMode('ASSOC')->unhide(['password'])
+        $rows = DB::table('users')->assoc()->unhide(['password'])
             ->where([ 'email'=> $email, 
                       'username' => $username 
             ], 'OR') 
@@ -826,7 +826,7 @@ class DumbController extends Controller
         $email = 'nano@g.c';
         $username = 'nano';
 
-        $rows = DB::table('users')->setFetchMode('ASSOC')
+        $rows = DB::table('users')->assoc()
             ->where([ 'email'=> $email ]) 
             ->orWhere(['username' => $username ])
             ->setValidator((new Validator())->setRequired(false))  

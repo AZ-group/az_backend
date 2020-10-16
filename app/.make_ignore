@@ -28,4 +28,4 @@ controllers/api/UserRoles.php
 controllers/api/UserSpPermissions.php
 controllers/api/UserTbPermissions.php
 
-BarSchema.php
+# Schemas
