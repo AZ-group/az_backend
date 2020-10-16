@@ -30,7 +30,7 @@ class UsersSchema implements ISchema
 			'belongs_to' => 'INT'
 		],
 
-			'nullable'		=> ['id', 'active', 'firstname', 'lastname', 'password', 'deleted_at', 'belongs_to'],
+			'nullable'		=> ['id', 'active', 'confirmed_email', 'firstname', 'lastname', 'password', 'deleted_at', 'belongs_to'],
 
 			'rules' 		=> [
 				'username' => ['max' => 15],

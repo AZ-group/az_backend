@@ -1,5 +1,18 @@
 # TODO
 
+- Si un registro fue bloqueado por un admin (alguien con permiso de lock) no debería siquiera poder verse en la papelera informando: "locked by an admin"
+
+  GET http://az.lan/api/v1/trashCan/160?entity=products
+
+{
+    "data": {
+    },
+    "status_code": 403,
+    "error": "Forbidden",
+    "error_detail": "Locked by an admin"
+}
+
+
 - Ser concistente con los campos not_fillables: informo que son no fillables o simplemente hago un unset() silecioso? para belongs_to no estoy informando y para los demás campos si. 
 
   POST
@@ -14,10 +27,9 @@
 - Crear alias entre
 
   ?orderBy=cost  (incorrecto)
-
 y 
-
   ?orderBy[cost]=ASC (corecto)
+
 
 - Revisar documentos de Fabriiiiiiiiiiiiiiiiiiiiiiiiiiicio
 

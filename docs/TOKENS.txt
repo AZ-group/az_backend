@@ -65,3 +65,19 @@
 <-- sin roles !
 
 
+{
+    "data": {
+        "uid": "472",
+        "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImlhdCI6MTYwMjg2OTE0MiwiZXhwIjoxNjExODY5MTQyLCJpcCI6IjEyNy4wLjAuMSIsInVpZCI6IjQ3MiIsInJvbGVzIjpbInJlZ3VsYXIiXSwicGVybWlzc2lvbnMiOnsidGIiOltdLCJzcCI6W119LCJhY3RpdmUiOm51bGx9.TtG8xI9oFxJtYUyZA7H_xK4SYUV5AJNFy2wJyuy1Ih8",
+        "token_type": "bearer",
+        "expires_in": 9000000,
+        "refresh_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImlhdCI6MTYwMjg2OTE0MiwiZXhwIjoxOTE4MjI5MTQyLCJpcCI6IjEyNy4wLjAuMSIsInVpZCI6IjQ3MiJ9.WynC8oo5-UXQYSoLO3hUB2M9EjpMxvt4lIp69thrRtw",
+        "roles": [
+            "regular"
+        ],
+        "email_confirmation_link": "http://az.lan/api/v1/auth/confirm_email/eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImlhdCI6MTYwMjg2OTE0MiwiZXhwIjoxNjAzNDczOTQyLCJpcCI6IjEyNy4wLjAuMSIsImVtYWlsIjoidmlrNDVAZ21haWwuY29tIiwicm9sZXMiOlsicmVndWxhciJdLCJwZXJtaXNzaW9ucyI6eyJ0YiI6W10sInNwIjpbXX19.D5j6sEw-V6iybEk7sQOI7iDTDyt7-1rpku7Azzs4nNU/1603473942"
+    },
+    "status_code": 200,
+    "error": "",
+    "error_detail": ""
+}

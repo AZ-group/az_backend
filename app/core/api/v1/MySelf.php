@@ -14,11 +14,7 @@ use simplerest\core\exceptions\InvalidValidationException;
 
 class MySelf extends MyApiController 
 {  
-    //protected $model_table = 'users';   // <-- no sirve más el truco ?
     protected $model_name = 'UsersModel';
-
-    //
-    // además necesito el Schema !
 
     function __construct() 
     { 
@@ -27,6 +23,8 @@ class MySelf extends MyApiController
 
             $this->is_listable = true;
             $this->is_retrievable = true;
+        } else {
+            Factory::response()->sendError("Forbidden", 403, "You need to be authenticated");
         }
         
         parent::__construct();

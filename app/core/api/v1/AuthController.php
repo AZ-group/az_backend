@@ -515,7 +515,7 @@ class AuthController extends Controller implements IAuth
         DB::beginTransaction();
 
         try {
-            $data  = Factory::request()->getBody();
+            $data  = Factory::request()->getBody(false);
 
             if ($data == null)
                 Factory::response()->sendError('Bad request',400, 'Invalid JSON');
@@ -676,12 +676,9 @@ class AuthController extends Controller implements IAuth
                 if (!isset($payload->uid) || empty($payload->uid))
                     Factory::response()->sendError('Unauthorized',401,'Lacks id in web token');  
 
-                //var_dump($payload->uid);
-                //exit;    
-
+                // Lacks active status
                 if (!isset($payload->active) && $payload->uid != -1){
-                    //var_dump($payload);
-                    Factory::response()->sendError('Unauthorized', 401, 'Lacks active status');
+                    Factory::response()->sendError('Unauthorized', 401, 'Lacks active status. Please log in.');
                 }    
 
                 if ($payload->active === false) {
