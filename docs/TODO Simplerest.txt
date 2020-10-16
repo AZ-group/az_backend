@@ -12,6 +12,16 @@
     "error_detail": "Locked by an admin"
 }
 
+Casos para un registro bloqueado:
+
+  - Solo con el permiso "lock" se puede ver (ni siquiera con "read_all")
+  - Solo con el permiso "lock" se puede ver (ni siquiera con "read_all") en la papelera
+  - Solo con el permiso "lock" se puede listar (ni siquiera con "read_all")
+  - Solo con el permiso "lock" se puede listar (ni siquiera con "read_all_trashcan"). Requiere lock + read_all_trashcan sino es propio.
+  - Solo con el permiso "lock" puede recuperar de la papelera -- ok
+  - Solo con el permiso "lock" puede borrar de la papelera -- ok
+
+
 
 - Ser concistente con los campos not_fillables: informo que son no fillables o simplemente hago un unset() silecioso? para belongs_to no estoy informando y para los demás campos si. 
 

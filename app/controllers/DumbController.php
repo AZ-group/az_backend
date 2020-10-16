@@ -349,33 +349,6 @@ class DumbController extends Controller
         Debug::dd(DB::getLog());
     }
 
-    function sub1(){
-        // SELECT COUNT(*) FROM (SELECT  name, size FROM products  GROUP BY size ) as sub 
-        $sub = DB::table('products')
-        ->select(['name', 'size'])
-        ->groupBy(['size']);
-            
-        $m = new Model(true);
-        $res = $m->fromRaw("({$sub->toSql()}) as sub")->count();
-        
-        //Debug::dd($sub->toSql());
-        Debug::dd($m->getLastPrecompiledQuery());
-        //Debug::dd(DB::getLog());     
-    }
-
-    function sub1a(){
-        $sub = DB::table('products')
-        ->select(['id', 'name', 'size'])
-        ->where(['cost', 150, '>=']);
-    
-        $m = new Model(true);    
-        $res = $m->fromRaw("({$sub->toSql()}) as sub")->count();
-    
-        //Debug::dd($sub->toSql());
-        //Debug::dd($m->getLastPrecompiledQuery());
-        //Debug::dd(DB::getLog());     
-    }
-
     function distinct(){
         Debug::dd(DB::table('products')->distinct()->get(['size']));
 
@@ -1444,12 +1417,70 @@ class DumbController extends Controller
         Debug::dd($res);    
     }
 
+
     /*
         RAW select
 
-        SELECT COUNT(*)  FROM (SELECT size FROM products GROUP BY size) as sub;
     */
+
     function sub4(){
+        // SELECT COUNT(*) FROM (SELECT  name, size FROM products  GROUP BY size ) as sub 
+        
+        try {
+            $sub = DB::table('products')
+            ->select(['name', 'size'])
+            ->groupBy(['size']);
+                
+            //var_dump($sub->toSql());
+            //exit;
+
+            $m = new Model(true);
+            $res = $m->fromRaw("({$sub->toSql()}) as sub")
+            ->count();
+
+            Debug::export($sub->toSql());
+            echo "\r\n";
+            Debug::export($m->getLastPrecompiledQuery());
+            echo "\r\n";
+            Debug::export(DB::getLog());   
+            Debug::dd($res);  
+
+        } catch (\Exception $e){
+            var_dump($e->getMessage());
+            Debug::dd($m->dd());
+        }
+        
+        //Debug::dd($sub->toSql());
+        //Debug::dd($m->getLastPrecompiledQuery());
+        //Debug::dd(DB::getLog());     
+    }
+
+    function sub4a(){
+        try {
+            $sub = DB::table('products')
+            ->select(['id', 'name', 'size'])
+            ->where(['cost', 150, '>=']);
+        
+            $m = new Model(true);    
+            $res = $m->fromRaw("({$sub->toSql()}) as sub")
+            ->mergeBindings($sub)
+            ->count();
+      
+            //Debug::export($sub->toSql());
+            //echo "\r\n";
+            //Debug::export($m->getLastPrecompiledQuery());
+            //echo "\r\n";
+            //Debug::export(DB::getLog());   
+            Debug::dd($res);  
+
+        } catch (\Exception $e){
+            var_dump($e->getMessage());
+            Debug::dd($m->dd());
+        }    
+    }
+
+
+    function sub4b(){
         $sub = DB::table('products')->showDeleted()
         ->select(['size'])
         ->groupBy(['size']);
@@ -1463,15 +1494,13 @@ class DumbController extends Controller
     /*
         SELECT  COUNT(*) FROM (SELECT  size FROM products WHERE belongs_to = 90 GROUP BY size ) as sub WHERE 1 = 1
     */
-    function sub4a(){
+    function sub4c(){
         $sub = DB::table('products')->showDeleted()
         ->select(['size'])
         ->where(['belongs_to', 90])
         ->groupBy(['size']);
 
-        $conn = DB::getConnection();
-
-        $main = new \simplerest\core\Model($conn);
+        $main = new \simplerest\core\Model(true);
         $res = $main
         ->fromRaw("({$sub->toSql()}) as sub")
         ->mergeBindings($sub)
@@ -1486,7 +1515,7 @@ class DumbController extends Controller
 
         SELECT  COUNT(*) FROM (SELECT  size FROM products WHERE belongs_to = 90 GROUP BY size ) as sub WHERE 1 = 1
     */
-    function sub4b(){
+    function sub4d(){
         $sub = DB::table('products')->showDeleted()
         ->select(['size'])
         ->where(['belongs_to', 90])
@@ -1503,14 +1532,17 @@ class DumbController extends Controller
         Subconsulta (rudimentaria) en el SELECT
     */
     function sub5(){
-        $res = DB::table('products')->showDeleted()
+        $m = DB::table('products')->showDeleted()
         ->select(['name', 'cost'])
         ->selectRaw('cost - (SELECT MAX(cost) FROM products) as diferencia')
-        ->where(['belongs_to', 90])
-        ->get();
+        ->where(['belongs_to', 90]);
 
-        Debug::dd(DB::getLog()); 
+        $res = $m->get();
+
         Debug::dd($res);
+        Debug::dd($m->getLastPrecompiledQuery()); 
+        Debug::dd(DB::getLog()); 
+        
     }
 
     /*

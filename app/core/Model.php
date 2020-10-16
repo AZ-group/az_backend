@@ -366,8 +366,13 @@ class Model {
 	}
 
 	protected function from(){
+		if ($this->table_raw_q != null){
+			return $this->table_raw_q;
+		}
+
 		if ($this->table_name == null){
 			throw new \Exception("No table_name defined");
+			$this->table_name = '';
 		}
 
 		$from = $this->table_alias != null ? $this->table_name. ' as '.$this->table_alias : $this->table_name.' ';  
@@ -1272,6 +1277,10 @@ class Model {
 	function count($field = NULL, $alias = NULL){
 		$q = $this->toSql(null, null, null, null, false, 'COUNT', $field, $alias);
 		$st = $this->bind($q);
+
+		//Debug::export($q, 'Q');
+		//Debug::export($this->table_raw_q, 'RAW Q');
+		//exit;
 
 		if (empty($this->group)){
 			if ($this->exec && $st->execute()){

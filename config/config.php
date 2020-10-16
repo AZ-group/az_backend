@@ -42,7 +42,7 @@ return [
 
 	'DateTimeZone' => 'America/Argentina/Buenos_Aires',
 
-	'error_handling'   => true,
+	'error_handling'   => false,
 	'debug'   => true,
 
 	'access_token' => [
