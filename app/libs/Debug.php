@@ -4,119 +4,66 @@ namespace simplerest\libs;
 
 class Debug
 {
-	static function dd($v, $msg=null, $exit=false, $prettify = true) 
-	{			
-		if (gettype($v)=='boolean'){
-			echo ($v ? "TRUE" : "FALSE");
-		}	
-	
-		if (php_sapi_name() == 'cli')
-		{
-			if ($msg!="")
-				echo $msg."\n";
-
-			print_r($v);	
-		}else{	
-			if ($msg!="")
-				echo $msg."<br/>";
-			
-			if ($prettify){
-				print '<pre>';
-				print_r($v);
-				print '</pre>';
-			}else
-				print_r($v);	
-		}
-		
-		if ($exit)		
-			exit;				
-	}		
-
-	static function dump($v, $key = null) 
-	{			
-		if (gettype($v)=='boolean'){
-			$v = $v ? "(bool) true" : "(bool) false";
-		}	
-	
-		if ($key != null)
-			var_dump([$key => $v]);
-		else
-			var_dump($v);	
-	}		
-
-	static function export($v, $key = null) 
-	{			
-		if (gettype($v)=='boolean'){
-			$v = $v ? "(bool) true" : "(bool) false";
-		}	
-	
-		if ($key != null)
-			var_export([$key => $v]);
-		else
-			var_export($v);	
-	}	
-
-
-	// devuelve un var_dump() como json 
-	static function json_var_dump($ar){		
-		return json_encode(var_export($ar));			
-	}	
-
-	static function json_var_dump_v2($var){
-		ob_start();
-		var_dump($var);
-		return json_encode(ob_get_clean());            
-	}     
-
-
-	/** 
-	*	@author https://stackoverflow.com/users/1709587
-	*/
-	static function isAssoc(array $arr)
-	{
-		if (array() === $arr) return false;
-		return array_keys($arr) !== range(0, count($arr) - 1);
+	protected static function pre(callable $fn, ...$args){
+		echo '<pre>';
+		$fn($args);
+		echo '</pre>';
 	}
 
-	/**
-	 * Replaces any parameter placeholders in a query with the value of that
-	 * parameter. Useful for debugging. Assumes anonymous parameters from 
-	 * $params are are in the same order as specified in $query
-	 *
-	 * @param string $query The sql query with parameter placeholders
-	 * @param array $params The array of substitution parameters
-	 * @return string The interpolated query
-	 * 
-	 * @author maerlyn https://stackoverflow.com/users/308825/maerlyn
-	 */
-	static function interpolateQuery($query, $params) {
-		$keys = array();
+	protected static function is_postman(){
+		return (isset($_SERVER['HTTP_USER_AGENT']) && strpos($_SERVER['HTTP_USER_AGENT'], 'PostmanRuntime') !== false);	
+	}
 
-		# build a regular expression for each parameter
+	protected static function export($v, $msg = null) 
+	{			
+		$postman = self::is_postman();
+		
+		$cli  = (php_sapi_name() == 'cli');
+		$br   = ($cli || $postman) ? PHP_EOL : '<br/>';
+		$p    = ($cli || $postman) ? PHP_EOL . PHP_EOL : '<p/>';
 
-		if (!isAssoc($params)){
-			$_params = [];  // associative array
-			foreach($params as $param){
-				$key = $param[0];
-				$value = $param[1];
-				// $type = $param[2];
-				$_params[$key] = $value;
-			}
-			$params  = $_params;
-		}		
-
-		foreach ($params as $key => $value) {
-			if (is_string($key)) {
-				$keys[] = '/'.((substr($key,0,1)==':') ? '' : ':').$key.'/';
+		$type = gettype($v);
+		
+		$fn = function($x) use ($type){
+			if ($type == 'boolean'){
+				echo $x;
 			} else {
-				$keys[] = '/[?]/';
-			}
+				echo var_export($x);
+			}	
+		};
+
+		
+		if ($type == 'boolean'){
+			$v = $v ? 'true' : 'false';
+		}	
+
+		if (!empty($msg)){
+			echo "--[ $msg ]-- ". $br;
+		}
+			
+		$fn($v);	
+		
+		if ($type != "array"){
+			echo $p;
+		}		
+	}	
+
+	static function dd($var, $msg = null){
+		$cli = (php_sapi_name() == 'cli');
+		
+		$pre = !$cli;
+		
+		if (self::is_postman()){
+			$pre = false;
 		}
 		
-		$query = preg_replace($keys, $params, $query, 1, $count);
-
-		#trigger_error('replaced '.$count.' keys');
-
-		return $query;
+		if ($pre) {
+			self::pre(function() use ($var, $msg){ 
+				self::export($var, $msg); 
+			});
+		} else {
+			self::export($var, $msg);
+		}		
 	}
+
 }

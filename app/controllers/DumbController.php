@@ -912,7 +912,12 @@ class DumbController extends Controller
     function grouping(){
         Debug::dd(DB::table('products')->where([ 
             ['cost', 100, '>=']
-        ])->orderBy(['size' => 'DESC'])->groupBy(['size'])->select(['size'])->avg('cost'));
+        ])->orderBy(['size' => 'DESC'])
+        ->groupBy(['size'])
+        ->select(['size'])
+        //->take(5)
+        //->offset(5)
+        ->avg('cost'));
     }
 
     function where(){        
@@ -1430,29 +1435,20 @@ class DumbController extends Controller
             $sub = DB::table('products')
             ->select(['name', 'size'])
             ->groupBy(['size']);
-                
-            //var_dump($sub->toSql());
-            //exit;
 
             $m = new Model(true);
             $res = $m->fromRaw("({$sub->toSql()}) as sub")
             ->count();
 
-            Debug::export($sub->toSql());
-            echo "\r\n";
-            Debug::export($m->getLastPrecompiledQuery());
-            echo "\r\n";
-            Debug::export(DB::getLog());   
-            Debug::dd($res);  
+            Debug::dd($sub->toSql(), 'toSql()');
+            Debug::dd($m->getLastPrecompiledQuery(), 'getLastPrecompiledQuery()');
+            Debug::dd(DB::getLog(), 'getLog()');   
+            Debug::dd($res, 'count');  
 
         } catch (\Exception $e){
-            var_dump($e->getMessage());
+            Debug::dd($e->getMessage());
             Debug::dd($m->dd());
         }
-        
-        //Debug::dd($sub->toSql());
-        //Debug::dd($m->getLastPrecompiledQuery());
-        //Debug::dd(DB::getLog());     
     }
 
     function sub4a(){
@@ -1466,12 +1462,10 @@ class DumbController extends Controller
             ->mergeBindings($sub)
             ->count();
       
-            //Debug::export($sub->toSql());
-            //echo "\r\n";
-            //Debug::export($m->getLastPrecompiledQuery());
-            //echo "\r\n";
-            //Debug::export(DB::getLog());   
-            Debug::dd($res);  
+            Debug::dd($sub->toSql(), 'toSql()');
+            Debug::dd($m->getLastPrecompiledQuery(), 'getLastPrecompiledQuery()');
+            Debug::dd(DB::getLog(), 'getLog()');   
+            Debug::dd($res, 'count'); 
 
         } catch (\Exception $e){
             var_dump($e->getMessage());
