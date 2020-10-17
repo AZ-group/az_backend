@@ -2,10 +2,10 @@
 -- version 5.0.2
 -- https://www.phpmyadmin.net/
 --
--- Servidor: localhost
--- Tiempo de generación: 29-09-2020 a las 04:43:03
--- Versión del servidor: 10.4.11-MariaDB
--- Versión de PHP: 7.4.3
+-- Host: localhost
+-- Generation Time: Oct 17, 2020 at 05:24 PM
+-- Server version: 10.4.11-MariaDB
+-- PHP Version: 7.4.3
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -18,53 +18,202 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Base de datos: `az`
+-- Database: `az`
 --
 
 -- --------------------------------------------------------
 
 --
--- Estructura de tabla para la tabla `baz`
+-- Table structure for table `bar`
+--
+
+CREATE TABLE `bar` (
+  `uuid` varchar(36) NOT NULL,
+  `name` varchar(50) NOT NULL,
+  `price` decimal(15,2) NOT NULL,
+  `belongs_to` int(11) NOT NULL,
+  `updated_at` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- Dumping data for table `bar`
+--
+
+INSERT INTO `bar` (`uuid`, `name`, `price`, `belongs_to`, `updated_at`) VALUES
+('', 'ggg', '88.90', 0, NULL),
+('03da976b-8c39-42e7-8a2e-ce4159251bd3', 'gggggggggg', '100.00', 0, NULL),
+('0554fefd-b800-415a-91b9-b2e7f080b320', 'pepinos nivel Dios', '650.33', 1, NULL),
+('063429dc-8083-4a97-bd93-f7a9762340ee', 'xxxy barxyz', '999.99', 168, '2020-10-11 23:49:19'),
+('07a1904e-7426-4a99-9c38-b174e6557017', 'xxxy bar', '105.00', 168, NULL),
+('0b6ec303-f385-427b-9249-c637519a8bf0', 'xxxy bar', '105.00', 168, NULL),
+('0d42b7c9-16d6-4bd9-8ff3-c2cecc9fd32d', 'xxxy bar', '105.00', 168, NULL),
+('0f428f70-240f-4c04-848c-d2a7964c4a6f', 'xxxy bar', '105.00', 168, NULL),
+('11928fd4-e33b-402c-9761-e3f55b08c3fb', 'xxxy bar', '105.00', 168, NULL),
+('180d388d-4c25-45fc-a9ed-3e5376d709bf', 'gggggggggg', '100.00', 0, NULL),
+('183faa74-6be1-48f1-a7c3-ba6477e399b1', 'pepinos nivel Dios', '650.33', 1, NULL),
+('1b02b247-8821-487e-8b1b-b9fee63025e8', 'xxxy barxyz', '9900.00', 168, NULL),
+('1b5ff5bc-d39b-4ed2-84ea-d6db6f884dc3', 'gggggggggg', '100.00', 0, NULL),
+('1e92da0e-0264-4e55-8660-db96fc933eb1', 'gggggggggggggggggggggggggggggggggggggggggggggggggg', '88.00', 0, NULL),
+('1f5ba28d-2f0f-413d-9959-dc26ffd6df20', 'pepinos nivel Dios', '650.33', 1, NULL),
+('224c1276-41dc-40fe-8102-a54d832477c7', 'xxxy bar', '108.00', 168, NULL),
+('22a4196e-2a3d-4a28-8201-c1b8df3f958c', 'pepinos nivel Dios', '650.33', 1, NULL),
+('247f0edd-2b21-451a-ac0c-dc6d6782f1f6', 'xxxy barxyzE', '1075.00', 168, NULL),
+('29098410-60b1-418e-a603-36e502d1bf7c', 'xxxy bar', '105.00', 168, NULL),
+('2ceb4618-e213-4a76-b177-310071df9d55', 'gggggggggg', '100.00', 0, NULL),
+('34a7b6db-7d64-4eb6-b61f-e9a8d69e3abe', 'ggg', '88.00', 0, NULL),
+('356a826b-3622-49f0-b336-5fbce48d6417', 'gggggggggg', '100.00', 0, NULL),
+('376b6d52-1c0b-4826-841d-7826c7991973', 'gggggggggg', '100.00', 0, NULL),
+('39d38fbf-790c-4c6f-ab5d-0c9ade87b52a', 'pepinos nivel Dios', '650.33', 1, NULL),
+('3ccd556d-88f5-4266-b5c3-68a5f5112b6f', 'xxxy.00', '0.00', 168, NULL),
+('3f96dbef-9a77-44b9-abb1-6df27293cbaa', 'xxxy bar', '105.00', 168, NULL),
+('3fb0ac25-02ca-45f4-a63f-0153cbc969ba', 'xxxy bar', '105.00', 168, NULL),
+('407b61f1-1de0-4a76-b47c-d274a6704046', 'xxxy bar', '105.00', 168, NULL),
+('41e06453-f5ef-46f8-9297-59ea728df1b7', 'xxxy bar', '105.00', 168, NULL),
+('42702ee7-6534-4857-9e1e-827421d809ef', 'xxxy barxyz', '999.99', 168, NULL),
+('469a35f7-eceb-466b-a26e-3da1d2141846', 'gggggggggg', '100.00', 0, NULL),
+('4c186eeb-dbd7-4171-97dd-ecdce2548841', 'xxxy bar', '105.00', 168, NULL),
+('4f1366f3-f08e-4c4c-a0c1-2dcd8309f708', 'gggggggggg', '100.00', 0, NULL),
+('50165040-fe82-4ad5-8f35-9e087cde10c6', 'xxxy barxyz', '999.99', 168, NULL),
+('52418307-65af-4718-b0ed-8d2d2bc3cc0d', 'xxxy bar', '105.00', 168, NULL),
+('5b28d10a-db79-4bb5-9b30-8043a209d432', 'pepinos nivel Dios', '650.33', 1, NULL),
+('5c2bf2c3-d3f3-4ce1-8f21-bc82abe6eb37', 'gggggggggg', '100.00', 0, NULL),
+('5c5d9599-d43f-47e5-a9a0-f778e55f869c', 'pepinos nivel Dios', '650.33', 1, NULL),
+('61b03151-8e08-415a-b64f-371202650caa', 'xxxy bar', '105.00', 168, NULL),
+('62646218-bfb9-461a-ba5c-a3c4440a200a', 'pepinos nivel Dios', '650.33', 1, NULL),
+('62b2da6a-da9b-449e-9a35-54215c94f55b', 'xxxy bar', '105.00', 168, NULL),
+('63846dbb-7ce9-449d-9246-651a004bc6c7', 'gggggggggg', '100.00', 0, NULL),
+('6386d6fa-07c0-4607-8e67-a3dfecc4412c', 'pepinos nivel Dios', '650.33', 1, NULL),
+('666e2f63-c963-4d57-8cea-29a2f2bad3ff', 'pepinos nivel Dios', '650.33', 1, NULL),
+('69a4c572-003d-40c4-b94b-f872d0c3fb83', 'pepinos nivel Dios', '650.33', 1, NULL),
+('6daaad71-d5b7-404e-8e14-767ef7ba2955', 'pepinos nivel Dios', '650.33', 1, NULL),
+('70aa2fc7-2b1a-42c7-981d-19016948a487', 'gggggggggg', '100.00', 0, NULL),
+('70ec4ce3-b150-4199-903d-5c4053b32339', 'xxxy barxyz', '999.99', 168, NULL),
+('737955b0-90c1-4d51-8309-a802e32e57c2', 'pepinos nivel Dios', '650.33', 1, NULL),
+('77c4a032-8b32-43b6-bd7b-fb5c64675bfd', 'pepinos nivel Dios', '650.33', 1, NULL),
+('797c7038-9ff3-4e40-9a9f-cd7cb4a12042', 'xxxy bar', '105.00', 168, NULL),
+('7dced4f0-a43e-4cb8-a377-191948345c80', 'xxxy bar', '105.00', 168, NULL),
+('7f63f8aa-f604-4ef9-92d1-3803521e40b6', 'pepinos nivel Dios', '650.33', 1, NULL),
+('816ed8bb-b06c-4151-a3fc-8fbaa770cb00', 'xxxy barxy', '107.00', 168, NULL),
+('83b876a0-8330-449f-88fd-5c3ec15c9321', 'BAR', '600.50', 168, NULL),
+('8461112c-e52b-4458-89db-8987288d0973', 'gggggggggg', '100.00', 0, NULL),
+('898aa73a-a632-42ab-ab98-92794cc7b8f0', 'xxxy bar', '105.00', 168, NULL),
+('89c10453-3f8f-452e-9125-6957d2a6ecf4', 'gggggggggg', '100.00', 0, NULL),
+('89f315d0-4dc8-4319-81a1-9db3fbf6d340', 'xxxy bar', '105.00', 168, NULL),
+('8ae24539-2b89-4491-9d70-6a6c84de2967', 'ggg', '88.00', 0, NULL),
+('8b91f852-a8d9-48f3-b91a-9189c55a2344', 'xxxy', '105.00', 168, NULL),
+('8bd459f8-431f-47a2-aa37-79996495d820', 'xxxy barxyzE', '1075.00', 168, NULL),
+('8da4447a-a2ff-4b89-9ea9-789628208c9d', 'ABC DEF', '77.56', 168, '2020-10-15 22:02:48'),
+('928fc56a-ff20-4512-94b3-f6e745e41169', 'pepinos nivel Dios', '650.33', 1, NULL),
+('955b2299-12fc-40d7-9609-971b0a9cda4a', 'xxxy barxyz', '999.99', 168, NULL),
+('a31b904e-eb3a-4817-9cde-0b36a2f28006', 'xxxy bar', '105.00', 168, NULL),
+('a33966ee-ee32-4dd3-adfb-78d32c7af650', 'XXX', '808000.00', 168, '2020-10-12 00:16:31'),
+('a43458a8-d265-4039-b164-3d2c4053e2d2', 'xxxy bar', '105.00', 168, NULL),
+('a4b2b266-13e9-4994-b47c-d8ed6506b886', 'gggggggggg', '100.00', 0, NULL),
+('a74dc42d-924c-465e-8308-b873bcc3f97c', 'xxxy bar', '105.00', 168, NULL),
+('a7b96b04-e23e-4eff-b7aa-469b648ebef2', 'xxxy bar', '105.00', 168, NULL),
+('a8545a70-b8c9-4a7e-acbf-01e1d07d6355', 'gggggggggg', '100.00', 0, NULL),
+('aa65c715-4e5e-4960-ab39-c5e302246f7d', 'xxxy barxyzE', '1075.00', 168, NULL),
+('aa6b66e5-0c88-48aa-b1ce-0ebd4dc66ab5', 'pepinos nivel Dios', '650.33', 1, NULL),
+('afb73738-46bf-4f67-a432-9ecf3200c96f', 'xxxy bar', '105.00', 168, NULL),
+('b07f26ea-95c5-48e2-bc73-b1d880430bea', 'gggggggggg', '100.00', 0, NULL),
+('b1a53e18-ab89-44c9-b970-075303125992', 'pepinos nivel Dios', '650.33', 1, NULL),
+('b5f847ef-675e-4d6d-9bb1-296d5b94c708', 'gggggggggg', '100.00', 0, NULL),
+('b6d1d167-9063-46eb-836c-feadb7babf16', 'xxxy bar', '105.00', 168, NULL),
+('baf295ac-5a78-45f6-9758-39a6e038802c', 'gggggggggg', '100.00', 0, NULL),
+('bc06830e-87c5-4ab7-ab72-8fa09d6a0877', 'xxxy bar', '105.00', 168, NULL),
+('c3422f2a-1c25-4952-bde1-4504b5a46cf7', 'pepinos nivel Dios', '650.33', 1, NULL),
+('c6645b46-67ac-442f-9e0e-5f3c5d827bc0', 'pepinos nivel Dios', '650.33', 1, NULL),
+('c8cf605c-a6de-4b43-a0bb-debc14769741', 'pepinos nivel Dios', '650.33', 1, NULL),
+('d0dffe16-76a5-4c05-9dcf-e6a9d859d98a', 'gggggggggg', '100.00', 0, NULL),
+('d173966a-7ae2-4dbd-af64-7486c9897ba7', 'xxxy barxyz', '999.99', 168, NULL),
+('d3c253d8-4f7d-4807-a639-e5f967fe36b9', 'xxxy bar', '105.00', 168, NULL),
+('d482104f-bf95-4288-b4f2-19f517b6adee', 'xxxy barxyz', '999.99', 168, NULL),
+('d4d6de13-bc53-4b1f-80b6-51219858b0f9', 'xxxy barxyzE', '1075.00', 168, NULL),
+('d879917e-d6bb-4d61-8ac5-01b67db9b948', 'xxxy barxyz', '999.99', 168, NULL),
+('da9b453c-19cc-4ee7-86d2-d4a3b73555e0', 'xxxy barxyzE', '1075.00', 168, NULL),
+('dab9d9e9-8ec6-4745-b9b7-3e0e5d44ddf9', 'gggggggggg', '100.00', 0, NULL),
+('e0b0d236-3744-4ef4-b4ad-df7d4c0d1360', 'xxxy bar', '105.00', 168, NULL),
+('e0cc37bc-f6cb-47c1-90b2-22c7df85036f', 'gggggggggggggggggggggggggggggggggggggggggggggggggg', '88.00', 0, NULL),
+('e42eca2e-b209-4be0-bd3e-a56cd38c7d40', 'gggggggggg', '100.00', 0, NULL),
+('e44e85e7-93a0-4c18-961f-4a59e8703ac2', 'gggggggggg', '100.00', 0, NULL),
+('e4f98736-44fc-44f3-86bb-862f211f830f', 'pepinos nivel Dios', '650.33', 1, NULL),
+('eb2fc38c-3d0f-450d-b889-b3f2aad5b07c', 'gggggggggg', '100.00', 0, NULL),
+('ec9991c4-1b19-4832-b8fa-4be67be81804', 'gggggggggg', '100.00', 0, NULL),
+('f0665ab8-3986-4138-a3ca-dc6c260c2c3d', 'xxxy bar', '105.00', 168, NULL),
+('f130e03a-75fb-40f1-a945-adc2e1790202', 'xxxy bar', '108.00', 168, NULL),
+('f2bc19b5-2882-4a80-a97d-e93685982d3f', 'xxxy barxyzE', '1075.00', 168, NULL),
+('f9bca0de-4f69-4c07-b14f-a19190a8c252', 'pepinos nivel Dios', '650.33', 1, NULL),
+('fa9c9ea4-3bc0-45b2-a113-f825f5a9b9de', 'gggggggggg', '100.00', 0, NULL),
+('fc9a1769-4684-40de-8460-de8b182aad60', 'xxxy bar', '105.00', 168, NULL);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `baz`
 --
 
 CREATE TABLE `baz` (
-  `id` int(11) NOT NULL,
+  `id_baz` int(11) NOT NULL,
   `name` varchar(45) NOT NULL,
   `cost` decimal(5,2) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 --
--- Volcado de datos para la tabla `baz`
+-- Dumping data for table `baz`
 --
 
-INSERT INTO `baz` (`id`, `name`, `cost`) VALUES
-(0, 'xxxy', '105.00'),
-(4, 'jmsvmhgtqgeijdjqfzwd', '100.00'),
-(8, 'waliiqkaknxhvvnqhewd', '100.00'),
-(10, 'asdf', '345.45'),
-(45, 'aptvunrsbcgqjviuucyh', '100.00'),
-(64, 'cupbexalludnjtemnbsv', '100.00'),
-(66, 'ndxrywhsjwlkrfjrokkg', '100.00'),
-(77, 'asdf gg', '345.44'),
-(79, 'asdf gg', '345.44'),
-(99, 'fff', '55.00'),
-(434, 'jtpbmnpsxevxjqgjylbd', '100.00'),
-(500, 'xxxy', '105.00'),
-(555, 'ixkqjlihkajsssqoqacj', '100.00'),
-(556, 'odeysprgwvvqiimaboch', '100.00'),
-(708, 'asdf gggg', '345.44'),
-(790, 'asdf gg', '345.44'),
-(4345, 'sxafueecvpgrbngyiewo', '100.00'),
-(5060, 'xxxy', '105.00'),
-(5061, 'xxxy', '0.00'),
-(7900, 'asdf gg', '345.44'),
-(43450, 'rwizixwbnqokdrebkfrx', '100.00'),
-(79050, 'asdf gg', '345.44');
+INSERT INTO `baz` (`id_baz`, `name`, `cost`) VALUES
+(0, 'BAZ', '100.00'),
+(67, 'BAZ', '100.00'),
+(456, 'BAZ', '100.00'),
+(888, 'BAZ', '100.00'),
+(1800, 'BAZ', '100.00'),
+(4578, 'BAZ', '100.00');
 
 -- --------------------------------------------------------
 
 --
--- Estructura de tabla para la tabla `collections`
+-- Table structure for table `baz2`
+--
+
+CREATE TABLE `baz2` (
+  `id_baz2` int(11) NOT NULL,
+  `name` varchar(45) NOT NULL,
+  `cost` decimal(5,2) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- Dumping data for table `baz2`
+--
+
+INSERT INTO `baz2` (`id_baz2`, `name`, `cost`) VALUES
+(1, 'BAZ', '100.00'),
+(67, 'BAZ', '100.00'),
+(456, 'BAZ', '100.00'),
+(888, 'BAZ', '100.00'),
+(1800, 'BAZ', '100.00'),
+(4578, 'BAZ', '100.00'),
+(4579, 'BAZ', '100.00'),
+(4580, 'BAZ', '100.00'),
+(4581, 'BAZ', '100.00'),
+(4582, 'hhh', '789.00'),
+(4583, 'hhh', '789.00'),
+(4584, 'hhh', '789.00'),
+(4585, 'hhh', '789.00'),
+(4586, 'hhh', '789.00'),
+(4587, 'hhh', '789.00'),
+(4588, 'hhh', '789.00'),
+(4589, 'hhh', '789.00'),
+(4590, 'hhh', '789.00'),
+(4591, 'hhh', '789.00'),
+(4592, 'hhh', '789.00'),
+(4593, 'hhh', '789.00'),
+(4594, 'hhh', '789.00');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `collections`
 --
 
 CREATE TABLE `collections` (
@@ -76,18 +225,227 @@ CREATE TABLE `collections` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 --
--- Volcado de datos para la tabla `collections`
+-- Dumping data for table `collections`
 --
 
 INSERT INTO `collections` (`id`, `entity`, `refs`, `belongs_to`, `created_at`) VALUES
-(3, 'products', '[193,194]', 90, '2020-09-11 11:55:58'),
-(4, 'products', '[193,194]', 90, '2020-09-11 12:04:36'),
-(5, 'products', '[193,194]', 90, '2020-09-11 12:04:38');
+(9, 'users', '[90,48]', 90, '0000-00-00 00:00:00'),
+(11, 'messages', '[195,196]', 332, '2020-10-17 10:19:03'),
+(12, 'messages', '[195,196]', 332, '2020-10-17 10:19:25'),
+(13, 'messages', '[195,196]', 332, '2020-10-17 10:19:53'),
+(14, 'messages', '[195,196]', 332, '2020-10-17 10:21:16'),
+(15, 'messages', '[195,196]', 332, '2020-10-17 10:21:42'),
+(16, 'messages', '[195,196]', 332, '2020-10-17 10:23:10'),
+(17, 'messages', '[195,196]', 332, '2020-10-17 10:26:37'),
+(18, 'messages', '[195,196]', 332, '2020-10-17 10:26:41'),
+(19, 'messages', '[195,196]', 332, '2020-10-17 10:27:01'),
+(20, 'messages', '[195,196]', 332, '2020-10-17 10:27:31'),
+(21, 'messages', '[195,196]', 332, '2020-10-17 10:27:42'),
+(22, 'messages', '[195,196]', 332, '2020-10-17 10:27:59'),
+(23, 'messages', '[195,196]', 332, '2020-10-17 10:28:04'),
+(24, 'messages', '[195,196]', 332, '2020-10-17 10:28:10'),
+(25, 'messages', '[195,196]', 332, '2020-10-17 10:28:59'),
+(26, 'messages', '[195,196]', 332, '2020-10-17 10:28:59'),
+(27, 'messages', '[195,196]', 332, '2020-10-17 10:28:59'),
+(28, 'messages', '[195,196]', 332, '2020-10-17 10:28:59'),
+(29, 'messages', '[195,196]', 332, '2020-10-17 10:28:59'),
+(30, 'messages', '[195,196]', 332, '2020-10-17 10:28:59'),
+(31, 'messages', '[195,196]', 332, '2020-10-17 10:28:59'),
+(32, 'messages', '[195,196]', 332, '2020-10-17 10:28:59'),
+(33, 'messages', '[195,196]', 332, '2020-10-17 10:28:59'),
+(34, 'messages', '[195,196]', 332, '2020-10-17 10:28:59'),
+(35, 'messages', '[195,196]', 332, '2020-10-17 10:29:00'),
+(36, 'messages', '[195,196]', 332, '2020-10-17 10:29:00'),
+(37, 'messages', '[195,196]', 332, '2020-10-17 10:29:00'),
+(38, 'messages', '[195,196]', 332, '2020-10-17 10:29:00'),
+(39, 'messages', '[195,196]', 332, '2020-10-17 10:29:00'),
+(40, 'messages', '[195,196]', 332, '2020-10-17 10:29:00'),
+(41, 'messages', '[195,196]', 332, '2020-10-17 10:29:00'),
+(42, 'messages', '[195,196]', 332, '2020-10-17 10:29:00'),
+(43, 'messages', '[195,196]', 332, '2020-10-17 10:29:00'),
+(44, 'messages', '[195,196]', 332, '2020-10-17 10:29:00'),
+(45, 'messages', '[195,196]', 332, '2020-10-17 10:29:00'),
+(46, 'messages', '[195,196]', 332, '2020-10-17 10:29:00'),
+(47, 'messages', '[195,196]', 332, '2020-10-17 10:29:00'),
+(48, 'messages', '[195,196]', 332, '2020-10-17 10:29:00'),
+(49, 'messages', '[195,196]', 332, '2020-10-17 10:29:00'),
+(50, 'messages', '[195,196]', 332, '2020-10-17 10:29:00'),
+(51, 'messages', '[195,196]', 332, '2020-10-17 10:29:00'),
+(52, 'messages', '[195,196]', 332, '2020-10-17 10:29:00'),
+(53, 'messages', '[195,196]', 332, '2020-10-17 10:29:00'),
+(54, 'messages', '[195,196]', 332, '2020-10-17 10:29:00'),
+(55, 'messages', '[195,196]', 332, '2020-10-17 10:29:00'),
+(56, 'messages', '[195,196]', 332, '2020-10-17 10:29:00'),
+(57, 'messages', '[195,196]', 332, '2020-10-17 10:29:00'),
+(58, 'messages', '[195,196]', 332, '2020-10-17 10:29:00'),
+(59, 'messages', '[195,196]', 332, '2020-10-17 10:29:00'),
+(60, 'messages', '[195,196]', 332, '2020-10-17 10:29:00'),
+(61, 'messages', '[195,196]', 332, '2020-10-17 10:29:00'),
+(62, 'messages', '[195,196]', 332, '2020-10-17 10:29:00'),
+(63, 'messages', '[195,196]', 332, '2020-10-17 10:29:00'),
+(64, 'messages', '[195,196]', 332, '2020-10-17 10:29:00'),
+(65, 'messages', '[195,196]', 332, '2020-10-17 10:29:00'),
+(66, 'messages', '[195,196]', 332, '2020-10-17 10:29:00'),
+(67, 'messages', '[195,196]', 332, '2020-10-17 10:29:00'),
+(68, 'messages', '[195,196]', 332, '2020-10-17 10:29:00'),
+(69, 'messages', '[195,196]', 332, '2020-10-17 10:29:00'),
+(70, 'messages', '[195,196]', 332, '2020-10-17 10:29:00'),
+(71, 'messages', '[195,196]', 332, '2020-10-17 10:29:00'),
+(72, 'messages', '[195,196]', 332, '2020-10-17 10:29:00'),
+(73, 'messages', '[195,196]', 332, '2020-10-17 10:29:01'),
+(74, 'messages', '[195,196]', 332, '2020-10-17 10:29:01'),
+(75, 'messages', '[195,196]', 332, '2020-10-17 10:29:01'),
+(76, 'messages', '[195,196]', 332, '2020-10-17 10:29:01'),
+(77, 'messages', '[195,196]', 332, '2020-10-17 10:29:01'),
+(78, 'messages', '[195,196]', 332, '2020-10-17 10:29:01'),
+(79, 'messages', '[195,196]', 332, '2020-10-17 10:29:01'),
+(80, 'messages', '[195,196]', 332, '2020-10-17 10:29:01'),
+(81, 'messages', '[195,196]', 332, '2020-10-17 10:29:01'),
+(82, 'messages', '[195,196]', 332, '2020-10-17 10:29:01'),
+(83, 'messages', '[195,196]', 332, '2020-10-17 10:29:01'),
+(84, 'messages', '[195,196]', 332, '2020-10-17 10:29:01'),
+(85, 'messages', '[195,196]', 332, '2020-10-17 10:29:01'),
+(86, 'messages', '[195,196]', 332, '2020-10-17 10:29:01'),
+(87, 'messages', '[195,196]', 332, '2020-10-17 10:29:01'),
+(88, 'messages', '[195,196]', 332, '2020-10-17 10:29:01'),
+(89, 'messages', '[195,196]', 332, '2020-10-17 10:29:01'),
+(90, 'messages', '[195,196]', 332, '2020-10-17 10:29:01'),
+(91, 'messages', '[195,196]', 332, '2020-10-17 10:29:01'),
+(92, 'messages', '[195,196]', 332, '2020-10-17 10:29:01'),
+(93, 'messages', '[195,196]', 332, '2020-10-17 10:29:01'),
+(94, 'messages', '[195,196]', 332, '2020-10-17 10:29:01'),
+(95, 'messages', '[195,196]', 332, '2020-10-17 10:29:01'),
+(96, 'messages', '[195,196]', 332, '2020-10-17 10:29:01'),
+(97, 'messages', '[195,196]', 332, '2020-10-17 10:29:01'),
+(98, 'messages', '[195,196]', 332, '2020-10-17 10:29:01'),
+(99, 'messages', '[195,196]', 332, '2020-10-17 10:29:01'),
+(100, 'messages', '[195,196]', 332, '2020-10-17 10:29:01'),
+(101, 'messages', '[195,196]', 332, '2020-10-17 10:29:01'),
+(102, 'messages', '[195,196]', 332, '2020-10-17 10:29:01'),
+(103, 'messages', '[195,196]', 332, '2020-10-17 10:29:01'),
+(104, 'messages', '[195,196]', 332, '2020-10-17 10:29:01'),
+(105, 'messages', '[195,196]', 332, '2020-10-17 10:29:01'),
+(106, 'messages', '[195,196]', 332, '2020-10-17 10:29:01'),
+(107, 'messages', '[195,196]', 332, '2020-10-17 10:29:01'),
+(108, 'messages', '[195,196]', 332, '2020-10-17 10:29:01'),
+(109, 'messages', '[195,196]', 332, '2020-10-17 10:29:01'),
+(110, 'messages', '[195,196]', 332, '2020-10-17 10:29:01'),
+(111, 'messages', '[195,196]', 332, '2020-10-17 10:29:02'),
+(112, 'messages', '[195,196]', 332, '2020-10-17 10:29:02'),
+(113, 'messages', '[195,196]', 332, '2020-10-17 10:29:02'),
+(114, 'messages', '[195,196]', 332, '2020-10-17 10:29:02'),
+(115, 'messages', '[195,196]', 332, '2020-10-17 10:29:02'),
+(116, 'messages', '[195,196]', 332, '2020-10-17 10:29:02'),
+(117, 'messages', '[195,196]', 332, '2020-10-17 10:29:02'),
+(118, 'messages', '[195,196]', 332, '2020-10-17 10:29:02'),
+(119, 'messages', '[195,196]', 332, '2020-10-17 10:29:02'),
+(120, 'messages', '[195,196]', 332, '2020-10-17 10:29:02'),
+(121, 'messages', '[195,196]', 332, '2020-10-17 10:29:02'),
+(122, 'messages', '[195,196]', 332, '2020-10-17 10:29:02'),
+(123, 'messages', '[195,196]', 332, '2020-10-17 10:29:02'),
+(124, 'messages', '[195,196]', 332, '2020-10-17 10:29:02'),
+(125, 'messages', '[195,196]', 332, '2020-10-17 10:29:02'),
+(126, 'messages', '[195,196]', 332, '2020-10-17 10:29:02'),
+(127, 'messages', '[195,196]', 332, '2020-10-17 10:29:02'),
+(128, 'messages', '[195,196]', 332, '2020-10-17 10:29:02'),
+(129, 'messages', '[195,196]', 332, '2020-10-17 10:29:02'),
+(130, 'messages', '[195,196]', 332, '2020-10-17 10:29:02'),
+(131, 'messages', '[195,196]', 332, '2020-10-17 10:29:02'),
+(132, 'messages', '[195,196]', 332, '2020-10-17 10:29:02'),
+(133, 'messages', '[195,196]', 332, '2020-10-17 10:29:02'),
+(134, 'messages', '[195,196]', 332, '2020-10-17 10:29:02'),
+(135, 'messages', '[195,196]', 332, '2020-10-17 10:29:02'),
+(136, 'messages', '[195,196]', 332, '2020-10-17 10:29:02'),
+(137, 'messages', '[195,196]', 332, '2020-10-17 10:29:02'),
+(138, 'messages', '[195,196]', 332, '2020-10-17 10:29:02'),
+(139, 'messages', '[195,196]', 332, '2020-10-17 10:29:02'),
+(140, 'messages', '[195,196]', 332, '2020-10-17 10:29:03'),
+(141, 'messages', '[195,196]', 332, '2020-10-17 10:29:04'),
+(142, 'messages', '[195,196]', 332, '2020-10-17 10:29:04'),
+(143, 'messages', '[195,196]', 332, '2020-10-17 10:29:04'),
+(144, 'messages', '[195,196]', 332, '2020-10-17 10:29:04'),
+(145, 'messages', '[195,196]', 332, '2020-10-17 10:29:04'),
+(146, 'messages', '[195,196]', 332, '2020-10-17 10:29:04'),
+(147, 'messages', '[195,196]', 332, '2020-10-17 10:29:04'),
+(148, 'messages', '[195,196]', 332, '2020-10-17 10:29:04'),
+(149, 'messages', '[195,196]', 332, '2020-10-17 10:29:04'),
+(150, 'messages', '[195,196]', 332, '2020-10-17 10:29:04'),
+(151, 'messages', '[195,196]', 332, '2020-10-17 10:29:04'),
+(152, 'messages', '[195,196]', 332, '2020-10-17 10:29:04'),
+(153, 'messages', '[195,196]', 332, '2020-10-17 10:29:04'),
+(154, 'messages', '[195,196]', 332, '2020-10-17 10:29:04'),
+(155, 'messages', '[195,196]', 332, '2020-10-17 10:29:04'),
+(156, 'messages', '[195,196]', 332, '2020-10-17 10:29:05'),
+(157, 'messages', '[195,196]', 332, '2020-10-17 10:29:05'),
+(158, 'messages', '[195,196]', 332, '2020-10-17 10:29:05'),
+(159, 'messages', '[195,196]', 332, '2020-10-17 10:29:05'),
+(160, 'messages', '[195,196]', 332, '2020-10-17 10:29:05'),
+(161, 'messages', '[195,196]', 332, '2020-10-17 10:29:05'),
+(162, 'messages', '[195,196]', 332, '2020-10-17 10:29:05'),
+(163, 'messages', '[195,196]', 332, '2020-10-17 10:29:05'),
+(164, 'messages', '[195,196]', 332, '2020-10-17 10:29:05'),
+(165, 'messages', '[195,196]', 332, '2020-10-17 10:29:05'),
+(166, 'messages', '[195,196]', 332, '2020-10-17 10:29:05'),
+(167, 'messages', '[195,196]', 332, '2020-10-17 10:29:05'),
+(168, 'messages', '[195,196]', 332, '2020-10-17 10:29:05'),
+(169, 'messages', '[195,196]', 332, '2020-10-17 10:29:05'),
+(170, 'messages', '[195,196]', 332, '2020-10-17 10:29:05'),
+(171, 'messages', '[195,196]', 332, '2020-10-17 10:29:05'),
+(172, 'messages', '[195,196]', 332, '2020-10-17 10:29:05'),
+(173, 'messages', '[195,196]', 332, '2020-10-17 10:29:05'),
+(174, 'messages', '[195,196]', 332, '2020-10-17 10:29:05'),
+(175, 'messages', '[195,196]', 332, '2020-10-17 10:29:05'),
+(176, 'messages', '[195,196]', 332, '2020-10-17 10:29:05'),
+(177, 'messages', '[195,196]', 332, '2020-10-17 10:29:05'),
+(178, 'messages', '[195,196]', 332, '2020-10-17 10:29:05'),
+(179, 'messages', '[195,196]', 332, '2020-10-17 10:29:13'),
+(180, 'messages', '[195,196]', 332, '2020-10-17 10:29:13'),
+(181, 'messages', '[195,196]', 332, '2020-10-17 10:29:14'),
+(182, 'messages', '[195,196]', 332, '2020-10-17 10:29:14'),
+(183, 'messages', '[195,196]', 332, '2020-10-17 10:29:14'),
+(184, 'messages', '[195,196]', 332, '2020-10-17 10:29:19'),
+(185, 'messages', '[195,196]', 332, '2020-10-17 10:29:19'),
+(186, 'messages', '[195,196]', 332, '2020-10-17 10:29:19'),
+(187, 'messages', '[195,196]', 332, '2020-10-17 10:29:20'),
+(188, 'messages', '[195,196]', 332, '2020-10-17 10:29:20'),
+(189, 'messages', '[195,196]', 332, '2020-10-17 10:29:22'),
+(190, 'messages', '[195,196]', 332, '2020-10-17 10:29:22'),
+(191, 'messages', '[195,196]', 332, '2020-10-17 10:29:22'),
+(192, 'messages', '[195,196]', 332, '2020-10-17 10:29:22'),
+(193, 'messages', '[195,196]', 332, '2020-10-17 10:29:22'),
+(194, 'messages', '[195,196]', 332, '2020-10-17 10:29:24'),
+(195, 'messages', '[195,196]', 332, '2020-10-17 10:29:25'),
+(196, 'messages', '[195,196]', 332, '2020-10-17 10:29:25'),
+(197, 'messages', '[195,196]', 332, '2020-10-17 10:29:25'),
+(198, 'messages', '[195,196]', 332, '2020-10-17 10:29:25'),
+(199, 'messages', '[195,196]', 332, '2020-10-17 11:23:46'),
+(200, 'messages', '[195,196]', 332, '2020-10-17 11:23:54'),
+(201, 'messages', '[195,196]', 332, '2020-10-17 11:23:54'),
+(202, 'messages', '[195,196]', 332, '2020-10-17 11:23:54'),
+(203, 'messages', '[195,196]', 332, '2020-10-17 11:23:54'),
+(204, 'messages', '[195,196]', 332, '2020-10-17 11:23:54'),
+(205, 'messages', '[195,196]', 332, '2020-10-17 11:24:10'),
+(206, 'messages', '[195,196]', 332, '2020-10-17 11:24:11'),
+(207, 'messages', '[195,196]', 332, '2020-10-17 11:24:12'),
+(208, 'messages', '[195,196]', 332, '2020-10-17 11:24:12'),
+(209, 'messages', '[195,196]', 332, '2020-10-17 11:24:13'),
+(210, 'messages', '[195,196]', 332, '2020-10-17 11:24:41'),
+(211, 'messages', '[195,196]', 332, '2020-10-17 11:24:44'),
+(212, 'messages', '[195,196]', 332, '2020-10-17 11:24:46'),
+(213, 'messages', '[195,196]', 332, '2020-10-17 11:28:00'),
+(214, 'messages', '[195,196]', 332, '2020-10-17 11:28:13'),
+(215, 'messages', '[195,196]', 332, '2020-10-17 11:28:16'),
+(216, 'messages', '[195,196]', 332, '2020-10-17 11:28:18'),
+(217, 'messages', '[195,196]', 332, '2020-10-17 11:29:18'),
+(218, 'messages', '[195,196]', 332, '2020-10-17 11:29:20'),
+(219, 'messages', '[195,196]', 332, '2020-10-17 11:29:21'),
+(220, 'messages', '[195,196]', 332, '2020-10-17 11:29:23'),
+(221, 'messages', '[195,196]', 332, '2020-10-17 11:29:31');
 
 -- --------------------------------------------------------
 
 --
--- Estructura de tabla para la tabla `emails`
+-- Table structure for table `emails`
 --
 
 CREATE TABLE `emails` (
@@ -100,7 +458,7 @@ CREATE TABLE `emails` (
 -- --------------------------------------------------------
 
 --
--- Estructura de tabla para la tabla `files`
+-- Table structure for table `files`
 --
 
 CREATE TABLE `files` (
@@ -117,11 +475,11 @@ CREATE TABLE `files` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 --
--- Volcado de datos para la tabla `files`
+-- Dumping data for table `files`
 --
 
 INSERT INTO `files` (`id`, `filename`, `file_ext`, `filename_as_stored`, `belongs_to`, `guest_access`, `locked`, `broken`, `created_at`, `deleted_at`) VALUES
-(240, '65394374_10158090117128840_7189038881361100800_o.jpg', 'jpg', '90-5f5bb828cb06c3.52751786.jpg', 90, 1, 0, NULL, '2020-09-11 14:47:20', NULL),
+(240, '65394374_10158090117128840_7189038881361100800_o.jpg', 'jpg', '87-5f63d609a595dc2.69295218.jpg', 90, 1, 0, NULL, '2020-09-11 14:47:20', NULL),
 (242, '79528120_1205478162980483_7100254245131124736_n.jpg', 'jpg', '87-5f63d609a595c2.69295215.jpg', 87, 0, 0, NULL, '2020-09-17 18:32:57', NULL),
 (243, '1_dF7xdJ8zEOx4z1jPkr52-Q.png', 'png', '87-5f63d609aad343.97437503.png', 87, 0, 0, NULL, '2020-09-17 18:32:57', NULL),
 (244, '79528120_1205478162980483_7100254245131124736_n.jpg', 'jpg', '87-5f63d635043929.14699523.jpg', 87, 1, 0, NULL, '2020-09-17 18:33:41', NULL),
@@ -135,7 +493,7 @@ INSERT INTO `files` (`id`, `filename`, `file_ext`, `filename_as_stored`, `belong
 -- --------------------------------------------------------
 
 --
--- Estructura de tabla para la tabla `folders`
+-- Table structure for table `folders`
 --
 
 CREATE TABLE `folders` (
@@ -146,7 +504,7 @@ CREATE TABLE `folders` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 --
--- Volcado de datos para la tabla `folders`
+-- Dumping data for table `folders`
 --
 
 INSERT INTO `folders` (`id`, `tb`, `name`, `belongs_to`) VALUES
@@ -164,7 +522,7 @@ INSERT INTO `folders` (`id`, `tb`, `name`, `belongs_to`) VALUES
 -- --------------------------------------------------------
 
 --
--- Estructura de tabla para la tabla `folder_other_permissions`
+-- Table structure for table `folder_other_permissions`
 --
 
 CREATE TABLE `folder_other_permissions` (
@@ -177,19 +535,18 @@ CREATE TABLE `folder_other_permissions` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 --
--- Volcado de datos para la tabla `folder_other_permissions`
+-- Dumping data for table `folder_other_permissions`
 --
 
 INSERT INTO `folder_other_permissions` (`id`, `folder_id`, `belongs_to`, `guest`, `r`, `w`) VALUES
 (1, 4, 90, 1, 1, 0),
-(2, 5, 87, 0, 1, 1),
 (4, 6, 90, 1, 1, 0),
 (5, 9, 4, 1, 1, 0);
 
 -- --------------------------------------------------------
 
 --
--- Estructura de tabla para la tabla `folder_permissions`
+-- Table structure for table `folder_permissions`
 --
 
 CREATE TABLE `folder_permissions` (
@@ -202,19 +559,18 @@ CREATE TABLE `folder_permissions` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 --
--- Volcado de datos para la tabla `folder_permissions`
+-- Dumping data for table `folder_permissions`
 --
 
 INSERT INTO `folder_permissions` (`id`, `folder_id`, `belongs_to`, `access_to`, `r`, `w`) VALUES
 (1, 1, 1, 4, 1, 1),
-(2, 2, 72, 79, 1, 1),
 (3, 4, 90, 87, 1, 1),
 (4, 5, 87, 360, 1, 1);
 
 -- --------------------------------------------------------
 
 --
--- Estructura de tabla para la tabla `foo`
+-- Table structure for table `foo`
 --
 
 CREATE TABLE `foo` (
@@ -225,23 +581,17 @@ CREATE TABLE `foo` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf16 COLLATE=utf16_spanish_ci;
 
 --
--- Volcado de datos para la tabla `foo`
+-- Dumping data for table `foo`
 --
 
 INSERT INTO `foo` (`id`, `bar`, `hide`, `deleted_at`) VALUES
-(2, 'EEE', 0, NULL),
-(5, 'J', 1, NULL),
-(6, 'foooooooo', 0, NULL),
-(7, '200', 0, NULL),
-(2, 'EEE', 0, NULL),
-(5, 'J', 1, NULL),
-(6, 'foooooooo', 0, NULL),
-(7, '200', 0, NULL);
+(1, 'regfe  gggggg ffgg', 0, NULL),
+(2, 'xxxy', 1, NULL);
 
 -- --------------------------------------------------------
 
 --
--- Estructura de tabla para la tabla `messages`
+-- Table structure for table `messages`
 --
 
 CREATE TABLE `messages` (
@@ -257,7 +607,7 @@ CREATE TABLE `messages` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 --
--- Volcado de datos para la tabla `messages`
+-- Dumping data for table `messages`
 --
 
 INSERT INTO `messages` (`id`, `from_email`, `from_name`, `to_email`, `to_name`, `subject`, `body`, `created_at`, `sent_at`) VALUES
@@ -271,35 +621,7 @@ INSERT INTO `messages` (`id`, `from_email`, `from_name`, `to_email`, `to_name`, 
 -- --------------------------------------------------------
 
 --
--- Estructura de tabla para la tabla `permissions`
---
-
-CREATE TABLE `permissions` (
-  `id` int(11) NOT NULL,
-  `tb` varchar(80) COLLATE utf16_spanish_ci NOT NULL,
-  `can_create` tinyint(4) NOT NULL DEFAULT 0,
-  `can_show` tinyint(4) NOT NULL DEFAULT 0,
-  `can_update` tinyint(4) NOT NULL DEFAULT 0,
-  `can_delete` tinyint(4) NOT NULL DEFAULT 0,
-  `can_list` tinyint(4) NOT NULL DEFAULT 0,
-  `user_id` int(11) NOT NULL,
-  `created_at` datetime NOT NULL,
-  `updated_at` datetime DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf16 COLLATE=utf16_spanish_ci;
-
---
--- Volcado de datos para la tabla `permissions`
---
-
-INSERT INTO `permissions` (`id`, `tb`, `can_create`, `can_show`, `can_update`, `can_delete`, `can_list`, `user_id`, `created_at`, `updated_at`) VALUES
-(2, 'products', 0, 1, 1, 1, 0, 168, '0000-00-00 00:00:00', NULL),
-(3, 'foo', 0, 1, 0, 1, 1, 90, '2020-01-14 00:00:00', NULL),
-(37, 'foo', 0, 1, 1, 1, 0, 168, '2020-01-14 23:09:37', '2020-01-15 06:30:55');
-
--- --------------------------------------------------------
-
---
--- Estructura de tabla para la tabla `products`
+-- Table structure for table `products`
 --
 
 CREATE TABLE `products` (
@@ -321,12 +643,12 @@ CREATE TABLE `products` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 --
--- Volcado de datos para la tabla `products`
+-- Dumping data for table `products`
 --
 
 INSERT INTO `products` (`id`, `name`, `description`, `size`, `cost`, `created_at`, `created_by`, `updated_at`, `updated_by`, `deleted_at`, `deleted_by`, `active`, `locked`, `workspace`, `belongs_to`) VALUES
 (100, 'Vodka', NULL, '2 1/4 L', 200, '2019-07-04 00:00:00', NULL, '2019-11-24 22:46:44', NULL, '2019-11-25 02:46:44', NULL, 1, 1, '', 90),
-(103, 'Juguito ric0', 'Delicious juic333333', '1 Litros', 150, '2019-09-13 00:00:00', NULL, '2019-11-24 22:46:46', NULL, '2019-11-25 02:46:46', NULL, 1, 1, NULL, 90),
+(103, 'Juguito ric0', 'Delicious juic333333', '1 Litros', 105, '2019-09-13 00:00:00', NULL, '2020-10-16 13:50:51', 90, '2019-11-25 02:46:46', NULL, 1, 1, NULL, 90),
 (105, 'Agua mineral', 'De Córdoba', '1L', 525, '2019-03-15 00:00:00', NULL, '2019-11-24 22:46:48', NULL, '2019-11-25 02:46:48', NULL, 1, 1, 'lista publica', 90),
 (106, 'Vodka', 'Rusiaaaaaa', '1L', 400, '2019-02-16 00:00:00', NULL, '2019-11-24 22:46:50', NULL, '2019-11-25 02:46:50', NULL, 1, 1, NULL, 4),
 (113, 'Vodka', 'URU', '1L', 550, '2019-03-31 00:00:00', NULL, '2019-11-24 22:46:52', NULL, '2019-11-25 02:46:52', NULL, 1, 1, NULL, 86),
@@ -341,16 +663,15 @@ INSERT INTO `products` (`id`, `name`, `description`, `size`, `cost`, `created_at
 (131, 'Vodka', 'de Estados Unidos!', '1L', 499, '2019-06-04 00:00:00', NULL, '2020-01-03 21:18:16', 90, NULL, NULL, 1, 0, 'secreto', 4),
 (132, 'Ron venezolano', 'Rico rico', '1L', 100, '2019-10-03 00:00:00', NULL, '2019-12-22 10:11:31', NULL, '2019-12-22 14:11:31', NULL, 1, 0, NULL, 90),
 (133, 'Vodka venezolano', 'de Vzla', '1.15L', 100, '2019-09-19 00:00:00', NULL, '2020-01-03 21:18:00', 90, NULL, NULL, 1, 0, NULL, 90),
-(137, 'Agua ardiente', 'Si que arde!', '1L', 125, '2019-07-16 00:00:00', NULL, '2019-12-22 14:38:12', NULL, NULL, NULL, 1, 0, 'lista', 90),
+(137, 'Agua ardiente', 'Si que arde!', '1.1L', 125, '2019-07-16 00:00:00', NULL, '2020-10-11 19:40:08', 90, NULL, NULL, 1, 0, 'lista', 90),
 (143, 'Agua ', '--', '1L', 100, '2019-06-03 00:00:00', NULL, '2019-11-27 16:51:42', NULL, '2019-11-27 20:51:42', NULL, 1, 0, NULL, 90),
 (145, 'Juguito XII', 'de manzanas exprimidas', '1L', 350, '2019-02-09 00:00:00', NULL, '2020-01-16 21:27:43', 168, NULL, NULL, 1, 0, 'lista24', 168),
-(146, 'Wisky', '', '2L', 230, '2019-08-31 00:00:00', NULL, '2019-11-27 16:57:21', NULL, NULL, NULL, 1, 0, 'lista24', 90),
+(146, 'Wisky', '', '2L', 230, '2019-08-31 00:00:00', NULL, '2019-11-27 16:57:21', NULL, '2020-09-30 19:27:29', NULL, 1, 0, 'lista24', 90),
 (147, 'Aqua fresh', 'Rico', '1L', 105, '2019-03-20 00:00:00', NULL, '2019-11-30 19:21:07', NULL, NULL, NULL, 1, 0, 'otralista', 72),
-(148, 'Alcohol etílico', '', '1L', 100, '2019-04-21 00:00:00', NULL, '2019-11-03 21:37:48', NULL, NULL, NULL, 1, 0, 'comparto', 90),
+(148, 'Alcohol etílico', '', '1L', 100, '2019-04-21 00:00:00', NULL, '2019-11-03 21:37:48', NULL, '2020-09-30 19:27:29', NULL, 1, 0, 'comparto', 90),
 (151, 'Juguito XIII', 'Rico', '1L', 355, '2019-10-03 00:00:00', NULL, '2019-10-15 17:00:58', NULL, NULL, NULL, 1, 0, 'lista24', 90),
 (155, 'Super-jugo', 'BBB', '12', 100, '2019-09-22 00:00:00', NULL, '2020-01-17 11:15:24', NULL, NULL, NULL, 1, 1, NULL, 5),
-(159, 'Agua minerale', 'x_x', '2L', 1150, '2019-10-14 18:08:45', NULL, '2020-09-09 19:09:55', 4, '2020-09-09 19:11:08', 4, 1, 0, NULL, 90),
-(160, 'Limonada', 'Rica', '500ML', 210, '2019-10-23 14:05:30', NULL, '2019-12-22 11:58:48', NULL, '2019-12-12 00:00:00', NULL, 1, 0, NULL, 90),
+(160, 'Limonada', 'Rica', '500ML', 3001, '2019-10-23 14:05:30', NULL, '2020-10-16 13:58:58', 90, '2020-10-16 14:02:28', NULL, 1, 1, NULL, 90),
 (162, 'Juguito de Mabelita', 'de manzanas exprimidas', '2L', 250, '2019-10-25 08:36:26', NULL, '2019-11-12 12:49:52', NULL, '2020-09-22 15:50:49', 9, 1, 0, NULL, 113),
 (163, 'ABC', 'XYZ', '6L', 600, '2019-10-26 10:05:00', NULL, '2019-11-07 00:29:25', NULL, NULL, NULL, 1, 1, NULL, 1),
 (164, 'Vodka', 'de Holanda', '33L', 333, '2019-10-26 19:48:26', NULL, '2019-10-29 18:33:57', NULL, NULL, NULL, 1, 0, NULL, 112),
@@ -419,39 +740,73 @@ INSERT INTO `products` (`id`, `name`, `description`, `size`, `cost`, `created_at
 (276, 'some product', NULL, '', 700, '2020-09-18 11:20:39', 360, NULL, NULL, NULL, NULL, 1, 0, NULL, 360),
 (277, 'other product', NULL, '', 750, '2020-09-18 11:20:50', 360, NULL, NULL, NULL, NULL, 1, 0, NULL, 360),
 (278, 'expensive product', NULL, '', 1000, '2020-09-18 11:21:27', 360, NULL, NULL, NULL, NULL, 1, 0, NULL, 360),
-(279, 'ssss', NULL, '', 110, '2020-09-19 19:44:15', 48, NULL, NULL, NULL, NULL, 1, 0, NULL, 48),
+(279, 'ssss', NULL, '4.1L', 110, '2020-09-19 19:44:15', 48, '2020-09-30 01:00:44', 48, NULL, NULL, 1, 0, NULL, 48),
 (280, 'uuu', NULL, '', 770, '2020-09-19 19:44:28', 48, NULL, NULL, '2020-09-25 20:20:07', 9, 1, 0, NULL, 48),
 (281, 'Uvas cool', 'Frescas', '', 500, '2020-09-25 20:11:50', 9, NULL, NULL, NULL, NULL, 1, 0, NULL, 9),
 (300, 'Uvas coolllll', 'Frescasssss', '', 600, '2020-09-25 20:12:51', 400, NULL, NULL, NULL, NULL, 1, 0, NULL, 400),
-(301, 'Pepinitos', 'Frescosssss', 'indef.', 70, '2020-09-25 22:17:25', 48, '2020-09-25 23:47:25', 9, NULL, NULL, 1, 0, NULL, 48),
+(301, 'Pepinitos', 'Frescosssss', 'indef.', 50, '2020-09-25 22:17:25', 48, '2020-09-30 22:31:54', 168, '2020-09-30 22:59:51', NULL, 1, 0, NULL, 48),
 (302, 'Pepinitos super', 'Super Frescosssss', 'INDEF', 78, '2020-09-25 22:17:38', 48, '2020-09-26 02:00:18', 9, NULL, 9, 1, 0, NULL, 48),
 (303, 'Pepinitos Ultra', 'Ultra Frescosssss', '', 108, '2020-09-25 22:17:56', 48, NULL, NULL, '2020-09-26 11:12:17', 9, 1, 0, NULL, 48),
-(304, 'Pepinitos Ultra 222', 'Ultra Frescosssss', '', 108, '2020-09-26 11:55:30', 48, NULL, NULL, NULL, NULL, 1, 0, NULL, 48),
+(304, 'Pepinitos Ultra 222', 'Ultra Frescosssss', '', 50, '2020-09-26 11:55:30', 48, '2020-09-30 22:31:54', 168, '2020-09-30 22:59:51', NULL, 1, 0, NULL, 48),
 (666, 'Pepinitos Ultra 222', 'Ultra Frescosssss', '', 108, '2020-09-26 11:56:12', 400, NULL, NULL, NULL, NULL, 1, 0, NULL, 400),
 (669, 'auawkgyrysbpgoushcjn', 'Esto es una prueba', '1L', 66, NULL, NULL, NULL, NULL, NULL, NULL, 1, 0, NULL, 90),
 (670, 'pwrbvbkskvmanpdxskvq', 'Esto es una prueba', '1L', 66, NULL, NULL, NULL, NULL, NULL, NULL, 1, 0, NULL, 90),
 (671, 'quiefkvfitegpiaamsea', 'Esto es una prueba', '1L', 66, NULL, NULL, NULL, NULL, NULL, NULL, 1, 0, NULL, 90),
 (672, 'gkydabrgmjftbwkkwwsl', 'Esto es una prueba', '1L', 66, NULL, NULL, NULL, NULL, NULL, NULL, 1, 0, NULL, 90),
 (673, 'vdcorgzjkpunvxicthcz', 'Esto es una prueba', '1L', 66, NULL, NULL, NULL, NULL, NULL, NULL, 1, 0, NULL, 90),
-(5000, 'xxxy', NULL, '', 105, NULL, NULL, NULL, NULL, NULL, NULL, 1, 0, NULL, 0),
-(5008, 'xxxy', NULL, '', 105, NULL, NULL, NULL, NULL, NULL, NULL, 1, 0, NULL, 0),
-(5009, 'xxxyiiii', NULL, '', 105, NULL, NULL, NULL, NULL, NULL, NULL, 1, 0, NULL, 0),
-(5010, 'xxxyiiii', NULL, '', 105, NULL, NULL, NULL, NULL, NULL, NULL, 1, 0, NULL, 0),
-(5011, 'xxxyiiii', NULL, '', 105, NULL, NULL, NULL, NULL, NULL, NULL, 1, 0, NULL, 0),
-(5012, 'xxxyiiii', NULL, '', 105, NULL, NULL, NULL, NULL, NULL, NULL, 1, 0, NULL, 0),
-(5014, 'xxxyiiii', NULL, '', 105, NULL, NULL, NULL, NULL, NULL, NULL, 1, 0, NULL, NULL),
-(5015, 'xxxyiiii', NULL, '', 105, NULL, NULL, NULL, NULL, NULL, NULL, 1, 0, NULL, NULL),
-(5016, 'JJJ', NULL, '', 199, '2020-09-28 12:54:52', 453, NULL, NULL, NULL, NULL, 1, 0, NULL, NULL),
 (5017, 'hbpzgwqoruriynwdponu', 'Esto es una prueba 77', '100L', 66, '2020-09-28 13:58:13', NULL, NULL, NULL, NULL, NULL, 1, 0, NULL, 90),
 (5018, 'ukyzokrgwjbipnisgdmt', 'Esto es una prueba 77', '100L', 66, '2020-09-28 13:59:55', NULL, NULL, NULL, NULL, NULL, 1, 0, NULL, 90),
-(5019, 'JJJ', NULL, '', 199, '2020-09-28 14:03:40', 453, NULL, NULL, NULL, NULL, 1, 0, NULL, NULL),
-(5020, 'JJJ', NULL, '', 199, '2020-09-28 14:04:41', 453, NULL, NULL, NULL, NULL, 1, 0, NULL, NULL),
-(5032, 'JJJ', NULL, '', 199, '2020-09-28 14:25:48', 455, NULL, NULL, NULL, NULL, 1, 0, NULL, 455);
+(5032, 'JJJ', NULL, '', 50, '2020-09-28 14:25:48', 455, '2020-09-30 22:31:54', 168, NULL, NULL, 1, 0, NULL, 455),
+(5033, 'xxxy', 'Espectaculare', '5L', 52, '2020-09-29 21:57:18', 90, '2020-09-30 19:36:20', 90, '2020-09-30 21:52:50', NULL, 1, 0, NULL, 90),
+(5034, 'xxxy', 'Espectaculare', '5L', 52, '2020-09-29 21:57:53', 90, '2020-09-30 19:36:20', 90, '2020-09-30 21:52:50', NULL, 1, 0, NULL, 90),
+(5035, 'Uvas ricas', 'Espectaculare', '5L', 52, '2020-09-29 21:58:29', 90, NULL, NULL, NULL, NULL, 1, 0, NULL, 1),
+(5039, 'manzanin', 'rico rico', '0.5L', 80, '2020-09-30 00:34:12', 48, NULL, NULL, NULL, NULL, 1, 0, NULL, 48),
+(5040, 'manzanin', 'rico rico', '0.5L', 80, '2020-09-30 00:34:42', 48, NULL, NULL, NULL, NULL, 1, 0, NULL, 48),
+(5041, 'manzanin', 'rico rico', '0.5L', 80, '2020-09-30 00:52:22', NULL, NULL, NULL, '2020-09-30 00:53:42', 1, 1, 1, NULL, 1),
+(5042, 'pepinos', NULL, '', 600, '2020-10-01 11:51:38', 16, NULL, NULL, NULL, NULL, 1, 0, NULL, 16),
+(5043, 'pepinos 2', NULL, '', 650, '2020-10-01 11:51:49', 16, NULL, NULL, NULL, NULL, 1, 0, NULL, 16),
+(5044, 'pepinos nivel Dios', NULL, '', 800, '2020-10-01 11:51:58', 16, NULL, NULL, NULL, NULL, 1, 0, NULL, 16),
+(5045, 'pepinos nivel Dios', NULL, '', 800, '2020-10-05 18:40:24', 16, NULL, NULL, NULL, NULL, 1, 0, NULL, 16),
+(5046, 'pepinos nivel Dios', NULL, '', 800, '2020-10-05 18:47:41', 16, NULL, NULL, NULL, NULL, 1, 0, NULL, 16),
+(5047, 'pepinos nivel Dios', NULL, '', 800, '2020-10-05 18:47:45', 16, NULL, NULL, NULL, NULL, 1, 0, NULL, 16),
+(5048, 'pepinos nivel Dios', NULL, '', 800, '2020-10-05 18:47:48', 16, NULL, NULL, NULL, NULL, 1, 0, NULL, 16),
+(5049, 'pepinos nivel Dios', NULL, '', 800, '2020-10-05 18:47:49', 16, NULL, NULL, NULL, NULL, 1, 0, NULL, 16),
+(5050, 'pepinos nivel Dios', NULL, '', 800, '2020-10-05 18:48:01', 16, NULL, NULL, NULL, NULL, 1, 0, NULL, 16),
+(5051, 'pepinos nivel Dios', NULL, '', 800, '2020-10-05 18:48:32', 16, NULL, NULL, NULL, NULL, 1, 0, NULL, 16),
+(5052, 'pepinos nivel Dios', NULL, '', 800, '2020-10-05 18:48:33', 16, NULL, NULL, NULL, NULL, 1, 0, NULL, 16),
+(5053, 'pepinos nivel Dios', NULL, '', 800, '2020-10-05 18:48:34', 16, NULL, NULL, NULL, NULL, 1, 0, NULL, 16),
+(5054, 'pepinos nivel Dios', NULL, '', 800, '2020-10-05 18:48:48', 16, NULL, NULL, NULL, NULL, 1, 0, NULL, 16),
+(5055, 'pepinos nivel Dios', NULL, '', 800, '2020-10-05 18:48:52', 16, NULL, NULL, NULL, NULL, 1, 0, NULL, 16),
+(5056, 'pepinos nivel !!', NULL, '', 8004, '2020-10-05 18:49:00', 16, NULL, NULL, NULL, NULL, 1, 0, NULL, 16),
+(5057, 'pepinos nivel !!', NULL, '', 8004, '2020-10-05 22:11:18', 16, NULL, NULL, NULL, NULL, 1, 0, NULL, 16),
+(5058, 'pepinos nivel !!', NULL, '', 8004, '2020-10-05 22:44:48', 16, NULL, NULL, NULL, NULL, 1, 0, NULL, 16),
+(5059, 'pepinos nivel Dios', NULL, '10 cm', 800, '2020-10-10 23:16:23', 16, NULL, NULL, NULL, NULL, 1, 0, NULL, 16),
+(5060, 'Uvas ricas', 'Espectaculare', '5L', 1, '2020-10-12 02:09:20', 168, NULL, NULL, NULL, NULL, 1, 0, NULL, 168);
 
 -- --------------------------------------------------------
 
 --
--- Estructura de tabla para la tabla `roles`
+-- Table structure for table `product_categories`
+--
+
+CREATE TABLE `product_categories` (
+  `id` int(11) NOT NULL,
+  `name` varchar(80) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- Dumping data for table `product_categories`
+--
+
+INSERT INTO `product_categories` (`id`, `name`) VALUES
+(1, 'bebidas'),
+(2, 'frutas'),
+(3, 'miscelaneos');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `roles`
 --
 
 CREATE TABLE `roles` (
@@ -460,7 +815,7 @@ CREATE TABLE `roles` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 --
--- Volcado de datos para la tabla `roles`
+-- Dumping data for table `roles`
 --
 
 INSERT INTO `roles` (`id`, `name`) VALUES
@@ -475,7 +830,7 @@ INSERT INTO `roles` (`id`, `name`) VALUES
 -- --------------------------------------------------------
 
 --
--- Estructura de tabla para la tabla `sp_permissions`
+-- Table structure for table `sp_permissions`
 --
 
 CREATE TABLE `sp_permissions` (
@@ -484,7 +839,7 @@ CREATE TABLE `sp_permissions` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 --
--- Volcado de datos para la tabla `sp_permissions`
+-- Dumping data for table `sp_permissions`
 --
 
 INSERT INTO `sp_permissions` (`id`, `name`) VALUES
@@ -497,37 +852,45 @@ INSERT INTO `sp_permissions` (`id`, `name`) VALUES
 (5, 'read_all_trashcan'),
 (8, 'transfer'),
 (2, 'write_all'),
+(12, 'write_all_collections'),
 (4, 'write_all_folders'),
 (6, 'write_all_trashcan');
 
 -- --------------------------------------------------------
 
 --
--- Estructura de tabla para la tabla `super_cool_table`
+-- Table structure for table `super_cool_table`
 --
 
 CREATE TABLE `super_cool_table` (
   `id` int(11) NOT NULL,
   `name` varchar(45) NOT NULL,
+  `age` int(11) NOT NULL,
   `active` tinyint(4) NOT NULL,
   `belongs_to` int(11) NOT NULL,
-  `deleted_at` datetime NOT NULL,
+  `deleted_at` datetime DEFAULT NULL,
   `locked` tinyint(4) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 --
--- Volcado de datos para la tabla `super_cool_table`
+-- Dumping data for table `super_cool_table`
 --
 
-INSERT INTO `super_cool_table` (`id`, `name`, `active`, `belongs_to`, `deleted_at`, `locked`) VALUES
-(500, 'Etereo', 1, 90, '0000-00-00 00:00:00', 0),
-(503, 'Etereo oculto', 0, 90, '0000-00-00 00:00:00', 0),
-(504, 'Etereo oculto II', 0, 90, '0000-00-00 00:00:00', 0);
+INSERT INTO `super_cool_table` (`id`, `name`, `age`, `active`, `belongs_to`, `deleted_at`, `locked`) VALUES
+(500, 'Etereo', 0, 1, 90, NULL, 0),
+(504, 'Etereo oculto II', 0, 0, 90, NULL, 0),
+(505, 'Jota jota', 0, 1, 90, NULL, 0),
+(506, 'Jota jota', 0, 1, 90, NULL, 0),
+(777, 'SUPER', 22, 0, 0, NULL, 0),
+(778, 'SUPER', 22, 0, 0, NULL, 0),
+(779, 'SUPER', 22, 0, 0, NULL, 0),
+(780, 'SUPER', 22, 0, 0, NULL, 0),
+(781, 'SUPER', 22, 0, 0, NULL, 0);
 
 -- --------------------------------------------------------
 
 --
--- Estructura de tabla para la tabla `users`
+-- Table structure for table `users`
 --
 
 CREATE TABLE `users` (
@@ -536,7 +899,7 @@ CREATE TABLE `users` (
   `active` tinyint(4) DEFAULT NULL,
   `locked` tinyint(4) NOT NULL DEFAULT 0,
   `email` varchar(60) NOT NULL,
-  `confirmed_email` tinyint(4) NOT NULL DEFAULT 0,
+  `confirmed_email` tinyint(4) DEFAULT 0,
   `firstname` varchar(50) DEFAULT NULL,
   `lastname` varchar(80) DEFAULT NULL,
   `password` varchar(60) DEFAULT NULL,
@@ -545,11 +908,11 @@ CREATE TABLE `users` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 --
--- Volcado de datos para la tabla `users`
+-- Dumping data for table `users`
 --
 
 INSERT INTO `users` (`id`, `username`, `active`, `locked`, `email`, `confirmed_email`, `firstname`, `lastname`, `password`, `deleted_at`, `belongs_to`) VALUES
-(1, 'sss1', 1, 0, 'boctu.l.us@gmail.com', 0, 'P', 'bzz578000', '$2y$10$/ehgjdS8p8IbRKMW4AVVOuX38p8yMIZinciIWsj79rDUfRfKH6/56', NULL, 1),
+(1, 'super', 1, 0, 'boctu.l.us@gmail.com', 0, 'P', 'bzz578000', '$2y$10$/ehgjdS8p8IbRKMW4AVVOuX38p8yMIZinciIWsj79rDUfRfKH6/56', NULL, 1),
 (4, 'pbozzolo', 1, 0, 'pbozzolo@gmail.com', 1, 'Paulinoxxxy', 'Bozzoxxxy', '$2y$10$jAKcStnGqtcOslt1Std7ceYqq3mMIh6Lis/Ug4Z6IDQV65tyyP2Xe', NULL, 4),
 (5, 'pepe', 1, 0, 'pepe@gmail.com', 1, 'Pepe', 'Gonzalez', '$2y$10$J.KPjyFukfxcKg83TvQGaeCTrLN9XyYXTgtTDZdZ91DJTdE73VIDK', NULL, 5),
 (9, 'dios', 0, 0, 'dios@gmail.com', 1, 'Paulino', 'Bozzo', '$2y$10$/ehgjdS8p8IbRKMW4AVVOuX38p8yMIZinciIWsj79rDUfRfKH6/56', NULL, 9),
@@ -607,7 +970,7 @@ INSERT INTO `users` (`id`, `username`, `active`, `locked`, `email`, `confirmed_e
 (87, 'pedro', 1, 0, 'pedro@gmail.com', 1, 'Pedro', 'Picapiedras', '$2y$10$/ehgjdS8p8IbRKMW4AVVOuX38p8yMIZinciIWsj79rDUfRfKH6/56', NULL, 87),
 (88, 'feli8', 1, 0, 'feli@abc', 1, 'Felipe', 'Bozzzolo', '$2y$10$/ehgjdS8p8IbRKMW4AVVOuX38p8yMIZinciIWsj79rDUfRfKH6/56', NULL, 88),
 (89, 'h', 1, 0, 'h@', 1, 'Sr H', 'J', '$2y$10$/ehgjdS8p8IbRKMW4AVVOuX38p8yMIZinciIWsj79rDUfRfKH6/56', NULL, 89),
-(90, 'nano', 1, 0, 'nano@gmail.com', 0, 'NA', 'Bzz', '$2y$10$QrlBRrdiLlkdq4SP7wz2OuhoFPz3klM4vAA3iHb450EocwMsMJPIS', NULL, 90),
+(90, 'nano', 1, 0, 'nano@gmail.com', 0, 'Paulo', 'Bzz', '$2y$10$QrlBRrdiLlkdq4SP7wz2OuhoFPz3klM4vAA3iHb450EocwMsMJPIS', NULL, 90),
 (102, 'feli61', 1, 0, 'feli@delacasita', 1, 'Sr K', 'NS/NC', '$2y$10$/ehgjdS8p8IbRKMW4AVVOuX38p8yMIZinciIWsj79rDUfRfKH6/56', NULL, 102),
 (103, 'feli1', 1, 0, 'feli@delacasita2', 1, 'Sr K', 'NS/NC', '$2y$10$/ehgjdS8p8IbRKMW4AVVOuX38p8yMIZinciIWsj79rDUfRfKH6/56', NULL, 103),
 (104, 'feli7', 1, 0, 'feli@delacasita5', 1, 'Sr K', 'NS/NC', '$2y$10$/ehgjdS8p8IbRKMW4AVVOuX38p8yMIZinciIWsj79rDUfRfKH6/56', NULL, 104),
@@ -666,7 +1029,7 @@ INSERT INTO `users` (`id`, `username`, `active`, `locked`, `email`, `confirmed_e
 (165, 'asdfgh23', 1, 0, 'asdfgh23', 0, NULL, NULL, '$2y$10$3ehTASOEPlBjoNYdrZE.WeoKNoV35.DvjpDW1S7IkihN3ByKlCRse', NULL, 165),
 (166, 'asdfgh234', 1, 0, 'asdfgh234', 0, NULL, NULL, '$2y$10$AgMfAavv9tAZjJNPZWAceeEq6gBnBgbKiQRrnqtBIioMk8zMvZrKi', NULL, 166),
 (167, 'pepem', 1, 0, 'pepe@', 1, NULL, NULL, '$2y$10$E7MLf1GxIdRnT4uwOYr03e6mrs3BXd1SApL6EzvzqTs4EkyzttjKm', NULL, 167),
-(168, 'boctulus', 1, 0, 'boctulus@gmail.com', 0, 'Pablo', 'Bozzolo', '$2y$10$1rc9a0hupbN3ksd4P67YMeXAQBIOyeVHOCYWAJBNC7zW.5ZyL23c6', NULL, 168),
+(168, 'boctulus', 1, 0, 'boctulus@gmail.com', 0, 'Pablo', 'Bozzolo', '$2y$10$hCFiLuBsGdmjFCjcqjt/5O8yz5JYy7xUYSGABRcq4B98Olt5cJ/P.', NULL, 168),
 (170, 'uva@g.c', 1, 0, 'uva@g.c', 0, NULL, NULL, '$2y$10$tqA8gO2X8m8aNJoWkqjlJObThy4ZkzTxrV0V0srP7o8QWm/VFsQyO', NULL, 170),
 (196, 'doe1979', 1, 0, 'testing_create@g.com', 0, 'Jhon', 'Doe', 'pass', NULL, NULL),
 (200, 'doe1980', 1, 0, 'testing1@g.com', 0, 'Jhon', 'Doe', 'pass', NULL, NULL),
@@ -690,7 +1053,6 @@ INSERT INTO `users` (`id`, `username`, `active`, `locked`, `email`, `confirmed_e
 (327, 'xxx', 0, 0, 'xxx@g.c', 1, 'yyy', 'ZZ', '$2y$10$k/GsKcFuucJ/MvfBTtUBS.oBY7450u.o0M0gEDGI.Aduz9RctrddW', NULL, 90),
 (328, 'juanjo', 0, 0, 'jjjjj@g.c', 0, NULL, NULL, '$2y$10$kOyfUThkzFnWzsU1Ts6EguIUANb9ObJ.lQaflYZCNgsj10Ey90AcS', NULL, 328),
 (329, 'jj', 0, 0, 'jj@g.c', 0, NULL, NULL, '$2y$10$UoNz79u8eEQ.n4j4DM0Q5.Xu2nKSqvDQKvJlqInLmffBB4RLCwcAK', NULL, 329),
-(330, 'doe2000', 0, 0, 'doe2000@g.com', 0, 'Jhon', 'Doe', '$2y$10$dT6FI/8uxJ1KqAlGWuVE5umF6/cVyWGhCi6SpefKI9wqKaYoIXM/i', NULL, NULL),
 (331, 'fulano', 1, 0, 'fulano@mail.com', 1, NULL, NULL, '$2y$10$7VlzOhXrUhobcoz/Lc20F.KctzVm13TWOU1CeJJ9opZSj.8QYzU32', NULL, 331),
 (332, 'santo', 0, 0, 'sano@gmail.com', 0, NULL, NULL, '$2y$10$Ok8Q56FySFTFvPNn/3hUIeLtPaA3nQSJGBojUziTtJqNJoeLtpnaG', NULL, 332),
 (333, 'santo2', 0, 0, 'sano2@gmail.com', 1, NULL, NULL, '$2y$10$PRIcsm/.i4r/o8w2eEeNT.H6psqMKDrB5qFlwY.43sC32PzNrgayC', NULL, 333),
@@ -716,8 +1078,7 @@ INSERT INTO `users` (`id`, `username`, `active`, `locked`, `email`, `confirmed_e
 (356, 'rr500', NULL, 0, 'rr500@mail.com', 1, NULL, NULL, '$2y$10$NE/mGDJ22K3MwghbGcqqveh.K.5l1YvrwOhntCJG2Mq1TA9rsKF36', NULL, 356),
 (357, 'rr5000', NULL, 0, 'rr5000@mail.com', 1, NULL, NULL, '$2y$10$0yoHyh9CshfcX6FT2F6zGuZzzZfJdKtvNJqG/uByNau7xFMwzGsbq', NULL, 357),
 (360, 'rr5001', 1, 0, 'rr5001@mail.com', 1, NULL, NULL, '$2y$10$cGezyeUuRKB3BQYNzm/2A.COwInJKgM5Tb1QszWPwrw2z127o7Pom', NULL, 360),
-(361, 'super', 1, 0, 'super@gmail.com', 1, 'Kah', 'El', '$2y$10$gKCArzCICX5fPa9/xJDYvufbpguJh5QRnUdC2jmqTpOZtpb7uhnB6', NULL, 9),
-(400, 'master', 1, 0, 'master@gmail.com', 1, 'Peter', 'Parqueadero', '$2y$10$vcuEqmFdcAlGm35JNLaUCe7saJMwl5mVAK82PLvMHGC.qDpoGE78i', NULL, 9),
+(400, 'master', 0, 0, 'master@gmail.com', 1, 'Peter', 'Parquer', '$2y$10$vcuEqmFdcAlGm35JNLaUCe7saJMwl5mVAK82PLvMHGC.qDpoGE78i', NULL, 9),
 (403, 'maso9', NULL, 0, 'maso9@gmail.com', 0, NULL, NULL, '$2y$10$y58qXewSVi.3oc6YGwK2Tu2wnhPOBditu0QnPUm.PYk4XXeqvRhBK', NULL, 403),
 (404, 'maso99', NULL, 0, 'maso99@gmail.com', 0, NULL, NULL, '$2y$10$enRfSTawRi01bHbRACdG5.z6NU8FZNZzDNgvOnP0N6iqOBkHn46Ca', NULL, 404),
 (406, 'maso999', NULL, 0, 'maso999@gmail.com', 0, NULL, NULL, '$2y$10$gOE9emZlsaU/uKU5VPBufOXNbpZsLxNl1vwxNhSq/fPGlVjkWhL/2', NULL, 406),
@@ -750,12 +1111,17 @@ INSERT INTO `users` (`id`, `username`, `active`, `locked`, `email`, `confirmed_e
 (450, 'tutt7712', NULL, 0, 'rruttuu979712@gmail.com', 0, NULL, NULL, '$2y$10$nt6SqgvuS3OveoQ5kB6o.Ohm7btBtatZvkYg1HrBDC4hE2RPJasXe', NULL, 450),
 (451, 'tt7712', NULL, 0, 'rrut979712@gmail.com', 0, NULL, NULL, '$2y$10$V9YHsQ0dF0uzKcY7a83oa.nKHH56XLlQzkY.q7MoqFoC0LtylCYAa', NULL, 451),
 (454, 'vik', NULL, 0, 'vicktor1989@gmail.com', 0, NULL, NULL, '$2y$10$v7Y0wA2DEcMbrgf8oVYCx.Nyqi4FqYpMWXaa6H9GZShK59CY6p1Ne', NULL, 454),
-(455, 'vik4', NULL, 0, 'vicktor1991@gmail.com', 1, 'Perez', NULL, '$2y$10$GkbbmHVPtnzKcOeQJb1JReYR36FLf2LXd3cTqMaH2Yzq5nzxMElmC', NULL, 455);
+(455, 'vik4', NULL, 0, 'vicktor1991@gmail.com', 1, 'Perez', NULL, '$2y$10$GkbbmHVPtnzKcOeQJb1JReYR36FLf2LXd3cTqMaH2Yzq5nzxMElmC', NULL, 455),
+(456, 'superman', 1, 0, 'superman@gmail.com', 1, NULL, NULL, '$2y$10$q7A9e0w7BRboYpF97O7MQuVRJuXx75cZMtAfeFIo0WyJPMmFA7Swa', NULL, NULL),
+(457, 'superman2', NULL, 0, 'superman2@gmail.com', 0, NULL, NULL, '$2y$10$GfTTAg1rnEIm6uiE1ZmXNer12jHRxL7EMeJz8pjOuMR6r6L146FqW', NULL, NULL),
+(458, 'superman_dios', NULL, 0, 'superman_dios@gmail.com', 0, NULL, NULL, '$2y$10$a8kZcrtMUQ6PD/lNj8mhOecXwGEQNYeaChQ3EjaRaMt8zw6ZRzm2G', NULL, NULL),
+(471, 'doe2000', NULL, 0, 'doe2000@g.com', 0, 'Jhon', 'Doe', '$2y$10$9BVrMiTniozIulZFpaIg9O.VMN/3Xn3ObwEJVUBo6V.w9/dp4rvBW', NULL, NULL),
+(472, 'vik45', NULL, 0, 'vik45@gmail.com', 1, NULL, NULL, '$2y$10$mxtt3myQ5hsHYYDi/HfxW.78pe86W18tW.p3QFEXxPOVaZ6OzTv0C', NULL, 472);
 
 -- --------------------------------------------------------
 
 --
--- Estructura de tabla para la tabla `user_roles`
+-- Table structure for table `user_roles`
 --
 
 CREATE TABLE `user_roles` (
@@ -767,11 +1133,11 @@ CREATE TABLE `user_roles` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 --
--- Volcado de datos para la tabla `user_roles`
+-- Dumping data for table `user_roles`
 --
 
 INSERT INTO `user_roles` (`id`, `user_id`, `role_id`, `created_at`, `updated_at`) VALUES
-(1, 5, 2, '2019-10-18 21:58:10', '2019-10-18 21:58:10'),
+(1, 5, 3, '2019-10-18 21:58:10', '2020-09-30 10:41:15'),
 (2, 1, 100, '2019-10-18 21:58:10', '2019-10-18 21:58:10'),
 (3, 4, 100, '2019-10-18 21:58:10', '2019-10-18 21:58:10'),
 (5, 9, 100, '2019-10-18 21:58:10', '2019-10-18 21:58:10'),
@@ -779,8 +1145,7 @@ INSERT INTO `user_roles` (`id`, `user_id`, `role_id`, `created_at`, `updated_at`
 (7, 13, 100, '2019-10-18 21:58:10', '2019-10-18 21:58:10'),
 (9, 4, 2, '2019-10-18 21:58:10', '2019-10-18 21:58:10'),
 (10, 48, 2, '2019-10-18 21:58:10', '2019-10-18 21:58:10'),
-(11, 86, 2, '2019-10-18 21:58:10', '2019-10-18 21:58:10'),
-(12, 86, 3, '2019-10-18 21:58:10', '2019-10-18 21:58:10'),
+(12, 86, 2, '2019-10-18 21:58:10', '2020-09-30 13:18:17'),
 (14, 86, 100, '2019-10-18 21:58:10', '2019-10-18 21:58:10'),
 (15, 87, 2, '2019-10-18 21:58:10', '2019-10-18 21:58:10'),
 (16, 89, 3, '2019-10-18 21:58:10', '2019-10-18 21:58:10'),
@@ -886,91 +1251,111 @@ INSERT INTO `user_roles` (`id`, `user_id`, `role_id`, `created_at`, `updated_at`
 (176, 447, 3, '2020-09-24 18:05:49', NULL),
 (177, 448, 1, '2020-09-24 18:06:18', NULL),
 (178, 451, 3, '2020-09-24 21:58:21', NULL),
-(179, 455, 3, '2020-09-28 14:23:45', NULL);
+(179, 455, 3, '2020-09-28 14:23:45', NULL),
+(180, 5, 2, '2020-09-30 01:27:42', NULL),
+(181, 16, 502, '0000-00-00 00:00:00', NULL),
+(182, 472, 3, '2020-10-16 14:25:42', NULL);
 
 -- --------------------------------------------------------
 
 --
--- Estructura de tabla para la tabla `user_sp_permissions`
+-- Table structure for table `user_sp_permissions`
 --
 
 CREATE TABLE `user_sp_permissions` (
   `id` int(11) NOT NULL,
   `sp_permission_id` int(11) NOT NULL,
   `user_id` int(11) NOT NULL,
+  `created_by` int(11) DEFAULT NULL,
   `created_at` datetime NOT NULL,
   `updated_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 --
--- Volcado de datos para la tabla `user_sp_permissions`
+-- Dumping data for table `user_sp_permissions`
 --
 
-INSERT INTO `user_sp_permissions` (`id`, `sp_permission_id`, `user_id`, `created_at`, `updated_at`) VALUES
-(1, 9, 90, '2020-09-27 12:07:27', NULL),
-(2, 1, 90, '0000-00-00 00:00:00', NULL);
+INSERT INTO `user_sp_permissions` (`id`, `sp_permission_id`, `user_id`, `created_by`, `created_at`, `updated_at`) VALUES
+(1, 9, 90, NULL, '2020-09-27 12:07:27', NULL),
+(2, 1, 90, NULL, '0000-00-00 00:00:00', NULL);
 
 -- --------------------------------------------------------
 
 --
--- Estructura de tabla para la tabla `user_tb_permissions`
+-- Table structure for table `user_tb_permissions`
 --
 
 CREATE TABLE `user_tb_permissions` (
   `id` int(11) NOT NULL,
   `tb` varchar(80) COLLATE utf16_spanish_ci NOT NULL,
-  `can_list` tinyint(4) NOT NULL DEFAULT 0,
-  `can_show` tinyint(4) NOT NULL DEFAULT 0,
-  `can_create` tinyint(4) NOT NULL DEFAULT 0,
-  `can_update` tinyint(4) NOT NULL DEFAULT 0,
-  `can_delete` tinyint(4) NOT NULL DEFAULT 0,
+  `can_list_all` tinyint(4) DEFAULT NULL,
+  `can_show_all` tinyint(4) DEFAULT NULL,
+  `can_list` tinyint(4) DEFAULT NULL,
+  `can_show` tinyint(4) DEFAULT NULL,
+  `can_create` tinyint(4) DEFAULT NULL,
+  `can_update` tinyint(4) DEFAULT NULL,
+  `can_delete` tinyint(4) DEFAULT NULL,
   `user_id` int(11) NOT NULL,
+  `created_by` int(11) DEFAULT NULL,
   `created_at` datetime NOT NULL,
   `updated_at` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf16 COLLATE=utf16_spanish_ci;
 
 --
--- Volcado de datos para la tabla `user_tb_permissions`
+-- Dumping data for table `user_tb_permissions`
 --
 
-INSERT INTO `user_tb_permissions` (`id`, `tb`, `can_list`, `can_show`, `can_create`, `can_update`, `can_delete`, `user_id`, `created_at`, `updated_at`) VALUES
-(2, 'products', 0, 1, 0, 1, 1, 168, '0000-00-00 00:00:00', NULL),
-(3, 'foo', 1, 1, 1, 0, 1, 90, '2020-01-14 00:00:00', '2020-09-27 13:22:17'),
-(37, 'foo', 0, 1, 0, 1, 1, 168, '2020-01-14 23:09:37', '2020-01-15 06:30:55');
+INSERT INTO `user_tb_permissions` (`id`, `tb`, `can_list_all`, `can_show_all`, `can_list`, `can_show`, `can_create`, `can_update`, `can_delete`, `user_id`, `created_by`, `created_at`, `updated_at`) VALUES
+(2, 'products', 0, 0, 0, 1, 0, 1, 1, 168, NULL, '0000-00-00 00:00:00', NULL),
+(3, 'foo', 0, 0, 1, 1, 1, 0, 1, 90, NULL, '2020-01-14 00:00:00', '2020-09-27 13:22:17'),
+(37, 'bar', 1, 0, 0, 1, 1, 1, 0, 168, NULL, '2020-01-14 23:09:37', '2020-01-15 06:30:55');
 
 --
--- Índices para tablas volcadas
+-- Indexes for dumped tables
 --
 
 --
--- Indices de la tabla `baz`
+-- Indexes for table `bar`
+--
+ALTER TABLE `bar`
+  ADD PRIMARY KEY (`uuid`),
+  ADD KEY `belongs_to` (`belongs_to`);
+
+--
+-- Indexes for table `baz`
 --
 ALTER TABLE `baz`
-  ADD PRIMARY KEY (`id`);
+  ADD PRIMARY KEY (`id_baz`);
 
 --
--- Indices de la tabla `collections`
+-- Indexes for table `baz2`
+--
+ALTER TABLE `baz2`
+  ADD PRIMARY KEY (`id_baz2`);
+
+--
+-- Indexes for table `collections`
 --
 ALTER TABLE `collections`
   ADD PRIMARY KEY (`id`),
   ADD KEY `belongs_to` (`belongs_to`);
 
 --
--- Indices de la tabla `emails`
+-- Indexes for table `emails`
 --
 ALTER TABLE `emails`
   ADD PRIMARY KEY (`id`),
   ADD KEY `user_id` (`user_id`);
 
 --
--- Indices de la tabla `files`
+-- Indexes for table `files`
 --
 ALTER TABLE `files`
   ADD PRIMARY KEY (`id`),
   ADD KEY `belongs_to` (`belongs_to`);
 
 --
--- Indices de la tabla `folders`
+-- Indexes for table `folders`
 --
 ALTER TABLE `folders`
   ADD PRIMARY KEY (`id`),
@@ -978,7 +1363,7 @@ ALTER TABLE `folders`
   ADD KEY `owner` (`belongs_to`);
 
 --
--- Indices de la tabla `folder_other_permissions`
+-- Indexes for table `folder_other_permissions`
 --
 ALTER TABLE `folder_other_permissions`
   ADD PRIMARY KEY (`id`),
@@ -986,7 +1371,7 @@ ALTER TABLE `folder_other_permissions`
   ADD KEY `belongs_to` (`belongs_to`);
 
 --
--- Indices de la tabla `folder_permissions`
+-- Indexes for table `folder_permissions`
 --
 ALTER TABLE `folder_permissions`
   ADD PRIMARY KEY (`id`),
@@ -995,21 +1380,19 @@ ALTER TABLE `folder_permissions`
   ADD KEY `belongs_to` (`belongs_to`);
 
 --
--- Indices de la tabla `messages`
+-- Indexes for table `foo`
+--
+ALTER TABLE `foo`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `messages`
 --
 ALTER TABLE `messages`
   ADD PRIMARY KEY (`id`);
 
 --
--- Indices de la tabla `permissions`
---
-ALTER TABLE `permissions`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `user_table` (`tb`,`user_id`) USING BTREE,
-  ADD KEY `user_id` (`user_id`);
-
---
--- Indices de la tabla `products`
+-- Indexes for table `products`
 --
 ALTER TABLE `products`
   ADD PRIMARY KEY (`id`),
@@ -1018,28 +1401,34 @@ ALTER TABLE `products`
   ADD KEY `updated_by` (`updated_by`);
 
 --
--- Indices de la tabla `roles`
+-- Indexes for table `product_categories`
+--
+ALTER TABLE `product_categories`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `roles`
 --
 ALTER TABLE `roles`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `name` (`name`);
 
 --
--- Indices de la tabla `sp_permissions`
+-- Indexes for table `sp_permissions`
 --
 ALTER TABLE `sp_permissions`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `name` (`name`);
 
 --
--- Indices de la tabla `super_cool_table`
+-- Indexes for table `super_cool_table`
 --
 ALTER TABLE `super_cool_table`
   ADD PRIMARY KEY (`id`),
   ADD KEY `belongs_to` (`belongs_to`);
 
 --
--- Indices de la tabla `users`
+-- Indexes for table `users`
 --
 ALTER TABLE `users`
   ADD PRIMARY KEY (`id`),
@@ -1049,7 +1438,7 @@ ALTER TABLE `users`
   ADD KEY `email` (`email`);
 
 --
--- Indices de la tabla `user_roles`
+-- Indexes for table `user_roles`
 --
 ALTER TABLE `user_roles`
   ADD PRIMARY KEY (`id`),
@@ -1058,170 +1447,178 @@ ALTER TABLE `user_roles`
   ADD KEY `role_id` (`role_id`);
 
 --
--- Indices de la tabla `user_sp_permissions`
+-- Indexes for table `user_sp_permissions`
 --
 ALTER TABLE `user_sp_permissions`
   ADD PRIMARY KEY (`id`),
   ADD KEY `user_id` (`user_id`),
-  ADD KEY `permission` (`sp_permission_id`);
+  ADD KEY `permission` (`sp_permission_id`),
+  ADD KEY `created_by` (`created_by`);
 
 --
--- Indices de la tabla `user_tb_permissions`
+-- Indexes for table `user_tb_permissions`
 --
 ALTER TABLE `user_tb_permissions`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `user_table` (`tb`,`user_id`) USING BTREE,
-  ADD KEY `user_id` (`user_id`);
+  ADD KEY `user_id` (`user_id`),
+  ADD KEY `created_by` (`created_by`);
 
 --
--- AUTO_INCREMENT de las tablas volcadas
+-- AUTO_INCREMENT for dumped tables
 --
 
 --
--- AUTO_INCREMENT de la tabla `collections`
+-- AUTO_INCREMENT for table `baz2`
+--
+ALTER TABLE `baz2`
+  MODIFY `id_baz2` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4595;
+
+--
+-- AUTO_INCREMENT for table `collections`
 --
 ALTER TABLE `collections`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=222;
 
 --
--- AUTO_INCREMENT de la tabla `files`
+-- AUTO_INCREMENT for table `files`
 --
 ALTER TABLE `files`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=252;
 
 --
--- AUTO_INCREMENT de la tabla `folders`
+-- AUTO_INCREMENT for table `folders`
 --
 ALTER TABLE `folders`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
--- AUTO_INCREMENT de la tabla `folder_other_permissions`
+-- AUTO_INCREMENT for table `folder_other_permissions`
 --
 ALTER TABLE `folder_other_permissions`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
--- AUTO_INCREMENT de la tabla `folder_permissions`
+-- AUTO_INCREMENT for table `folder_permissions`
 --
 ALTER TABLE `folder_permissions`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
--- AUTO_INCREMENT de la tabla `messages`
+-- AUTO_INCREMENT for table `messages`
 --
 ALTER TABLE `messages`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=103;
 
 --
--- AUTO_INCREMENT de la tabla `permissions`
---
-ALTER TABLE `permissions`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=39;
-
---
--- AUTO_INCREMENT de la tabla `products`
+-- AUTO_INCREMENT for table `products`
 --
 ALTER TABLE `products`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5033;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5061;
 
 --
--- AUTO_INCREMENT de la tabla `roles`
+-- AUTO_INCREMENT for table `product_categories`
+--
+ALTER TABLE `product_categories`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
+-- AUTO_INCREMENT for table `roles`
 --
 ALTER TABLE `roles`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=503;
 
 --
--- AUTO_INCREMENT de la tabla `sp_permissions`
+-- AUTO_INCREMENT for table `sp_permissions`
 --
 ALTER TABLE `sp_permissions`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
--- AUTO_INCREMENT de la tabla `super_cool_table`
+-- AUTO_INCREMENT for table `super_cool_table`
 --
 ALTER TABLE `super_cool_table`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=505;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=782;
 
 --
--- AUTO_INCREMENT de la tabla `users`
+-- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=456;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=473;
 
 --
--- AUTO_INCREMENT de la tabla `user_roles`
+-- AUTO_INCREMENT for table `user_roles`
 --
 ALTER TABLE `user_roles`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=180;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=183;
 
 --
--- AUTO_INCREMENT de la tabla `user_sp_permissions`
+-- AUTO_INCREMENT for table `user_sp_permissions`
 --
 ALTER TABLE `user_sp_permissions`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
--- AUTO_INCREMENT de la tabla `user_tb_permissions`
+-- AUTO_INCREMENT for table `user_tb_permissions`
 --
 ALTER TABLE `user_tb_permissions`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=39;
 
 --
--- Restricciones para tablas volcadas
+-- Constraints for dumped tables
 --
 
 --
--- Filtros para la tabla `collections`
+-- Constraints for table `collections`
 --
 ALTER TABLE `collections`
   ADD CONSTRAINT `collections_ibfk_1` FOREIGN KEY (`belongs_to`) REFERENCES `users` (`id`);
 
 --
--- Filtros para la tabla `files`
+-- Constraints for table `files`
 --
 ALTER TABLE `files`
   ADD CONSTRAINT `files_ibfk_1` FOREIGN KEY (`belongs_to`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
--- Filtros para la tabla `folders`
+-- Constraints for table `folders`
 --
 ALTER TABLE `folders`
   ADD CONSTRAINT `folders_ibfk_1` FOREIGN KEY (`belongs_to`) REFERENCES `users` (`id`);
 
 --
--- Filtros para la tabla `folder_other_permissions`
+-- Constraints for table `folder_other_permissions`
 --
 ALTER TABLE `folder_other_permissions`
   ADD CONSTRAINT `folder_other_permissions_ibfk_1` FOREIGN KEY (`belongs_to`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
--- Filtros para la tabla `folder_permissions`
+-- Constraints for table `folder_permissions`
 --
 ALTER TABLE `folder_permissions`
   ADD CONSTRAINT `folder_permissions_ibfk_1` FOREIGN KEY (`belongs_to`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
--- Filtros para la tabla `products`
+-- Constraints for table `products`
 --
 ALTER TABLE `products`
   ADD CONSTRAINT `products_ibfk_1` FOREIGN KEY (`belongs_to`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
--- Filtros para la tabla `user_roles`
+-- Constraints for table `user_roles`
 --
 ALTER TABLE `user_roles`
   ADD CONSTRAINT `user_roles_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
--- Filtros para la tabla `user_sp_permissions`
+-- Constraints for table `user_sp_permissions`
 --
 ALTER TABLE `user_sp_permissions`
   ADD CONSTRAINT `user_sp_permissions_ibfk_1` FOREIGN KEY (`sp_permission_id`) REFERENCES `sp_permissions` (`id`),
   ADD CONSTRAINT `user_sp_permissions_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`);
 
 --
--- Filtros para la tabla `user_tb_permissions`
+-- Constraints for table `user_tb_permissions`
 --
 ALTER TABLE `user_tb_permissions`
   ADD CONSTRAINT `user_tb_permissions_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;

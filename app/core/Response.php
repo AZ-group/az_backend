@@ -118,6 +118,7 @@ class Response
 
         if (!headers_sent()) {
             header(trim('HTTP/'.static::$version.' '.$http_code.' '.static::$http_code_msg));
+            header('Content-type:application/json;charset=utf-8');
         }    
 
         if (static::$as_object || is_object($data) || is_array($data)) {
@@ -170,6 +171,7 @@ class Response
         
         if (!headers_sent()) {
             header(trim('HTTP/'.static::$version.' '.$http_code.' '.static::$http_code_msg));
+            header('Content-type:application/json;charset=utf-8');
         }
 
         $res =  $this->encode([ 
@@ -210,6 +212,7 @@ class Response
     
             if ($http_code != NULL && !static::$fake_status_codes)
                 header(trim('HTTP/'.static::$version.' '.$http_code.' '.static::$http_code_msg));
+                header('Content-type:application/json;charset=utf-8');
         }    
         
         $res =  $this->encode([ 

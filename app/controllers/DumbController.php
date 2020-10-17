@@ -75,7 +75,7 @@ class DumbController extends Controller
         Debug::dd($m->get());
 
         // No hay Schema
-        var_dump($m->getSchema());
+        Debug::dd($m->getSchema());
     }
 
     function get_bar(){
@@ -116,7 +116,7 @@ class DumbController extends Controller
         ->table('baz');
 
         // No hay Schema
-        var_dump($m->getSchema());
+        Debug::dd($m->getSchema());
         
         Debug::dd($m->create([
             'id_baz' => 1800,
@@ -418,7 +418,7 @@ class DumbController extends Controller
     }
 
     function value(){
-		var_dump(DB::table('products')->where([ 
+		Debug::dd(DB::table('products')->where([ 
             ['cost', 5000, '>=']
         ])->value('name')); 
 		
@@ -511,7 +511,7 @@ class DumbController extends Controller
 		->where(['user_id' => $uid])->setFetchMode('COLUMN')
 		->count();
 		
-        var_dump($count);
+        Debug::dd($count);
         Debug::dd(DB::getLog());
     }
 
@@ -522,7 +522,7 @@ class DumbController extends Controller
         ->where([ ['cost', 100, '>='], ['size', '1L'], ['belongs_to', 90] ])
         ->avg('cost', 'prom');
 
-        var_dump($res);
+        Debug::dd($res);
     }
 
     function sum(){
@@ -532,7 +532,7 @@ class DumbController extends Controller
         ->where([ ['cost', 100, '>='], ['size', '1L'], ['belongs_to', 90] ])
         ->sum('cost', 'suma');
 
-        var_dump($res);
+        Debug::dd($res);
     }
 
     function min(){
@@ -542,7 +542,7 @@ class DumbController extends Controller
         ->where([ ['cost', 100, '>='], ['size', '1L'], ['belongs_to', 90] ])
         ->min('cost', 'minimo');
 
-        var_dump($res);
+        Debug::dd($res);
     }
 
     function max(){
@@ -552,7 +552,7 @@ class DumbController extends Controller
         ->where([ ['cost', 100, '>='], ['size', '1L'], ['belongs_to', 90] ])
         ->max('cost', 'maximo');
 
-        var_dump($res);
+        Debug::dd($res);
     }
 
     /*
@@ -1297,7 +1297,7 @@ class DumbController extends Controller
 
     function validacion(){
         $u = DB::table('users');
-        var_dump($u->where(['username' => 'nano_'])->get());
+        Debug::dd($u->where(['username' => 'nano_'])->get());
     }
 
     function validacion1(){
@@ -1468,7 +1468,7 @@ class DumbController extends Controller
             Debug::dd($res, 'count'); 
 
         } catch (\Exception $e){
-            var_dump($e->getMessage());
+            Debug::dd($e->getMessage());
             Debug::dd($m->dd());
         }    
     }
@@ -1651,16 +1651,18 @@ class DumbController extends Controller
     }
 
     function json(){
-        DB::table('collections')->create([
+        $id = DB::table('collections')->create([
             'entity' => 'messages',
             'refs' => json_encode([195,196]),
             'belongs_to' => 332
         ]);
+
+        Factory::response()->sendJson($id);
     }
 
     function test_get(){
-        Debug::dd(DB::table('products')->first()); 
-        Debug::dd(DB::getLog());
+        Debug::dd(DB::table('products')->first(), 'FIRST'); 
+        Debug::dd(DB::getLog(), 'QUERY');
     }
 
     function test_get_raw(){
@@ -1683,13 +1685,13 @@ class DumbController extends Controller
 
     function test_raw(){
         $res = DB::select('SELECT * FROM baz');
-        var_dump($res);
+        Debug::dd($res);
     }
 
     function get_role_permissions(){
         $acl = Factory::acl();
 
-        var_dump($acl->hasResourcePermission('show_all', ['guest'], 'products'));
+        Debug::dd($acl->hasResourcePermission('show_all', ['guest'], 'products'));
         //var_export($acl->getRolePermissions());
     }
 
@@ -1703,7 +1705,7 @@ class DumbController extends Controller
 
   
     function xxx(){ 
-        var_dump(Validator::isType('8', 'str'));
+        Debug::dd(Validator::isType('8', 'str'));
     }
 
     function speed(){
@@ -1747,21 +1749,21 @@ class DumbController extends Controller
         MySql: show processlist;
     */
     function test_active_connnections(){
-        Debug::export(DB::countConnections(), 'Number of active connections');
+        Debug::dd(DB::countConnections(), 'Number of active connections');
 
         DB::setConnection('db2');  
-        Debug::export(DB::table('users')->count(), 'Users DB2:'); 
+        Debug::dd(DB::table('users')->count(), 'Users DB2:'); 
 
         DB::setConnection('db1');  
-        Debug::export(DB::table('users')->count(), 'Users DB1');
+        Debug::dd(DB::table('users')->count(), 'Users DB1');
 
         DB::setConnection('db2');  
-        Debug::export(DB::table('users')->first(), 'Users DB2:');
+        Debug::dd(DB::table('users')->first(), 'Users DB2:');
 
-        Debug::export(DB::countConnections(), 'Number of active connections'); // 2 y no 3 ;)
+        Debug::dd(DB::countConnections(), 'Number of active connections'); // 2 y no 3 ;)
 
         DB::closeConnection();
-        Debug::export(DB::countConnections(), 'Number of active connections'); // 1
+        Debug::dd(DB::countConnections(), 'Number of active connections'); // 1
 
         DB::closeAllConnections();
         Debug::export(DB::countConnections(), 'Number of active connections'); // 0
@@ -1788,12 +1790,41 @@ class DumbController extends Controller
         $arr = ['el', 'dia', 'que', 'me', 'quieras'];
         $arr = array_map(function($x){ return "'$x'"; }, $arr);
         
-        var_dump($arr);
+        Debug::dd($arr);
         
         //echo implode('-', $arr);
     }
 
     function speed2(){
+
+        Time::setUnit('MILI');
+        //Time::noOutput();
+        
+        $conn = DB::getConnection();
+        $t = Time::exec_speed(function() use ($conn){         
+            $sql = "INSERT INTO `baz2` (`name`, `cost`) VALUES ('hhh', '789')";
+            $conn->exec($sql);
+        }, 1);  
+        Debug::dd("Time: $t ms");    
+
+        exit;
+
+        $m = (new Model(true))
+        ->table('baz2');
+        $t = Time::exec_speed(function() use ($m){             
+            //$m->setValidator(new Validator());
+            //$m->dontExec();
+
+            $id = $m->create([
+                'name' => 'BAZ',
+                'cost' => '100',
+            ]);
+
+        }, 1);  
+        Debug::dd("Time: $t ms");
+        Debug::dd($m->getLog());
+
+        /*
         Time::setUnit('MILI');
         //Time::noOutput();
 
@@ -1802,11 +1833,15 @@ class DumbController extends Controller
 
         $t = Time::exec_speed(function(){ 
             
-            new UsersModel();
+            $id = DB::table('collections')->create([
+                'entity' => 'messages',
+                'refs' => json_encode([195,196]),
+                'belongs_to' => 332
+            ]);
 
-        }, 1000);       
-        
+        }, 1);       
         Debug::dd("Time: $t ms");
+        */
     }
 
     function test(){

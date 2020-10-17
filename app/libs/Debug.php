@@ -46,9 +46,13 @@ class Debug
 		if ($type != "array"){
 			echo $p;
 		}		
+
+		if ($cli || $postman){
+			echo $p;
+		}
 	}	
 
-	static function dd($var, $msg = null){
+	static public function dd($var, $msg = null){
 		$cli = (php_sapi_name() == 'cli');
 		
 		$pre = !$cli;
