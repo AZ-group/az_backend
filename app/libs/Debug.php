@@ -2,6 +2,8 @@
 
 namespace simplerest\libs;
 
+use simplerest\libs\Url; 
+
 class Debug
 {
 	protected static function pre(callable $fn, ...$args){
@@ -10,13 +12,9 @@ class Debug
 		echo '</pre>';
 	}
 
-	protected static function is_postman(){
-		return (isset($_SERVER['HTTP_USER_AGENT']) && strpos($_SERVER['HTTP_USER_AGENT'], 'PostmanRuntime') !== false);	
-	}
-
 	protected static function export($v, $msg = null) 
 	{			
-		$postman = self::is_postman();
+		$postman = Url::is_postman();
 		
 		$cli  = (php_sapi_name() == 'cli');
 		$br   = ($cli || $postman) ? PHP_EOL : '<br/>';
@@ -57,7 +55,7 @@ class Debug
 		
 		$pre = !$cli;
 		
-		if (self::is_postman()){
+		if (Url::is_postman()){
 			$pre = false;
 		}
 		

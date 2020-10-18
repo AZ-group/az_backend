@@ -1699,6 +1699,10 @@ class DumbController extends Controller
         throw new \Exception('BOOOOM');
     }
 
+    function ops(){
+        $this->boom();
+    }
+
     function hi($name = null){
         return 'hi ' . $name;
     }

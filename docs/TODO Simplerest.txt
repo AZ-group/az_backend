@@ -22,6 +22,9 @@ Casos para un registro bloqueado:
   - Solo con el permiso "lock" puede borrar de la papelera -- ok
 
 
+- Revisar si es posible acelerar las inserciones
+
+https://dev.mysql.com/doc/refman/8.0/en/insert-optimization.html
 
 - Ser concistente con los campos not_fillables: informo que son no fillables o simplemente hago un unset() silecioso? para belongs_to no estoy informando y para los demás campos si. 
 
