@@ -96,7 +96,8 @@ return [
 
 	'pretty' => false,	
 	
-	'paginator' => ['max_limit' => 50,
+	'paginator' => [
+					'max_limit' => 50,
 					'default_limit' => 10
 	],
 
@@ -104,13 +105,13 @@ return [
 		'client_id' => '228180780767-4p8t6nvocukmu44ti57o60n1ck6sokpd.apps.googleusercontent.com',
 		'client_secret' => 'JByioBo6mRiVBkhW3ldylYKD',
 		// https://simplerest.mapapulque.ro/login/google_login
-		'callback' => 'http://simplerest.co/login/google_login'
+		'callback_url' => 'http://simplerest.co/login/google_login'
 	],
 
 	'facebook_auth' => [
 		'app_id' => '533640957216135',
 		'app_secret' => '234a9cf42e8710ed813d45ed9e0fb212', 
-		'callback' => 'https://simplerest.mapapulque.ro/login/fb_login'
+		'callback_url' => 'https://simplerest.mapapulque.ro/login/fb_login'
 	]
 	
 ];

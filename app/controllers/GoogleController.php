@@ -22,7 +22,7 @@ class GoogleController extends Controller
         $client->setApplicationName('App Name');
         $client->setClientId($this->config['google_auth']['client_id']);
         $client->setClientSecret($this->config['google_auth']['client_secret']);
-        $client->setRedirectUri($this->config['google_auth']['callback']);
+        $client->setRedirectUri($this->config['google_auth']['callback_url']);
 
         $client->setScopes('https://www.googleapis.com/auth/userinfo.email');
         #$client->addScope("https://www.googleapis.com/auth/drive");

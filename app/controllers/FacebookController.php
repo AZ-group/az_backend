@@ -246,7 +246,7 @@ class FacebookController extends Controller
 		$helper = $fb->getRedirectLoginHelper();
 		
 		$permissions = ['email'];
-		$auth_url = $helper->getLoginUrl($this->config['facebook_auth']['callback'], $permissions);
+		$auth_url = $helper->getLoginUrl($this->config['facebook_auth']['callback_url'], $permissions);
         
         header("Location: $auth_url");
     }
