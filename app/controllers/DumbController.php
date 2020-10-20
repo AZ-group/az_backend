@@ -247,7 +247,7 @@ class DumbController extends Controller
                 'belongs_to' => 90
             ]);   
 
-            throw new Exception("AAA"); 
+            throw new \Exception("AAA"); 
         });      
     }
     
@@ -1770,7 +1770,7 @@ class DumbController extends Controller
         Debug::dd(DB::countConnections(), 'Number of active connections'); // 1
 
         DB::closeAllConnections();
-        Debug::export(DB::countConnections(), 'Number of active connections'); // 0
+        Debug::dd(DB::countConnections(), 'Number of active connections'); // 0
     }
 
     function read_table(){

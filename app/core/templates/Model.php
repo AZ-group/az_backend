@@ -7,7 +7,7 @@ use simplerest\libs\ValidationRules;
 ### IMPORTS
 
 class __NAME__ extends Model
- { 
+{ 
 	### TRAITS
 	### PROPERTIES
 

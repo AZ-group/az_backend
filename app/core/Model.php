@@ -115,7 +115,7 @@ class Model {
 		*/
 	
 
-		//Debug::export($this->table_name, 'table_name:');  // mode <-- por "model" recortado!!
+		//Debug::dd($this->table_name, 'table_name:');  // mode <-- por "model" recortado!!
 		
 		if ($this->schema == null){
 			return;
@@ -1278,8 +1278,8 @@ class Model {
 		$q = $this->toSql(null, null, null, null, false, 'COUNT', $field, $alias);
 		$st = $this->bind($q);
 
-		//Debug::export($q, 'Q');
-		//Debug::export($this->table_raw_q, 'RAW Q');
+		//Debug::dd($q, 'Q');
+		//Debug::dd($this->table_raw_q, 'RAW Q');
 		//exit;
 
 		if (empty($this->group)){
@@ -1367,7 +1367,7 @@ class Model {
 		$this->where[] = ' ' .$ws_str;
 		////////////////////////////////////////////
 
-		//Debug::export($this->where);
+		//Debug::dd($this->where);
 		//exit;
 		//Debug::dd($this->w_vars, 'WHERE VARS');	
 		//Debug::dd($this->w_vals, 'WHERE VALS');	
@@ -1761,7 +1761,7 @@ class Model {
 			elseif(is_string($val))
 				$type = \PDO::PARAM_STR;	
 
-			//Debug::export($type, "TYPE for $val");	
+			//Debug::dd($type, "TYPE for $val");	
 
 			$st->bindValue($ix+1, $val, $type);
 		}

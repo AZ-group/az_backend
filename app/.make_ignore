@@ -4,7 +4,6 @@
 # Models
 UsersModel.php
 FilesModel.php
-BarModel.php
 FooModel.php
 
 # Controllers

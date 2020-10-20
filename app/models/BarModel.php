@@ -8,10 +8,9 @@ use simplerest\models\schemas\BarSchema;
 use simplerest\traits\Uuids;
 
 class BarModel extends Model
- { 
+{ 
 	use Uuids;
-
-	### PROPERTIES
+	
 
 	protected $hidden   = [];
 	protected $not_fillable = [];

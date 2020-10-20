@@ -4,11 +4,11 @@ namespace simplerest\models\schemas;
 
 use simplerest\core\interfaces\ISchema;
 
-use simplerest\traits\Uuids;
+### IMPORTS
 
 class BarSchema implements ISchema
 { 
-	use Uuids;
+	### TRAITS
 	
 	function get(){
 		return [

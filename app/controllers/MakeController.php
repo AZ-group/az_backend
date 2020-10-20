@@ -179,8 +179,8 @@ class MakeController extends Controller
         $this->ctr_name     = $class_name . 'Controller';
         $this->api_name     = $class_name;     
         
-        //Debug::export($this->model_name,  'model name');
-        //Debug::export($this->model_table, 'table name');
+        //Debug::dd($this->model_name,  'model name');
+        //Debug::dd($this->model_table, 'table name');
 
         $prev_name = $name;
     }
@@ -335,6 +335,14 @@ class MakeController extends Controller
         } 
     }
 
+    protected function get_pdo_const(string $sql_type){
+        if (preg_match('/int\([0-9]+\)$/', $sql_type) == 1){
+            return 'INT';
+        } else {
+            return 'STR';
+        }
+    }
+
     function schema($name, ...$opt) { 
         $this->setup($name);    
 
@@ -389,14 +397,6 @@ class MakeController extends Controller
         //$not_fillable = [];
         $rules = [];
 
-        $get_pdo_const = function (string $sql_type){
-            if (preg_match('/int\([0-9]+\)$/', $sql_type) == 1){
-                return 'INT';
-            } else {
-                return 'STR';
-            }
-        }; 
-
         foreach ($fields as $field){
             $field_names[] = $field['Field'];
             if ($field['Null']  == 'YES') { $nullables[] = $field['Field']; }
@@ -412,7 +412,7 @@ class MakeController extends Controller
                 //$not_fillable[] = $field['Field'];
                 $nullables[] = $field['Field']; 
             }
-            $types[$field['Field']] = $get_pdo_const($field['Type']);
+            $types[$field['Field']] = $this->get_pdo_const($field['Type']);
             $types_raw[$field['Field']] = $field['Type'];
 
             if ($field['Key'] == 'PRI'){ 
@@ -453,8 +453,8 @@ class MakeController extends Controller
 
         if ($uuid){
             $nullables[] = $id_name;
-            Strings::replace('### IMPORTS', 'use simplerest\traits\Uuids;', $file); 
-            Strings::replace('### TRAITS', "use Uuids;", $file);        
+            //Strings::replace('### IMPORTS', 'use simplerest\traits\Uuids;', $file); 
+            //Strings::replace('### TRAITS', "use Uuids;", $file);        
         }
 
         Strings::replace('__TABLE_NAME__', "'{$this->model_table}'", $file);  
@@ -472,6 +472,31 @@ class MakeController extends Controller
         } else {
             echo "[ Done ] '$dest_path' was generated\r\n";
         } 
+    }
+
+    function getUuid(){
+        try {
+            $fields = DB::select("SHOW COLUMNS FROM {$this->model_table}");
+        } catch (\Exception $e) {
+            echo '[ SQL Error ] '. DB::getLog(). "\r\n";
+            echo $e->getMessage().  "\r\n";
+        }
+        
+        $id_name =  NULL;
+        $uuid = false;
+
+        foreach ($fields as $field){
+            if ($field['Key'] == 'PRI'){ 
+                $field_name_lo = strtolower($field['Field']);
+                if ($field_name_lo == 'uuid' || $field_name_lo == 'guid'){
+                    if ($this->get_pdo_const($field['Type']) == 'STR'){
+                        return $field['Field'];
+                    }
+                }
+            }    
+        }
+
+        return false;
     }
 
     function model($name, ...$opt) { 
@@ -511,10 +536,22 @@ class MakeController extends Controller
         $file = file_get_contents(self::MODEL_TEMPLATE);
         $file = str_replace('__NAME__', $this->class_name.'Model', $file);
 
-        Strings::replace('### IMPORTS', "use simplerest\\models\\schemas\\{$this->class_name}Schema;", $file); 
-        ###Strings::replace('### TRAITS', "use {$this->class_name}Schema;", $file); 
+        $imports = [];
+        $traits  = [];
+        $proterties = [];
+
+        $imports[] = "use simplerest\\models\\schemas\\{$this->class_name}Schema;";
+       
         Strings::replace('__SCHEMA_CLASS__', "{$this->class_name}Schema", $file); 
 
+        if ($uuid = $this->getUuid()){
+            $imports[] = 'use simplerest\traits\Uuids;';
+            $traits[] = 'use Uuids;';      
+        }
+
+        Strings::replace('### IMPORTS', implode("\r\n", $imports), $file); 
+        Strings::replace('### TRAITS',  implode("\r\n\t", $traits), $file); 
+        Strings::replace('### PROPERTIES', implode("\r\n\t", $proterties), $file); 
 
         $ok = (bool) file_put_contents($dest_path, $file);
         

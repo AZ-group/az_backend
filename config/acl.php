@@ -70,11 +70,15 @@ if (!$acl_cache || is_file($acl_file) !== true) {
 
     /////////////////////
 
-    //Debug::export($acl->hasResourcePermission('list', ['basic'], 'super_cool_table'));
-    //Debug::export($acl->getSpPermissions());
-    //Debug::export($acl->getRolePermissions(), 'perms');
+    //Debug::dd($acl->hasResourcePermission('list', ['basic'], 'super_cool_table'));
+    //Debug::dd($acl->getSpPermissions());
+    //Debug::dd($acl->getRolePermissions(), 'perms');
     //exit;    
     /////////////////////
+
+    if (!is_writable($acl_file)){
+        throw new \Exception("$acl_file is not writable. Check permissions");   
+    }
 
     // Store serialized list into plain file
     file_put_contents(
