@@ -1,5 +1,59 @@
 # TODO
 
+- Mecanismo para evitar dejar fuera de línea una API Restful:
+
+  - Si se desea agregar un campo / tabla a la DB.....
+
+    - Primero se debería agregar en la DB 
+    - Luego en el Schema
+
+    <-- esto lo hace la migración
+
+  - Si se desea borrar un campo / tabla
+
+    - Primero debería desaparecer del Schema
+    - Luego debe desaparecer de la DB
+
+    <-- esto lo hace la migración
+
+  - Si se desea renombrar un campo / tabla,...
+
+    Como hacer ambas cosas al mismo tiempo y es imposible,...
+
+    - En el Modelo indico que verifique si el campo existe con ese nombre en el Schema y de no existir, que intente con un nombre de campo alternativo. (Creo una "transición" en el Modelo)
+    - Renombro el campo en la DB 	 
+    - Habilito un Transformer para cubrir los queries sobre ese campo en caso de estar expuesto en la API. Obviamenre solo cubriría los GET pero podría habilitarse un mapeo de dos vías.
+    - Elimino la "transición" que cree en el Modelo en el primer paso.
+
+
+En general:
+
+  - Un campo se puede agregar                             -- OK. No es problema
+
+  - Un campo se puede eliminar                            -- Solo podría informarse que no E en el Schema
+
+  - Un campo se puede renombrar
+  
+  - Una tabla se puede agregar                            -- OK. No es problema
+
+  - Una tabla se puede eliminar                           -- Solo se podría informar que fue depredicada
+
+  - Una tabla se puede renombrar
+  
+  - Un campo que no era nullable puede volverse nullable  -- OK. No es problema
+  
+  - Un campo que era nullable puede volverse no-nullable 
+  
+  - Un campo puede aumentar un rango                      -- OK. No es problema
+  
+  - Un campo puede disminuir su rango 
+  
+  - Un campo puede cambiar de tipo  
+
+
+https://blog.staffjoy.com/dont-migrate-databases-automatically-5039ab061365
+
+
 - Si un registro fue bloqueado por un admin (alguien con permiso de lock) no debería siquiera poder verse en la papelera informando: "locked by an admin"
 
   GET http://az.lan/api/v1/trashCan/160?entity=products
@@ -54,12 +108,12 @@ y
       make schema -f SuperAwesome
       
       
-  - Eliminar any() y hacer que index() tome su lugar:
+  - Hacer que index() tome el lugar de any:
 
   En vez de 
 
       make any baz -s -m -a -f
-          make any baz -samf
+      make any baz -samf
 
   sería,..
 
@@ -76,17 +130,17 @@ y
 
 - Implementación de migraciones:
 
-make model :  DB -----> Model [ done ]
+make schema:  DB -----> Schema [done]
 migration  :  Model --> 
 
-- Actualmente ya que solo guardo las constantes de PDO el validador no puede distinguir entre un campo de decimal (que es STR) y un string por lo que esto a pesar de que no debería "pasa" el Validador:
+- Mejorar las reglas generadas en el Schema:
 
   { 
     "name": "xxxy.00",
     "price": "AAA"    <--- DECIMAL
   }
 
-<-- no es culpa de Validtor sino del SCHEMA que brinda poca información. 
+<-- no es culpa de Validator sino del SCHEMA que brinda poca información. 
 
 - Con ayuda del Router mover controllers (con algunas excepción) a otras ubicaciones.
 
@@ -102,12 +156,12 @@ migration  :  Model -->
 
 Prueba: 
 
-  GET /api/v1/users?fields=email                33 mili - 6300 mili seg  
+  GET /api/v1/users?fields=email                6 - 13 mili seg  
 
 Valores hallados:
 
-  Resolución de DNS                             0 - 30 mili seg
-  Bloqueo                                       0 - 30 mili seg
+  Resolución de DNS                             0 - 30 mili seg (Windows)
+  Bloqueo                                       0 - 30 mili seg (Windows)
   
   FrontController  (sin incluir response)       mediana: 3 mili seg 
   FrontController (completo)                    4 mili seg aprox
@@ -116,32 +170,25 @@ Valores hallados:
 
   AuthController instanciación + check()        1 - 3 mili seg  
 
-  Acl (sin cachear)                             25 - 48 mili seg
-  Acl (cacheado)                                1 - 2 mili seg 
+  Acl (sin cachear)                             ---
+  Acl (cacheado)                                --- seg 
 
-  ApiController (incl. llamadas al modelo)      7 - 31 mili seg  <-- mucha variación!
+  ApiController (incl. llamadas al modelo)      ---
   <-- sin incluir Auth ni Acl 
 
   DB::table('users')->setFetchMode('ASSOC')
-  ->limit(10)->select(['email'])->get()         0.7 mili seg  (solo el CRUD)
+  ->limit(10)->select(['email'])->get()         --- mili seg  (solo el CRUD)
 
-  DB> SELECT email FROM users LIMIT 0,10;       0.5 - 1 mili seg aprox (en la terminal)
+  DB> SELECT email FROM users LIMIT 0,10;       --- - 1 mili seg aprox (en la terminal)
 
-  Factory::response()                           0.7 - 1.5 mili seg
+  Factory::response()                           --- - 1.5 mili seg
 
-  Total PHP:                                    29 - 70 mili seg = (0,30) + (0,30) + 3 + (1,3) + (1,2) + (7,31)
+  Total PHP:                                    ---
 
-Conclusiones: 
 
-  - Mucho lag en resolución de DNS, bloqueos. Nginx utiliza arquitectura asíncrona a base de eventos, sin bloqueos !!!!
-  - Gran mejora al serializar objetos como el ACL
-  - Demasiada variación de tiempos en el ApiController
-  - Podría haber una gran mejora si se usara una caché como REDIS para las consultas. ¿Cuántas consultas son necesarias para poder procesar un GET? 
-  - El tiempo mínimo en las condiciones de prueba y en el estado actual de fw sería de 12 ms pero no se alcanza porque siempre hay algún proceso que demora más.
+Se ha concluido que en Windows los valores hallados de tiempo de respuesta son irreproducibles, totalmente fuera de escala.
 
-- He observado que Apache en servir la nada misma introduce una demora de 59 ms, mejorará con otro Web Server?
-
-  Probar en Linux con el módulo de Apache PHP-FPM (idealmente en Linux) -> habilita opcode caching
+-  Probar en Linux con el módulo de Apache PHP-FPM (idealmente en Linux) -> habilita opcode caching
 
   https://kinsta.com/es/blog/nginx-vs-apache/
   https://www.inmotionhosting.com/support/website/php-fpm-the-future-of-php-handling/
@@ -333,6 +380,11 @@ Ej para 'products'
 - Al momento de "instalarse" mostrar una pantalla de presentación con la adevertencia de que debug=true, mediante comando poder crear un superadmin y servir un panel de admnistración de usuarios, roles y permisos como sucede con Django Rest framework 
 
 https://medium.com/swlh/build-your-first-rest-api-with-django-rest-framework-e394e39a482c
+
+
+- Dar soporte a Postgres y para hacer pruebas migrar la DB de prueba:
+
+https://www.digitalocean.com/community/tutorials/how-to-migrate-mysql-database-to-postgres-using-pgloader
 
 
 - Si un usuario no existe (fue borrado) pero su token está activo:

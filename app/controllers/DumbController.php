@@ -1864,6 +1864,7 @@ class DumbController extends Controller
         $table->setCharset('utf8');
         $table->setCollation('utf8_general_ci');
 
+        $table->serial('id')->pri();
         $table->int('edad')->unsigned();
         $table->varchar('firstname');
         $table->varchar('lastname')->nullable()->charset('utf8')->collation('utf8_unicode_ci');
@@ -1884,7 +1885,7 @@ class DumbController extends Controller
         $table->binary('bb', 255);
         $table->json('json_str');
 
-        $table->serial('id')->pri();
+        
         $table->int('karma')->default(100);
         $table->int('code')->zeroFill();
         $table->bigint('big_num');

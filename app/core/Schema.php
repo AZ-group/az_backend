@@ -564,7 +564,7 @@ class Schema
 		}
 
 		if (isset($field['auto'])){
-			$cmd .= "AUTO_INCREMENT ";
+			$cmd .= "AUTO_INCREMENT PRIMARY KEY";
 		}
 		
 		return trim($cmd);
@@ -607,7 +607,7 @@ class Schema
 						$cmd .= "INDEX (`$nombre`),\n";
 					break;
 					case 'PRIMARY':
-						$cmd .= "PRIMARY KEY (`$nombre`),\n";
+						//$cmd .= "PRIMARY KEY (`$nombre`),\n";
 					break;
 					case 'UNIQUE':
 						$cmd .= "UNIQUE KEY `$nombre` (`$nombre`),\n";
@@ -635,13 +635,13 @@ class Schema
 			$on_delete = !empty($fk['on_delete']) ? 'ON DELETE '.$fk['on_delete'] : '';
 			$on_update = !empty($fk['on_update']) ? 'ON UPDATE '.$fk['on_update'] : '';
 			
-			Debug::dd("FOREIGN KEY `($name)` REFERENCES `{$fk['on']}` (`{$fk['references']}`) {$fk['on']} $on_delete $on_update");
+			//Debug::dd("FOREIGN KEY `($name)` REFERENCES `{$fk['on']}` (`{$fk['references']}`) {$fk['on']} $on_delete $on_update");
 		}
-		exit; //		
+		//exit; //		
 				
 		$commands[] = 'COMMIT;';		
 				
-		return implode(' ',$commands)."\n";
+		return implode("\r\n",$commands)."\n";
 	}
 	
 	function dropTable(){
