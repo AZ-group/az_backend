@@ -21,6 +21,7 @@ use simplerest\libs\Validator;
 //use Symfony\Component\Uid\Uuid;
 use simplerest\libs\Files;
 use simplerest\libs\Time;
+use simplerest\core\Schema;
 
 
 class DumbController extends Controller
@@ -1848,16 +1849,97 @@ class DumbController extends Controller
         */
     }
 
-    function test(){
-        $rows = DB::table('users')
-        ->where([ 'email'=> 'nano@g.c' ]) 
-        ->orWhere(['username' => 'nano' ])
-        ->setValidator((new Validator())->setRequired(false))  
-        //->hide(['confirmed_email'])
-        //->unhide(['password'])
-        //->showDeleted()
-        ->get();
 
-        Debug::dd(DB::getLog());
+    /*
+
+    https://www.w3resource.com/mysql/mysql-data-types.php
+    https://manuales.guebs.com/mysql-5.0/spatial-extensions.html
+
+    */
+    function test()
+    {       
+        $table = new Schema('facturas');
+
+        $table->setEngine('InnoDB');
+        $table->setCharset('utf8');
+        $table->setCollation('utf8_general_ci');
+
+        $table->int('edad')->unsigned();
+        $table->varchar('firstname');
+        $table->varchar('lastname')->nullable()->charset('utf8')->collation('utf8_unicode_ci');
+        $table->varchar('username')->unique();
+        $table->varchar('password', 128);
+        $table->char('password_char');
+        $table->varbinary('texto_vb', 300);
+
+        // BLOB and TEXT columns cannot have DEFAULT values.
+        $table->text('texto');
+        $table->tinytext('texto_tiny');
+        $table->mediumtext('texto_md');
+        $table->longtext('texto_long');
+        $table->blob('codigo');
+        $table->tinyblob('blob_tiny');
+        $table->mediumblob('blob_md');
+        $table->longblob('blob_long');
+        $table->binary('bb', 255);
+        $table->json('json_str');
+
+        $table->serial('id')->pri();
+        $table->int('karma')->default(100);
+        $table->int('code')->zeroFill();
+        $table->bigint('big_num');
+        $table->bigint('ubig')->unsigned();
+        $table->mediumint('medium');
+        $table->smallint('small');
+        $table->tinyint('tiny');
+        $table->decimal('saldo');
+        $table->float('flotante');
+        $table->double('doble_p');
+        $table->real('num_real');
+
+        $table->bit('some_bits', 3)->index();
+        $table->boolean('active')->default(1);
+        $table->boolean('paused')->default(true);
+
+        $table->set('flavors', ['strawberry', 'vanilla']);
+        $table->enum('role', ['admin', 'normal']);
+
+
+        /*
+            The major difference between DATETIME and TIMESTAMP is that TIMESTAMP values are converted from the current time zone to UTC while storing, and converted back from UTC to the current time zone when accessd. The datetime data type value is unchanged.
+        */
+
+        $table->time('hora');
+        $table->year('birth_year');
+        $table->date('fecha')->first();
+        $table->datetime('vencimiento')->nullable()->after('num_real');
+        $table->timestamp('ts')->currentTimestamp()->comment('some comment')->first(); // solo un first
+
+
+        $table->softDeletes(); // agrega DATETIME deleted_at 
+        $table->datetimes();  // agrega DATETIME(s) no-nullables created_at y deleted_at
+
+        $table->integer('id')->auto()->unsigned()->pri();
+        $table->varchar('correo')->unique();
+
+        $table->foreign('factura_id')->references('id')->on('facturas')->onDelete('no action');
+        $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade')->onUpdate('restrict');
+
+        var_dump($table->getSchema());
+        /////exit;
+
+
+        echo $table->create();
+        /*
+        echo $table->renameColumn('codigo', 'binario');
+        echo $table->renameIndex('id', 'user_id');
+        echo $table->dropColumn('geo');
+        echo $table->dropIndex('bit');
+        echo $table->dropPrimary('bit');
+        echo $table->dropTable();
+        */
+        //echo $table->varchar('password', 30)->change();
+
     }
+
 }

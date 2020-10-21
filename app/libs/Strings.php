@@ -4,6 +4,44 @@ namespace simplerest\libs;
 
 class Strings {
 
+	    /*
+        preg_match destructivo
+
+        Va extrayendo substrings de acuerdo a un patrón procesado posteriormente por un callback
+        el substring desaparece de la cadena pasada por referencia 
+        el substring mutado es devuelto.
+
+        Aplica solo la primera ocurrencia.
+    */
+    static function slice(string &$str, string $pattern, callable $fn = NULL) {
+        if (preg_match($pattern,$str,$matches)){
+            $pos = strpos($str, $matches[1]) + strlen($matches[1]);
+            $str = substr($str, $pos);
+            
+            if ($fn != NULL)
+                $matches[1] = call_user_func($fn, $matches[1]);
+            
+            return $matches[1];
+        }
+    }
+
+    /*
+        preg_match destructivo
+
+        Va extrayendo substrings de acuerdo a un patrón procesado posteriormente por un callback
+        el substring desaparece de la cadena pasada por referencia. 
+
+        Aplica a todas las ocurrencias.
+     */
+    static function slice_all(string &$str, string $pattern) {
+        if (preg_match($pattern,$str,$matches)){
+            $pos = strpos($str, $matches[1]) + strlen($matches[1]);
+            $str = substr($str, $pos);
+            
+            return array_slice($matches, 1);
+        }
+    }
+
 	/*
 		WordAnother to word_another
 	*/
