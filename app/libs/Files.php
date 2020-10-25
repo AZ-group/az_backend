@@ -8,6 +8,8 @@ class Files {
 		if (is_array($data) || is_object($data))
 			$data = json_encode($data);
 		
+		$data = date("Y-m-d H:i:s"). "\t" .$data;
+
 		return file_put_contents(LOGS_PATH . $file, $data. "\n", FILE_APPEND);
 	}
 	

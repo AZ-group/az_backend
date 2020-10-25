@@ -22,7 +22,7 @@ class FrontController
         $config = Factory::config();
 
         //Time::setUnit('MILI');
-        //$t = Time::exec_speed(function() use ($config, &$api_version) { 
+        //$t = Time::exec(function() use ($config, &$api_version) { 
 
             Response::getInstance();    
             $sub = (int) $config['REMOVE_API_SLUG'];

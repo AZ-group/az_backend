@@ -15,7 +15,7 @@ class Time {
         static::$capture_buffer = true;
     }
 
-	static function exec_speed(callable $callback, int $iterations = 100000){
+	static function exec(callable $callback, int $iterations = 100000){
         $start = microtime(true);
     
         for ($i=0; $i<$iterations; $i++){

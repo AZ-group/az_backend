@@ -15,7 +15,8 @@ class Strings {
     */
     static function slice(string &$str, string $pattern, callable $fn = NULL) {
         if (preg_match($pattern,$str,$matches)){
-            $pos = strpos($str, $matches[1]) + strlen($matches[1]);
+
+			$pos = strpos($str, $matches[1]) + strlen($matches[1]);
             $str = substr($str, $pos);
             
             if ($fn != NULL)

@@ -12,7 +12,9 @@ use simplerest\libs\Debug;
 
 class Schema 
 {
+	protected $tables;
 	protected $tb_name;
+
 	protected $engine;
 	protected $charset = 'utf8';
 	protected $collation;
@@ -22,20 +24,37 @@ class Schema
 	protected $indices = []; // 'PRIMARY', 'UNIQUE', 'INDEX', 'FULLTEXT', 'SPATIAL'
 	protected $fks = [];
 	
+	protected $prev_schema;
+
 	function __construct($tb_name){
+		$this->tables = DB::select('SHOW TABLES', 'COLUMN');
 		$this->tb_name = $tb_name;
+		$this->fromDB();
 	}	
 
 	function setEngine(string $val){
 		$this->engine = $val;
+		return $this;
 	}
 
 	function setCharset(string $val){
 		$this->chartset = $val;
+		return $this;
 	}
 
 	function setCollation(string $val){
 		$this->collation = $val;
+		return $this;
+	}
+
+	function column(string $name){
+		$this->current_field = $name;
+		return $this;
+	}
+
+	function field(string $name){
+		$this->column($name);
+		return $this;
 	}
 	
 	// type
@@ -373,6 +392,12 @@ class Schema
 		$this->fields[$this->current_field]['collation'] = $val;
 		return $this;		
 	}
+
+	// alias
+	function collate(string $val){
+		$this->collation($val);
+		return $this;		
+	}
 	
 	function charset(string $val){
 		$this->fields[$this->current_field]['charset'] = $val;
@@ -569,8 +594,17 @@ class Schema
 		
 		return trim($cmd);
 	}
-	
-	function create(){
+
+	private function showTable(){
+		$conn = DB::getConnection();
+		
+		$stmt = $conn->query("SHOW CREATE TABLE `{$this->tb_name}`", \PDO::FETCH_ASSOC);
+		$res  = $stmt->fetch();
+		
+		return $res;
+	}
+		
+	function createTable(){
 		if (empty($this->fields))
 			throw new \Exception("No fields!");
 		
@@ -640,26 +674,100 @@ class Schema
 		//exit; //		
 				
 		$commands[] = 'COMMIT;';		
-				
-		return implode("\r\n",$commands)."\n";
+		$sql = implode("\r\n",$commands)."\n";
+
+		$conn = DB::getConnection();   
+        $st = $conn->prepare($sql);
+		$res = $st->execute(); 
+	}
+
+	// alias
+	function create(){
+		return $this->createTable();
 	}
 	
 	function dropTable(){
 		return "DROP TABLE `{$this->tb_name}`;\n";
 	}
-	
-	private function showTable(){
-		$conn = DB::getConnection();
-		
-		$stmt = $conn->query("SHOW CREATE TABLE `$table`", PDO::FETCH_ASSOC);
-		$res  = $stmt->fetch();
-		
-		return $res;
+
+	// TRUNCATE `az`.`xxy`
+	function truncateTable(string $tb){
+		return "TRUNCATE `{$this->tb_name}`.`$tb`;\n";
+	}
+
+	// RENAME TABLE `az`.`xxx` TO `az`.`xxy`;
+	function renameTable(string $ori, string $final){
+		return "RENAME TABLE `{$this->tb_name}`.`$ori` TO `{$this->tb_name}`.`$final`;\n";
+	}	
+
+
+	function dropColumn(string $name){
+		return "ALTER TABLE `{$this->tb_name}` DROP `$name`;\n";
+	}
+
+	// https://popsql.com/learn-sql/mysql/how-to-rename-a-column-in-mysql/
+	function renameColumn(string $ori, string $final){
+		return "ALTER TABLE `{$this->tb_name}` RENAME COLUMN `$ori` TO `$final`;\n";
 	}
 	
+
+	function addIndex(string $column){
+		return "ALTER TABLE `{$this->tb_name}` ADD INDEX(`$column`);\n";
+	}
+
+	function dropIndex(string $name){
+		return "ALTER TABLE `{$this->tb_name}` DROP INDEX `$name`;\n";
+	}
+
+	// https://stackoverflow.com/questions/1463363/how-do-i-rename-an-index-in-mysql
+	function renameIndex(string $ori, string $final){
+		return "ALTER TABLE `{$this->tb_name}` RENAME INDEX `$ori` TO `$final`;\n";
+	}
+
+
+	function addPrimary(string $column){
+		return "ALTER TABLE `{$this->tb_name}` ADD PRIMARY KEY(`$column`);\n";	
+	}
+		
+	// implica primero remover el AUTOINCREMENT sobre el campo !
+	// ej: ALTER TABLE `super_cool_table` CHANGE `id` `id` INT(11) NOT NULL;
+	function dropPrimary(string $name){
+		return "ALTER TABLE `$name` DROP PRIMARY KEY;\n";
+	}
+
+
+	function addUnique(string $column){
+		return "ALTER TABLE `{$this->tb_name}` ADD UNIQUE(`$column`);\n";
+	}
+		
+	function dropUnique(string $name){
+		return "ALTER TABLE `$name` DROP UNIQUE;\n";
+	}
+
+
+	#
+	# Hay operaciones muy complejas para realizarse con un sola función porque llevarían
+	# demasiados parámetros:
+	#
+	# addColumn()
+	# addAutoIncrement()
+	# removeAutoIncrement()
+	#
+	#
+
 	// From DB
-	private function fromDB(){
-		$lines = explode("\n", $this->showTable()["Create Table"]);
+	protected function fromDB(){
+		if (!in_array($this->tb_name, $this->tables)){
+			return;
+		}
+
+		$table_def = $this->showTable();
+
+		if ($table_def == NULL){
+			throw new \Exception("[ Fatal error ] Table definition could not be recovered");
+		}
+
+		$lines = explode("\n", $table_def["Create Table"]);
 		$lines = array_map(function($l){ return trim($l); }, $lines);
 		
 		$fields = [];
@@ -667,8 +775,8 @@ class Schema
 		for ($i=1; $i<$cnt; $i++){
 			$str = $lines[$i];
 			
-			if ($lines[$i][0] == '`'){
-
+			if ($lines[$i][0] == '`')
+			{
 				$field 		= NULL;
 				$type  		= NULL;
 				$array		= NULL;				
@@ -691,10 +799,15 @@ class Schema
 				
 				$charset    = Strings::slice($str, '/CHARACTER SET ([a-z0-9_]+)/');
 				$collation  = Strings::slice($str, '/COLLATE ([a-z0-9_]+)/');
-				$nullable   = Strings::slice($str, '/(NULL|NOT NULL)/');
-				$default    = Strings::slice($str, '/DEFAULT ([a-zA-Z0-9_\(\)]+)/');
-				$auto       = Strings::slice($str, '/(AUTO_INCREMENT)/');
 				
+				$default    = Strings::slice($str, '/DEFAULT ([a-zA-Z0-9_\(\)]+)/');
+				//Debug::dd($default, 'DEFAULT');
+
+				$nullable   = Strings::slice($str, '/(NOT NULL)/') == NULL;
+				$auto       = Strings::slice($str, '/(AUTO_INCREMENT)/');
+				//Debug::dd($nullable, "NULLABLE($field)");
+
+
 				// [CONSTRAINT [symbol]] CHECK (expr) [[NOT] ENFORCED]	
 				$check      = Strings::slice($str, '/CHECK (\(.*)/', function($s){
 					$s = substr($s, 1);
@@ -712,112 +825,127 @@ class Schema
 				
 				//if (strlen($str)>1)
 				//	throw new \Exception("Parsing error!");				
-				
-				Debug::dd($lines[$i]);
-				Debug::dd($field);
-				Debug::dd($type);
-				Debug::dd($array);
-				Debug::dd($len);
-				Debug::dd($charset);
-				Debug::dd($collation);
-				Debug::dd($nullable);
-				Debug::dd($default);
-				Debug::dd($auto);
-				Debug::dd($check);
+			
+				/*
+				Debug::dd($field, 'FIELD ***');
+				Debug::dd($lines[$i], 'LINES');
+				Debug::dd($type, 'TYPE');
+				Debug::dd($array, 'ARRAY / SET');
+				Debug::dd($len, 'LEN');
+				Debug::dd($charset, 'CHARSET');
+				Debug::dd($collation, 'COLLATION');
+				Debug::dd($nullable, 'NULLBALE');
+				Debug::dd($default, 'DEFAULT');
+				Debug::dd($auto, 'AUTO');
+				Debug::dd($check, 'CHECK');
 				echo "-----------\n";
+				*/					
+
+				$this->prev_schema['fields'][$field]['type'] = strtoupper($type);
+				$this->prev_schema['fields'][$field]['auto'] = $auto; 
+				//$this->prev_schema['fields'][$field]['attr'] = ...
+				$this->prev_schema['fields'][$field]['len'] = $len;
+				$this->prev_schema['fields'][$field]['nullable'] = $nullable;
+				$this->prev_schema['fields'][$field]['charset'] = $charset;
+				$this->prev_schema['fields'][$field]['collation'] = $collation;
+				$this->prev_schema['fields'][$field]['default'] = $default;
+				// $this->prev_schema['fields'][$field]['after'] =  ...
+				// $this->prev_schema['fields'][$field]['first'] = ...
+
 			}else{
 				// son índices de algún tipo
-				Debug::dd($str);
+				//Debug::dd($str);
 				
 				$primary = Strings::slice($str, '/PRIMARY KEY \(`([a-zA-Z0-9_]+)`\)/');				
 				$unique  = Strings::slice_all($str, '/UNIQUE KEY `([a-zA-Z0-9_]+)` \(`([a-zA-Z0-9_]+)`\)/');
 				$index   = Strings::slice_all($str, '/KEY `([a-zA-Z0-9_]+)` \(`([a-zA-Z0-9_]+)`\)/');
 				
+				/*
 				Debug::dd($primary);
 				Debug::dd($unique);
 				Debug::dd($index);
-				echo "-----------\n";				
+				echo "-----------\n";
+				*/	
+				
+				if ($primary != NULL){
+					$this->prev_schema['indices'][$field] = 'PRIMARY';
+				} elseif ($unique != NULL){
+					$this->prev_schema['indices'][$field] = 'UNIQUE';
+				}if ($index != NULL){
+					$this->prev_schema['indices'][$field] = 'INDEX';
+				}
 			}
 		}
 		
-		/*
-			[fields]
-			[indices]
-		*/
-		
-		//return $arr;
 	}
 	
 	// ALTER TABLE `users` CHANGE `lastname` `lastname` VARCHAR(80) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL;
 	
 	// ALTER TABLE `users` CHANGE `id` `id` INT(20) UNSIGNED NOT NULL;
-	function change(){
-		
-		$this->fromDB();  
-		exit; ////////////
-		
-		$name  = $this->current_field;		
-		$field = $this->fields[$this->current_field];
-		
-		$charset   = "CHARACTER SET {$this->charset}";
-		$collation = "COLLATE {$this->collation}";
-		
-		$def = "{$this->fields[$this->current_field]['type']}";		
-		if (in_array($field['type'], ['SET', 'ENUM'])){
-			$values = implode(',', array_map(function($e){ return "'$e'"; }, $field['array']));	
-			$def .= "($values) ";
-		}else{
-			if (isset($field['len'])){
-				$len = implode(',', (array) $field['len']);	
-				$def .= "($len) ";
-			}else
-				$def .= " ";	
-		}
-		
-		if (isset($field['attr'])){
-			$def .= "{$field['attr']} ";
-		}
-		
-		if (in_array($field['type'], ['CHAR', 'VARCHAR', 'TEXT', 'TINYTEXT', 'MEDIUMTEXT', 'LONGTEXT', 'JSON', 'SET', 'ENUM'])){
-			$def .= "$charset $collation ";	
-		}		
-		
-		if (isset($field['nullable'])){
-			$def .= "{$field['nullable']} ";
-		}else
-			$def .= "NOT NULL ";
-			
-		if (isset($field['default'])){
-			$def .= "DEFAULT {$field['default']} ";
-		}
-		
-		$def = trim($def);
-		
-		return "ALTER TABLE `{$this->tb_name}` CHANGE `$name` `$name` $def;\n";
-	}	
-	
-	// https://popsql.com/learn-sql/mysql/how-to-rename-a-column-in-mysql/
-	function renameColumn($ori, $final){
-		return "ALTER TABLE `{$this->tb_name}` RENAME COLUMN `$ori` TO `$final`;\n";
-	}
-	
-	// https://stackoverflow.com/questions/1463363/how-do-i-rename-an-index-in-mysql
-	function renameIndex($ori, $final){
-		return "ALTER TABLE `{$this->tb_name}` RENAME INDEX `$ori` TO `$final`;\n";
-	}
-		
-	function dropColumn($name){
-		return "ALTER TABLE `{$this->tb_name}` DROP `$name`;\n";
-	}
-	
-	function dropIndex($name){
-		return "ALTER TABLE `{$this->tb_name}` DROP INDEX `$name`;\n";
-	}
-	
-	function dropPrimary($name){
-		return "ALTER TABLE `{$this->tb_name}` DROP PRIMARY INDEX `$name`;\n";
-	}
+	function change()
+	{	
+		$changes = [];
 
+		foreach ($this->fields as $name => $field){
+
+			$this->fields[$name]  = array_merge($this->prev_schema['fields'][$name], $this->fields[$name]);
+			$this->indices[$name] = $this->prev_schema['indices'][$name] ?? NULL;
+			//$this->fields[$name]['charset'] = $this->prev_schema[$name]['charset'] ?? $this->;
+			//$this->fields[$name]['collation'] = $this->prev_schema[$name]['collation'] ?? NULL;
+
+			$field = $this->fields[$name];
+
+			//Debug::dd($this->fields[$name]);
+			//exit;
+
+			$charset   = isset($field['charset']) ? "CHARACTER SET {$field['charset']}" : '';
+			$collation = isset($field['collation']) ? "COLLATE {$field['collation']}" : '';
+			
+			$def = "{$this->fields[$name]['type']}";		
+			if (in_array($field['type'], ['SET', 'ENUM'])){
+				$values = implode(',', array_map(function($e){ return "'$e'"; }, $field['array']));	
+				$def .= "($values) ";
+			}else{
+				if (isset($field['len'])){
+					$len = implode(',', (array) $field['len']);	
+					$def .= "($len) ";
+				}else
+					$def .= " ";	
+			}
+			
+			if (isset($field['attr'])){
+				$def .= "{$field['attr']} ";
+			}
+			
+			if (in_array($field['type'], ['CHAR', 'VARCHAR', 'TEXT', 'TINYTEXT', 'MEDIUMTEXT', 'LONGTEXT', 'JSON', 'SET', 'ENUM'])){
+				$def .= "$charset $collation ";	
+			}		
+			
+			if ($field['nullable']){
+				$def .= "NULL ";
+			} else {		
+				$def .= "NOT NULL ";
+			}	
+				
+			if (isset($field['default'])){
+				$def .= "DEFAULT {$field['default']} ";
+			} 
+			
+			$def = trim(preg_replace('!\s+!', ' ', $def));
+			
+			$changes[] = "ALTER TABLE `{$this->tb_name}` CHANGE `$name` `$name` $def;";
+		}
+
+
+		$conn = DB::getConnection();   
+
+		DB::transaction(function() use($changes, $conn) {
+			foreach($changes as $change){     
+				$st = $conn->prepare($change);
+				$res = $st->execute();
+			}
+		});
+	}	
 	
 	// reflexion
 	

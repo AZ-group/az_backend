@@ -440,7 +440,7 @@ class MakeController extends Controller
         $_attr_types = [];
         $_rules  = [];
         foreach ($types as $f => $type){
-            $_attr_types[] = "\t\t\t'$f' => '$type'";
+            $_attr_types[] = "\t\t\t\t'$f' => '$type'";
 
             if (preg_match('/^varchar\(([0-9]+)\)$/', $types_raw[$f], $matches)){
                 $len = $matches[1];
@@ -448,7 +448,7 @@ class MakeController extends Controller
             }
         }
 
-        $attr_types = "[\r\n". implode(",\r\n", $_attr_types). "\r\n\t\t]";
+        $attr_types = "[\r\n". implode(",\r\n", $_attr_types). "\r\n\t\t\t]";
         $rules  = "[\r\n". implode(",\r\n", $_rules). "\r\n\t\t\t]";
 
         if ($uuid){

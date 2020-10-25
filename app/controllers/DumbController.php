@@ -79,17 +79,29 @@ class DumbController extends Controller
         Debug::dd($m->getSchema());
     }
 
-    function get_bar(){
-        Debug::dd(DB::table('bar')
-        // ->assoc()
-        ->get());
+    function get_bar0(){
+        $m = (new Model(true))
+            ->table('bar')  
+            ->where(['uuid', '0fefc2b1-f0d3-47aa-a875-5dbca85855f9']);
+            
+        Debug::dd($m->get());
+    }
+
+    function get_bar1(){
+        $m = DB::table('bar')
+         // ->assoc()
+        ->where(['uuid', '0fefc2b1-f0d3-47aa-a875-5dbca85855f9']);
+       
+        Debug::dd($m->get());
     }
 
     function get_bar2(){
-        Debug::dd((new BarModel())
+        $m = (new BarModel())
         ->connect()
         // ->assoc()
-        ->get());
+        ->where(['uuid', '0fefc2b1-f0d3-47aa-a875-5dbca85855f9']);
+        
+        Debug::dd($m->get());
     }
     
 
@@ -213,7 +225,7 @@ class DumbController extends Controller
 
             $id = DB::table('products')->create([ 
                 'name' => $name, 
-                'description' => 'Esto es una prueba!!!', 
+                'description' => 'bla bla bla', 
                 'size' => rand(1,5).'L',
                 'cost' => rand(0,500),
                 'belongs_to' => 90
@@ -224,11 +236,9 @@ class DumbController extends Controller
             DB::commit();
 
         } catch (\Exception $e) {
-            echo 'ACA';
             DB::rollback();
             throw $e;
         } catch (\Throwable $e) {
-            echo 'ACA 2';
             DB::rollback();            
         }            
     }
@@ -1735,7 +1745,7 @@ class DumbController extends Controller
         ];
 
         Time::setUnit('MILI');
-        $t1 = Time::exec_speed(function() use($data, $rules){ 
+        $t1 = Time::exec(function() use($data, $rules){ 
             Factory::validador()->validate($rules,$data);
         }, 100); 
         
@@ -1806,7 +1816,7 @@ class DumbController extends Controller
         //Time::noOutput();
         
         $conn = DB::getConnection();
-        $t = Time::exec_speed(function() use ($conn){         
+        $t = Time::exec(function() use ($conn){         
             $sql = "INSERT INTO `baz2` (`name`, `cost`) VALUES ('hhh', '789')";
             $conn->exec($sql);
         }, 1);  
@@ -1816,7 +1826,7 @@ class DumbController extends Controller
 
         $m = (new Model(true))
         ->table('baz2');
-        $t = Time::exec_speed(function() use ($m){             
+        $t = Time::exec(function() use ($m){             
             //$m->setValidator(new Validator());
             //$m->dontExec();
 
@@ -1836,7 +1846,7 @@ class DumbController extends Controller
         $this->model_name  = null;
         $this->model_table = 'users';
 
-        $t = Time::exec_speed(function(){ 
+        $t = Time::exec(function(){ 
             
             $id = DB::table('collections')->create([
                 'entity' => 'messages',
@@ -1850,97 +1860,231 @@ class DumbController extends Controller
     }
 
 
+    function speed_show()
+    {
+        Time::setUnit('MILI');
+
+        $m = (new Model(true))
+            ->table('bar')  
+            ->where(['uuid', '0fefc2b1-f0d3-47aa-a875-5dbca85855f9'])
+            ->select(['uuid', 'price']);
+
+        //Debug::dd($m->dd());
+        //exit;     
+
+        $t = Time::exec(function() use($m) {
+            $row = $m->get();
+        }, 1);
+
+        //Debug::dd("Time: $t ms");
+        Files::logger("Time(show) : $t ms");
+    }
+
+    function speed_list()
+    {
+        Time::setUnit('MILI');
+
+        $m = (new Model(true))
+            ->table('bar')  
+            ->select(['uuid', 'price'])
+            ->take(10);
+
+        //Debug::dd($m->dd());
+        //exit;         
+
+        $t = Time::exec(function() use($m) {
+            $row = $m->get();
+        }, 1);
+
+        //Debug::dd("Time: $t ms");
+        Files::logger("Time(list) : $t ms");
+    }
+
+    function get_bulk(){
+        $t1a = [];
+        $t2a = [];
+
+        Time::setUnit('MILI');
+
+        $m1 = (new Model(true))
+            ->table('bar')  
+            ->select(['uuid', 'price'])
+            ->take(10);
+
+        $m2 = (new Model(true))
+            ->table('bar')  
+            ->where(['uuid', '0fefc2b1-f0d3-47aa-a875-5dbca85855f9'])
+            ->select(['uuid', 'price']);    
+
+        //Debug::dd($m->dd());
+        //exit;         
+
+        $m3 = DB::select("SELECT AVG(price) FROM bar;");
+
+        for ($i=0; $i<4; $i++){
+            $t1a[] = Time::exec(function() use($m1) {
+                $m1->get();
+            }, 500);
+
+            $t2a[] = Time::exec(function() use($m2) {
+                $m2->get();
+            }, 500);
+        }    
+            
+        foreach ($t1a as $t1){
+            Files::logger("Time(list) : $t1 ms");
+        }
+
+        foreach ($t2a as $t2){
+            Files::logger("Time(show) : $t2 ms");;
+        }    
+    }
+
+    function create(){
+        $m = (new BarModel(true));
+
+        $name = '    ';
+        for ($i=0;$i<46;$i++)
+            $name .= chr(rand(97,122));
+
+        $name = str_shuffle($name);
+
+        $email = '@';
+        $cnt = rand(10,78);
+        for ($i=0;$i<$cnt;$i++)
+            $email .= chr(rand(97,122));    
+
+        $email =  chr(rand(97,122)) . str_shuffle($email);
+
+        $data = [
+            'name' => $name,
+            'price' => rand(5,999) . '.' . rand(0,99),
+            'email' => $email,
+            'belongs_to' => 1
+        ];
+
+        $id = $m->create($data);
+        
+        //Debug::dd($data, 'DATA');
+        //Debug::dd($id, 'ID');
+    }
+
+
+    function create_bulk(){
+        for ($i=0; $i<10000; $i++){
+            $this->create();
+            usleep((450 + rand(50, 150)) * 1000);
+        }
+    }
+
+
     /*
 
-    https://www.w3resource.com/mysql/mysql-data-types.php
-    https://manuales.guebs.com/mysql-5.0/spatial-extensions.html
+        https://www.w3resource.com/mysql/mysql-data-types.php
+        https://manuales.guebs.com/mysql-5.0/spatial-extensions.html
 
     */
-    function test()
+    function create_table()
     {       
-        $table = new Schema('facturas');
+        $sc = new Schema('facturas');
 
-        $table->setEngine('InnoDB');
-        $table->setCharset('utf8');
-        $table->setCollation('utf8_general_ci');
+        $sc->setEngine('InnoDB');
+        $sc->setCharset('utf8');
+        $sc->setCollation('utf8_general_ci');
 
-        $table->serial('id')->pri();
-        $table->int('edad')->unsigned();
-        $table->varchar('firstname');
-        $table->varchar('lastname')->nullable()->charset('utf8')->collation('utf8_unicode_ci');
-        $table->varchar('username')->unique();
-        $table->varchar('password', 128);
-        $table->char('password_char');
-        $table->varbinary('texto_vb', 300);
+        $sc->serial('id')->pri();
+        $sc->int('edad')->unsigned();
+        $sc->varchar('firstname');
+        $sc->varchar('lastname')->nullable()->charset('utf8')->collation('utf8_unicode_ci');
+        $sc->varchar('username')->unique();
+        $sc->varchar('password', 128);
+        $sc->char('password_char');
+        $sc->varbinary('texto_vb', 300);
 
         // BLOB and TEXT columns cannot have DEFAULT values.
-        $table->text('texto');
-        $table->tinytext('texto_tiny');
-        $table->mediumtext('texto_md');
-        $table->longtext('texto_long');
-        $table->blob('codigo');
-        $table->tinyblob('blob_tiny');
-        $table->mediumblob('blob_md');
-        $table->longblob('blob_long');
-        $table->binary('bb', 255);
-        $table->json('json_str');
+        $sc->text('texto');
+        $sc->tinytext('texto_tiny');
+        $sc->mediumtext('texto_md');
+        $sc->longtext('texto_long');
+        $sc->blob('codigo');
+        $sc->tinyblob('blob_tiny');
+        $sc->mediumblob('blob_md');
+        $sc->longblob('blob_long');
+        $sc->binary('bb', 255);
+        $sc->json('json_str');
 
         
-        $table->int('karma')->default(100);
-        $table->int('code')->zeroFill();
-        $table->bigint('big_num');
-        $table->bigint('ubig')->unsigned();
-        $table->mediumint('medium');
-        $table->smallint('small');
-        $table->tinyint('tiny');
-        $table->decimal('saldo');
-        $table->float('flotante');
-        $table->double('doble_p');
-        $table->real('num_real');
+        $sc->int('karma')->default(100);
+        $sc->int('code')->zeroFill();
+        $sc->bigint('big_num');
+        $sc->bigint('ubig')->unsigned();
+        $sc->mediumint('medium');
+        $sc->smallint('small');
+        $sc->tinyint('tiny');
+        $sc->decimal('saldo');
+        $sc->float('flotante');
+        $sc->double('doble_p');
+        $sc->real('num_real');
 
-        $table->bit('some_bits', 3)->index();
-        $table->boolean('active')->default(1);
-        $table->boolean('paused')->default(true);
+        $sc->bit('some_bits', 3)->index();
+        $sc->boolean('active')->default(1);
+        $sc->boolean('paused')->default(true);
 
-        $table->set('flavors', ['strawberry', 'vanilla']);
-        $table->enum('role', ['admin', 'normal']);
+        $sc->set('flavors', ['strawberry', 'vanilla']);
+        $sc->enum('role', ['admin', 'normal']);
 
 
         /*
             The major difference between DATETIME and TIMESTAMP is that TIMESTAMP values are converted from the current time zone to UTC while storing, and converted back from UTC to the current time zone when accessd. The datetime data type value is unchanged.
         */
 
-        $table->time('hora');
-        $table->year('birth_year');
-        $table->date('fecha')->first();
-        $table->datetime('vencimiento')->nullable()->after('num_real');
-        $table->timestamp('ts')->currentTimestamp()->comment('some comment')->first(); // solo un first
+        $sc->time('hora');
+        $sc->year('birth_year');
+        $sc->date('fecha')->first();
+        $sc->datetime('vencimiento')->nullable()->after('num_real');
+        $sc->timestamp('ts')->currentTimestamp()->comment('some comment')->first(); // solo un first
 
 
-        $table->softDeletes(); // agrega DATETIME deleted_at 
-        $table->datetimes();  // agrega DATETIME(s) no-nullables created_at y deleted_at
+        $sc->softDeletes(); // agrega DATETIME deleted_at 
+        $sc->datetimes();  // agrega DATETIME(s) no-nullables created_at y deleted_at
 
-        $table->integer('id')->auto()->unsigned()->pri();
-        $table->varchar('correo')->unique();
+        $sc->integer('id')->auto()->unsigned()->pri();
+        $sc->varchar('correo')->unique();
 
-        $table->foreign('factura_id')->references('id')->on('facturas')->onDelete('no action');
-        $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade')->onUpdate('restrict');
+        $sc->foreign('factura_id')->references('id')->on('facturas')->onDelete('no action');
+        $sc->foreign('user_id')->references('id')->on('users')->onDelete('cascade')->onUpdate('restrict');
 
-        var_dump($table->getSchema());
+        //Debug::dd($sc->getSchema(), 'SCHEMA');
         /////exit;
 
+        $sc->create();
+    }    
 
-        echo $table->create();
+
+    function alter_table()
+    {       
+        $sc = new Schema('facturas');
+
+        //Debug::dd($sc->getSchema());
+
+        $res = $sc
+        ->timestamp('vencimiento')
+        ->varchar('lastname', 50)->collate('utf8_esperanto_ci')
+        ->varchar('username', 50)
+        ->column('ts')->nullable()
+        ->field('deleted_at')->nullable()
+        //->field('correo')->unique()
+        
         /*
-        echo $table->renameColumn('codigo', 'binario');
-        echo $table->renameIndex('id', 'user_id');
-        echo $table->dropColumn('geo');
-        echo $table->dropIndex('bit');
-        echo $table->dropPrimary('bit');
-        echo $table->dropTable();
+        echo $sc->renameColumn('codigo', 'binario');
+        echo $sc->renameIndex('id', 'user_id');
+        echo $sc->dropColumn('geo');
+        echo $sc->dropIndex('bit');
+        echo $sc->dropPrimary('bit');
+        echo $sc->dropTable();
         */
-        //echo $table->varchar('password', 30)->change();
-
+        
+        ->change();
     }
 
 }

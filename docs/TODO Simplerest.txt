@@ -51,7 +51,57 @@ En general:
   - Un campo puede cambiar de tipo  
 
 
+Se propone en el Schema donde vaya a haber cambios agregar una transición:
+
+    // cambios críticos
+    function getTransition(){
+      return [
+        // cambia de nombre
+        'table_name' => 'bar_r',
+
+        // renombrado de atributos
+        // old -> new
+        'attributes' => [
+          'price' => 'cost',
+          'email' => 'correo'
+        ],
+
+        // cambio de constante para PDO
+        'attr_types'	=> [
+          'price' => 'INT'
+        ],
+
+        // se vuelven no-nullables
+        'not_nullable'		=> [
+          'updated_at'
+        ],
+
+        // nuevas reglas
+        'rules'	=> [
+          'name' => ['max' => 45], // más restrictiva
+          'email' => ['max' => 100]
+        ]
+
+      ];	
+
+      // <-- también el id_name podría cambiar 
+    }
+
+
 https://blog.staffjoy.com/dont-migrate-databases-automatically-5039ab061365
+
+
+- Leer :
+
+https://docs.djangoproject.com/en/3.1/topics/migrations/
+https://docs.microsoft.com/en-us/ef/ef6/modeling/code-first/migrations/
+
+
+- Evaluar usar PERCONA para hacer cambios de Schema (típicamente via migraciones) en producción sin bloquear lecturas ni escrituras.
+
+https://www.percona.com/doc/percona-toolkit/2.1/pt-online-schema-change.html
+https://federico-razzoli.com/advice-for-mysql-mariadb-live-migrations
+https://medium.com/@gauraangkhurana/percona-pt-online-schema-change-performance-1def5866b43
 
 
 - Si un registro fue bloqueado por un admin (alguien con permiso de lock) no debería siquiera poder verse en la papelera informando: "locked by an admin"

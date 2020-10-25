@@ -35,6 +35,9 @@ class Debug
 			$v = $v ? 'true' : 'false';
 		}	
 
+		
+		ob_start();
+
 		if (!empty($msg)){
 			echo "--[ $msg ]-- ". $br;
 		}
@@ -48,6 +51,11 @@ class Debug
 		if ($cli || $postman){
 			echo $p;
 		}
+
+		$ret = ob_get_contents();
+		ob_end_clean();
+
+		return $ret;
 	}	
 
 	static public function dd($var, $msg = null){
@@ -58,14 +66,16 @@ class Debug
 		if (Url::is_postman()){
 			$pre = false;
 		}
-		
+
 		if ($pre) {
 			self::pre(function() use ($var, $msg){ 
-				self::export($var, $msg); 
+				$ret = self::export($var, $msg); 
 			});
 		} else {
-			self::export($var, $msg);
-		}		
+			$ret = self::export($var, $msg);
+		}
+		
+		echo $ret;
 	}
 
 }

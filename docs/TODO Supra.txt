@@ -10,5 +10,13 @@ TODO de proyecto 'Supra'
     - Diagramas UML 
 
 
+- Crear extensión para FireFox / Chrome que:
+
+    - Detecte el framework de CSS (Bootstrap, Materialize, etc)
+    - Permita seleccionar bloques como sections o divs y extraerlos como "componentes" con todos sus estilos.
+
+https://stackoverflow.com/a/4164148/980631    
+
+
 
 

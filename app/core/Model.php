@@ -26,15 +26,6 @@ class Model {
 	// Schema
 	protected $schema;
 
-	/*
-	protected $table_name;
-	protected $id_name;
-	protected $attr_types   = [];
-	protected $nullable = [];
-	protected $rules = [];
-	*/
-	
-	protected $not_nullable = [];
 	protected $fillable = [];
 	protected $not_fillable = [];
 	protected $hidden   = [];

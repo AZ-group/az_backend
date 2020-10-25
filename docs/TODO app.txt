@@ -1,4 +1,12 @@
 
+- Es buena idea -según corresponda- crear índices para: 
+
+    created_at  <-- en especial con UUID
+    updated_at
+    deleted_at
+
+Considerar que se vuelve aún más importante para poder encontrar el último registro creado el campo created_at ya que no hay una PRT KEY autoincremental como es el caso cuando se usa UUID.
+
 - Gráficos con Plotly
 
 https://www.npmjs.com/package/vue-plotly
