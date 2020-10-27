@@ -1994,7 +1994,7 @@ class DumbController extends Controller
 
         ->int('edad')->unsigned()
         ->varchar('firstname')
-        ->serial('id')->pri()->first()
+        ->serial('id')->pri()
         ->varchar('lastname')->nullable()->charset('utf8')->collation('utf8_unicode_ci')
         ->varchar('username')->unique()
         ->varchar('password', 128)
@@ -2052,14 +2052,16 @@ class DumbController extends Controller
         ->varchar('correo')->unique()
 
         ->int('user_id')->index()
-        ->foreign('user_id')->references('id')->on('users')->onDelete('cascade')->onUpdate('restrict');
+        ->foreign('user_id')->references('id')->on('users')->onDelete('cascade')->onUpdate('restrict')
+        
+        ;
 
         //Debug::dd($sc->getSchema(), 'SCHEMA');
         /////exit;
 
         $res = $sc->create();
         Debug::dd($res, 'Succeded?');
-        var_dump($sc->dd());
+        //var_dump($sc->dd());
     }    
 
     function create_table_fail()
@@ -2069,10 +2071,11 @@ class DumbController extends Controller
         $sc->setEngine('InnoDB');
         $sc->setCharset('utf8');
         $sc->setCollation('utf8_general_ci');
-;
+
+        $sc->integer('id')->unsigned()->auto();
         $sc->int('edad')->unsigned();
         $sc->varchar('firstname');
-        $sc->serial('sid');
+       // $sc->serial('sid');
         $sc->varchar('lastname')->nullable()->charset('utf8')->collation('utf8_unicode_ci');
         $sc->varchar('username')->unique();
         $sc->varchar('password', 128);
@@ -2126,19 +2129,18 @@ class DumbController extends Controller
         $sc->softDeletes(); // agrega DATETIME deleted_at 
         $sc->datetimes();  // agrega DATETIME(s) no-nullables created_at y deleted_at
 
-        $sc->integer('id')->auto()->unsigned()
-        ;
+       
         $sc->varchar('correo')->unique();
 
-        $sc->foreign('factura_id')->references('id')->on('facturas')->onDelete('no action');
-        $sc->foreign('user_id')->references('id')->on('users')->onDelete('cascade')->onUpdate('restrict');
+        $sc->int('user_id')->index();
+        //$sc->foreign('user_id')->references('id')->on('users')->onDelete('cascade')->onUpdate('restrict');
 
         //Debug::dd($sc->getSchema(), 'SCHEMA');
         //exit; //
 
         $res = $sc->create();
         Debug::dd($res, 'Excecuted?');
-        var_dump($sc->dd());
+        //var_dump($sc->dd());
     }    
 
     function alter_table()

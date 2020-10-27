@@ -628,8 +628,10 @@ class Schema
 		
 		$commands = [
 			'SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";',
+			/*
 			'SET AUTOCOMMIT = 0;',
 			'START TRANSACTION;',
+			*/
 			'SET time_zone = "+00:00";'
 		];
 	
@@ -686,19 +688,41 @@ class Schema
 			$on_delete = !empty($fk['on_delete']) ? 'ON DELETE '.$fk['on_delete'] : '';
 			$on_update = !empty($fk['on_update']) ? 'ON UPDATE '.$fk['on_update'] : '';
 			
-			$commands[] = trim("ALTER TABLE  `{$this->tb_name}` ADD FOREIGN KEY `($name)` REFERENCES `{$fk['on']}` (`{$fk['references']}`) {$fk['on']} $on_delete $on_update").';';
+			$commands[] = trim("ALTER TABLE  `{$this->tb_name}` ADD FOREIGN KEY (`$name`) REFERENCES `{$fk['on']}` (`{$fk['references']}`) $on_delete $on_update").';';
 		}
 		//exit; //		
 				
-		$commands[] = 'COMMIT;';		
+		//$commands[] = 'COMMIT;';		
 		$this->commands = $commands;
 		$this->query = implode("\r\n",$this->commands)."\n";
 
 		$conn = DB::getConnection();   
-        $st = $conn->prepare($this->query);
-		$ret = $st->execute();
-		
-		return $ret;
+	  
+		$rollback = function() use ($conn){
+			$st = $conn->prepare("DROP TABLE `{$this->tb_name}`;");
+			$res = $st->execute();
+		};
+
+		try {
+			foreach($this->commands as $change){     
+				$st = $conn->prepare($change);
+				$res = $st->execute();
+			}
+
+		} catch (\PDOException $e) {
+			Debug::dd($change, 'SQL with error');
+			Debug::dd($e->getMessage(), "PDO error");
+			$rollback();
+			throw $e;		
+        } catch (\Exception $e) {
+			$rollback();
+            throw $e;
+        } catch (\Throwable $e) {
+            $rollback();
+            throw $e;   
+        }     
+
+		return true;
 	}
 
 	// alias
