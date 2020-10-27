@@ -1986,6 +1986,84 @@ class DumbController extends Controller
     */
     function create_table()
     {       
+        $sc = (new Schema('facturas'))
+
+        ->setEngine('InnoDB')
+        ->setCharset('utf8')
+        ->setCollation('utf8_general_ci')
+
+        ->int('edad')->unsigned()
+        ->varchar('firstname')
+        ->serial('id')->pri()->first()
+        ->varchar('lastname')->nullable()->charset('utf8')->collation('utf8_unicode_ci')
+        ->varchar('username')->unique()
+        ->varchar('password', 128)
+        ->char('password_char')->nullable()
+        ->varbinary('texto_vb', 300)
+
+        // BLOB and TEXT columns cannot have DEFAULT values.
+        ->text('texto')
+        ->tinytext('texto_tiny')
+        ->mediumtext('texto_md')
+        ->longtext('texto_long')
+        ->blob('codigo')
+        ->tinyblob('blob_tiny')
+        ->mediumblob('blob_md')
+        ->longblob('blob_long')
+        ->binary('bb', 255)
+        ->json('json_str')
+
+        
+        ->int('karma')->default(100)
+        ->int('code')->zeroFill()
+        ->bigint('big_num')
+        ->bigint('ubig')->unsigned()
+        ->mediumint('medium')
+        ->smallint('small')
+        ->tinyint('tiny')
+        ->decimal('saldo')
+        ->float('flotante')
+        ->double('doble_p')
+        ->real('num_real')
+
+        ->bit('some_bits', 3)->index()
+        ->boolean('active')->default(1)
+        ->boolean('paused')->default(true)
+
+        ->set('flavors', ['strawberry', 'vanilla'])
+        ->enum('role', ['admin', 'normal'])
+
+
+        /*
+            The major difference between DATETIME and TIMESTAMP is that TIMESTAMP values are converted from the current time zone to UTC while storing, and converted back from UTC to the current time zone when accessd. The datetime data type value is unchanged.
+        */
+
+        ->time('hora')
+        ->year('birth_year')
+        ->date('fecha')
+        ->datetime('vencimiento')->nullable()->after('num_real') /* no está funcionando el AFTER */
+        ->timestamp('ts')->currentTimestamp()->comment('some comment') // solo un first
+
+
+        ->softDeletes() // agrega DATETIME deleted_at 
+        ->datetimes()  // agrega DATETIME(s) no-nullables created_at y deleted_at
+
+        ->integer('id')->auto()->unsigned()->pri()
+        ->varchar('correo')->unique()
+
+        ->int('user_id')->index()
+        ->foreign('user_id')->references('id')->on('users')->onDelete('cascade')->onUpdate('restrict');
+
+        //Debug::dd($sc->getSchema(), 'SCHEMA');
+        /////exit;
+
+        $res = $sc->create();
+        Debug::dd($res, 'Succeded?');
+        var_dump($sc->dd());
+    }    
+
+    function create_table_fail()
+    {       
         $sc = new Schema('facturas');
 
         $sc->setEngine('InnoDB');
@@ -1994,7 +2072,7 @@ class DumbController extends Controller
 ;
         $sc->int('edad')->unsigned();
         $sc->varchar('firstname');
-        $sc->serial('id')->pri();
+        $sc->serial('sid');
         $sc->varchar('lastname')->nullable()->charset('utf8')->collation('utf8_unicode_ci');
         $sc->varchar('username')->unique();
         $sc->varchar('password', 128);
@@ -2048,19 +2126,20 @@ class DumbController extends Controller
         $sc->softDeletes(); // agrega DATETIME deleted_at 
         $sc->datetimes();  // agrega DATETIME(s) no-nullables created_at y deleted_at
 
-        $sc->integer('id')->auto()->unsigned()->pri();
+        $sc->integer('id')->auto()->unsigned()
+        ;
         $sc->varchar('correo')->unique();
 
         $sc->foreign('factura_id')->references('id')->on('facturas')->onDelete('no action');
         $sc->foreign('user_id')->references('id')->on('users')->onDelete('cascade')->onUpdate('restrict');
 
         //Debug::dd($sc->getSchema(), 'SCHEMA');
-        /////exit;
+        //exit; //
 
-        $sc->create();
-        //Debug::dd($sc->dd());
+        $res = $sc->create();
+        Debug::dd($res, 'Excecuted?');
+        var_dump($sc->dd());
     }    
-
 
     function alter_table()
     {       

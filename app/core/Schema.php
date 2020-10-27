@@ -26,6 +26,7 @@ class Schema
 	
 	protected $prev_schema;
 	protected $commands = [];
+	protected $query;
 
 	// mysql version
 	protected $engine_ver;
@@ -651,20 +652,19 @@ class Schema
 		{			
 			$cmd = '';		
 			foreach ($this->indices as $nombre => $tipo){
-				$cmd .= 'ADD ';
-				
+			
 				switch ($tipo){
 					case 'INDEX':
-						$cmd .= "INDEX (`$nombre`),\n";
+						$cmd .= "ADD INDEX (`$nombre`),\n";
 					break;
 					case 'PRIMARY':
 						// PRIMARY can not be "ADDed"
 					break;
 					case 'UNIQUE':
-						$cmd .= "UNIQUE KEY `$nombre` (`$nombre`),\n";
+						$cmd .= "ADD UNIQUE KEY `$nombre` (`$nombre`),\n";
 					break;
 					case 'SPATIAL':
-						$cmd .= "SPATIAL KEY `$nombre` (`$nombre`),\n";
+						$cmd .= "ADD SPATIAL KEY `$nombre` (`$nombre`),\n";
 					break;
 					
 					default:
@@ -686,16 +686,19 @@ class Schema
 			$on_delete = !empty($fk['on_delete']) ? 'ON DELETE '.$fk['on_delete'] : '';
 			$on_update = !empty($fk['on_update']) ? 'ON UPDATE '.$fk['on_update'] : '';
 			
-			//Debug::dd("FOREIGN KEY `($name)` REFERENCES `{$fk['on']}` (`{$fk['references']}`) {$fk['on']} $on_delete $on_update");
+			$commands[] = trim("ALTER TABLE  `{$this->tb_name}` ADD FOREIGN KEY `($name)` REFERENCES `{$fk['on']}` (`{$fk['references']}`) {$fk['on']} $on_delete $on_update").';';
 		}
 		//exit; //		
 				
 		$commands[] = 'COMMIT;';		
-		$this->commands = implode("\r\n",$commands)."\n";
+		$this->commands = $commands;
+		$this->query = implode("\r\n",$this->commands)."\n";
 
 		$conn = DB::getConnection();   
-        $st = $conn->prepare($this->commands);
-		$res = $st->execute(); 
+        $st = $conn->prepare($this->query);
+		$ret = $st->execute();
+		
+		return $ret;
 	}
 
 	// alias
@@ -954,7 +957,7 @@ class Schema
 	}
 
 	function dd(){
-		return implode("\r\n",$this->commands);
+		return $this->query;
 	}
 	
 	// ALTER TABLE `users` CHANGE `lastname` `lastname` VARCHAR(80) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL;
@@ -1049,6 +1052,8 @@ class Schema
 				break;
 			}
 		}
+
+		$this->query = implode("\r\n",$this->commands);
 
 		$conn = DB::getConnection();   
 
