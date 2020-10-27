@@ -25,9 +25,15 @@ class Schema
 	protected $fks = [];
 	
 	protected $prev_schema;
+	protected $commands = [];
+
+	// mysql version
+	protected $engine_ver;
+
 
 	function __construct($tb_name){
 		$this->tables = DB::select('SHOW TABLES', 'COLUMN');
+		$this->engine_ver = (int) DB::select('SELECT VERSION() AS ver')[0]['ver'];
 		$this->tb_name = $tb_name;
 		$this->fromDB();
 	}	
@@ -404,8 +410,11 @@ class Schema
 		return $this;		
 	}
 	
-	// modifiers
+	/* 
+		modifiers
+	*/
 	
+	// autoincrement
 	function auto(){
 		$this->fields[$this->current_field]['auto'] =  true;
 		return $this;
@@ -422,13 +431,21 @@ class Schema
 	}
 	
 	function default($val = NULL){
-		if ($val == NULL)
+		if ($val === NULL) {
 			$val = 'NULL';
-		
+		} elseif ($val === false) {
+			$val = NULL;
+		}
+
 		$this->fields[$this->current_field]['default'] =  $val;
 		return $this;
 	}
 	
+	function removeDefault(){
+		$this->fields[$this->current_field]['default'] =  NULL;
+		return $this;
+	}
+
 	function currentTimestamp(){
 		$this->default('current_timestamp()');	
 		return $this;
@@ -618,7 +635,7 @@ class Schema
 		$cmd = '';
 		foreach ($this->fields as $name => $field){
 			$cmd .= "`$name` {$field['type']} ";			
-			$cmd .= $this->getDefinition($field);			
+			$cmd .= $this->getDefinition($field);	
 			$cmd .= ",\n";
 		}
 		
@@ -641,7 +658,7 @@ class Schema
 						$cmd .= "INDEX (`$nombre`),\n";
 					break;
 					case 'PRIMARY':
-						//$cmd .= "PRIMARY KEY (`$nombre`),\n";
+						// PRIMARY can not be "ADDed"
 					break;
 					case 'UNIQUE':
 						$cmd .= "UNIQUE KEY `$nombre` (`$nombre`),\n";
@@ -674,10 +691,10 @@ class Schema
 		//exit; //		
 				
 		$commands[] = 'COMMIT;';		
-		$sql = implode("\r\n",$commands)."\n";
+		$this->commands = implode("\r\n",$commands)."\n";
 
 		$conn = DB::getConnection();   
-        $st = $conn->prepare($sql);
+        $st = $conn->prepare($this->commands);
 		$res = $st->execute(); 
 	}
 
@@ -687,61 +704,118 @@ class Schema
 	}
 	
 	function dropTable(){
-		return "DROP TABLE `{$this->tb_name}`;\n";
+		$this->commands[] = "DROP TABLE `{$this->tb_name}`;";
+		return $this;
 	}
 
 	// TRUNCATE `az`.`xxy`
 	function truncateTable(string $tb){
-		return "TRUNCATE `{$this->tb_name}`.`$tb`;\n";
+		$this->commands[] = "TRUNCATE `{$this->tb_name}`.`$tb`;";
+		return $this;
 	}
 
 	// RENAME TABLE `az`.`xxx` TO `az`.`xxy`;
 	function renameTable(string $ori, string $final){
-		return "RENAME TABLE `{$this->tb_name}`.`$ori` TO `{$this->tb_name}`.`$final`;\n";
+		$this->commands[] = "RENAME TABLE `{$this->tb_name}`.`$ori` TO `{$this->tb_name}`.`$final`;";
+		return $this;
 	}	
 
 
 	function dropColumn(string $name){
-		return "ALTER TABLE `{$this->tb_name}` DROP `$name`;\n";
+		$this->commands[] = "ALTER TABLE `{$this->tb_name}` DROP `$name`;";
+		return $this;
 	}
 
 	// https://popsql.com/learn-sql/mysql/how-to-rename-a-column-in-mysql/
 	function renameColumn(string $ori, string $final){
-		return "ALTER TABLE `{$this->tb_name}` RENAME COLUMN `$ori` TO `$final`;\n";
+		if ((int) $this->engine_ver >= 8){
+			$this->commands[] = "ALTER TABLE `{$this->tb_name}` RENAME COLUMN `$ori` TO `$final`;";
+		} else {
+			if (!isset($this->prev_schema['fields'][$ori])){
+				throw new \InvalidArgumentException("Column '$ori' does not exist in `{$this->tb_name}`");
+			}
+
+			$datatype = $this->prev_schema['fields'][$ori]['type'];
+
+			if (isset($this->prev_schema['fields'][$this->current_field]['array'])){
+				$datatype .= '(' . implode(',', $this->fields[$this->current_field]['array']). ')';
+			} elseif (isset($this->prev_schema['fields'][$this->current_field]['len'])){
+				$datatype .= '(' . $this->prev_schema['fields'][$this->current_field]['len'] . ')';
+			} 
+
+			$this->commands[] = "ALTER TABLE `{$this->tb_name}` CHANGE `$ori` `$final` $datatype;";
+		}
+
+		return $this;
 	}
 	
+	// alias
+	function renameColumnTo(string $final){		
+		$this->commands[] = "ALTER TABLE `{$this->tb_name}` RENAME COLUMN `{$this->current_field}` TO `$final`;";
+		return $this;
+	}
+
 
 	function addIndex(string $column){
-		return "ALTER TABLE `{$this->tb_name}` ADD INDEX(`$column`);\n";
+		$this->commands[] = "ALTER TABLE `{$this->tb_name}` ADD INDEX(`$column`);";
+		return $this;
 	}
 
 	function dropIndex(string $name){
-		return "ALTER TABLE `{$this->tb_name}` DROP INDEX `$name`;\n";
+		$this->commands[] = "ALTER TABLE `{$this->tb_name}` DROP INDEX `$name`;";
+		return $this;
 	}
 
 	// https://stackoverflow.com/questions/1463363/how-do-i-rename-an-index-in-mysql
 	function renameIndex(string $ori, string $final){
-		return "ALTER TABLE `{$this->tb_name}` RENAME INDEX `$ori` TO `$final`;\n";
+		$this->commands[] = "ALTER TABLE `{$this->tb_name}` RENAME INDEX `$ori` TO `$final`;";
+		return $this;
+	}
+
+	// alias
+	function renameIndexTo(string $final){
+		$this->commands[] = "ALTER TABLE `{$this->tb_name}` RENAME INDEX `{$this->current_field}` TO `$final`;";
+		return $this;
 	}
 
 
 	function addPrimary(string $column){
-		return "ALTER TABLE `{$this->tb_name}` ADD PRIMARY KEY(`$column`);\n";	
+		$this->commands[] = "ALTER TABLE `{$this->tb_name}` ADD PRIMARY KEY(`$column`);";
+		return $this;	
 	}
 		
 	// implica primero remover el AUTOINCREMENT sobre el campo !
 	// ej: ALTER TABLE `super_cool_table` CHANGE `id` `id` INT(11) NOT NULL;
 	function dropPrimary(string $name){
-		return "ALTER TABLE `$name` DROP PRIMARY KEY;\n";
+		if ($this->prev_schema['fields'][$name]['auto']){
+			throw new \Exception("To be able to DROP PRIMARY KEY, first remove AUTO_INCREMENT");
+		}
+
+		$this->commands[] = "ALTER TABLE `{$this->tb_name}` DROP PRIMARY KEY;";
+		return $this;
 	}
 
 
 	function addUnique(string $column){
-		return "ALTER TABLE `{$this->tb_name}` ADD UNIQUE(`$column`);\n";
+		$this->commands[] = "ALTER TABLE `{$this->tb_name}` ADD UNIQUE(`$column`);";
+		return $this;
 	}
 		
 	function dropUnique(string $name){
-		return "ALTER TABLE `$name` DROP UNIQUE;\n";
+		$this->commands[] = $this->dropIndex($name);
+		return $this;
+	}
+
+
+
+	function addSpatial(string $column){
+		$this->commands[] = "ALTER TABLE  ADD SPATIAL INDEX(`$column`);";
+		return $this;
+	}
+		
+	function dropSpatial(string $name){
+		$this->commands[] = $this->dropIndex($name);
+		return $this;
 	}
 
 
@@ -801,10 +875,10 @@ class Schema
 				$collation  = Strings::slice($str, '/COLLATE ([a-z0-9_]+)/');
 				
 				$default    = Strings::slice($str, '/DEFAULT ([a-zA-Z0-9_\(\)]+)/');
-				//Debug::dd($default, 'DEFAULT');
+				//Debug::dd($default, "DEFAULT($field)");
 
 				$nullable   = Strings::slice($str, '/(NOT NULL)/') == NULL;
-				$auto       = Strings::slice($str, '/(AUTO_INCREMENT)/');
+				$auto       = Strings::slice($str, '/(AUTO_INCREMENT)/') == 'AUTO_INCREMENT';
 				//Debug::dd($nullable, "NULLABLE($field)");
 
 
@@ -878,21 +952,24 @@ class Schema
 		}
 		
 	}
+
+	function dd(){
+		return implode("\r\n",$this->commands);
+	}
 	
 	// ALTER TABLE `users` CHANGE `lastname` `lastname` VARCHAR(80) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL;
 	
 	// ALTER TABLE `users` CHANGE `id` `id` INT(20) UNSIGNED NOT NULL;
 	function change()
 	{	
-		$changes = [];
+		foreach ($this->fields as $name => $field)
+		{
+			if (isset($this->prev_schema['fields'][$name])){
+				$this->fields[$name] = array_merge($this->prev_schema['fields'][$name], $this->fields[$name]);
+			} 		
 
-		foreach ($this->fields as $name => $field){
-
-			$this->fields[$name]  = array_merge($this->prev_schema['fields'][$name], $this->fields[$name]);
 			$this->indices[$name] = $this->prev_schema['indices'][$name] ?? NULL;
-			//$this->fields[$name]['charset'] = $this->prev_schema[$name]['charset'] ?? $this->;
-			//$this->fields[$name]['collation'] = $this->prev_schema[$name]['collation'] ?? NULL;
-
+			
 			$field = $this->fields[$name];
 
 			//Debug::dd($this->fields[$name]);
@@ -921,30 +998,78 @@ class Schema
 				$def .= "$charset $collation ";	
 			}		
 			
-			if ($field['nullable']){
+			if (isset($field['nullable']) && $field['nullable'] == 'NULL'){  
 				$def .= "NULL ";
 			} else {		
 				$def .= "NOT NULL ";
 			}	
+
+			//Debug::dd($field['nullable'], 'NULLABLE');
+			//Debug::dd($field['default'], 'DEFAULT');
+			//exit;
+
+			if (isset($field['nullable']) && $field['nullable'] == 'NOT NULL' && isset($field['default']) && $field['default'] == 'NULL'){
+				throw new \Exception("Column `$name` can not be not nullable but default 'NULL'");
+			}
 				
 			if (isset($field['default'])){
 				$def .= "DEFAULT {$field['default']} ";
 			} 
 			
+			if (isset($field['after'])){  
+				$def .= "AFTER {$field['after']}";
+			} elseif (isset($field['first'])){
+				$def .= "FIRST ";
+			}
+
 			$def = trim(preg_replace('!\s+!', ' ', $def));
 			
-			$changes[] = "ALTER TABLE `{$this->tb_name}` CHANGE `$name` `$name` $def;";
+
+			if (isset($this->prev_schema['fields'][$name])){
+				$this->commands[] = "ALTER TABLE `{$this->tb_name}` CHANGE `$name` `$name` $def;";
+			} else {
+				$this->commands[] = "ALTER TABLE `{$this->tb_name}` ADD `$name` $def;";
+			}	
+		
 		}
 
+		foreach ($this->indices as $name => $type){			
+			switch($type){
+				case "INDEX":
+					$this->commands[] = $this->addIndex($name);
+				break;
+				case "PRIMARY":
+					$this->commands[] = $this->addPrimary($name);
+				break;
+				case "UNIQUE": 
+					$this->commands[] = $this->addUnique($name);
+				break;
+				case "SPATIAL": 
+					$this->commands[] = $this->addSpatial($name);
+				break;
+			}
+		}
 
 		$conn = DB::getConnection();   
 
-		DB::transaction(function() use($changes, $conn) {
-			foreach($changes as $change){     
+		DB::beginTransaction();
+		try{
+			foreach($this->commands as $change){     
 				$st = $conn->prepare($change);
 				$res = $st->execute();
 			}
-		});
+
+			DB::commit();
+		} catch (\PDOException $e) {
+			DB::rollback();
+			Debug::dd($change, 'SQL');
+			Debug::dd($e->getMessage(), "PDO error");		
+        } catch (\Exception $e) {
+            DB::rollback();
+            throw $e;
+        } catch (\Throwable $e) {
+            DB::rollback();            
+        }     
 	}	
 	
 	// reflexion

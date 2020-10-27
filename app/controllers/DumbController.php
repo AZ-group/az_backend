@@ -1991,14 +1991,14 @@ class DumbController extends Controller
         $sc->setEngine('InnoDB');
         $sc->setCharset('utf8');
         $sc->setCollation('utf8_general_ci');
-
-        $sc->serial('id')->pri();
+;
         $sc->int('edad')->unsigned();
         $sc->varchar('firstname');
+        $sc->serial('id')->pri();
         $sc->varchar('lastname')->nullable()->charset('utf8')->collation('utf8_unicode_ci');
         $sc->varchar('username')->unique();
         $sc->varchar('password', 128);
-        $sc->char('password_char');
+        $sc->char('password_char')->nullable();
         $sc->varbinary('texto_vb', 300);
 
         // BLOB and TEXT columns cannot have DEFAULT values.
@@ -2040,9 +2040,9 @@ class DumbController extends Controller
 
         $sc->time('hora');
         $sc->year('birth_year');
-        $sc->date('fecha')->first();
-        $sc->datetime('vencimiento')->nullable()->after('num_real');
-        $sc->timestamp('ts')->currentTimestamp()->comment('some comment')->first(); // solo un first
+        $sc->date('fecha');
+        $sc->datetime('vencimiento')->nullable();
+        $sc->timestamp('ts')->currentTimestamp()->comment('some comment'); // solo un first
 
 
         $sc->softDeletes(); // agrega DATETIME deleted_at 
@@ -2058,6 +2058,7 @@ class DumbController extends Controller
         /////exit;
 
         $sc->create();
+        //Debug::dd($sc->dd());
     }    
 
 
@@ -2068,23 +2069,30 @@ class DumbController extends Controller
         //Debug::dd($sc->getSchema());
 
         $res = $sc
-        ->timestamp('vencimiento')
-        ->varchar('lastname', 50)->collate('utf8_esperanto_ci')
-        ->varchar('username', 50)
-        ->column('ts')->nullable()
-        ->field('deleted_at')->nullable()
+        //->timestamp('vencimiento')
+        //->varchar('lastname', 50)->collate('utf8_esperanto_ci')
+        //->varchar('username', 50)
+        //->column('ts')->nullable()
+        //->field('deleted_at')->nullable()
         //->field('correo')->unique()
         
-        /*
-        echo $sc->renameColumn('codigo', 'binario');
-        echo $sc->renameIndex('id', 'user_id');
-        echo $sc->dropColumn('geo');
-        echo $sc->dropIndex('bit');
-        echo $sc->dropPrimary('bit');
-        echo $sc->dropTable();
-        */
+        //->renameColumn('binario', 'codigo')
+        //->renameIndex('id', 'user_id')
+        //->dropColumn('paused')
+        //->dropIndex('correo')
+        //->dropPrimary('id')
+        //->dropTable()
+
+        //->field('password_char')->default(false)->nullable(false)
         
+
+        // creo un campo nuevo
+        //->varchar('nuevo_campito', 50)->nullable()->after('ts')
+        ->text('aaa')->first()->nullable()
+                
         ->change();
+
+        Debug::dd($sc->dd());
     }
 
 }
