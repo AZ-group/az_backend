@@ -8,6 +8,10 @@ use simplerest\libs\Debug;
 
 /*
 	Migrations
+
+	The following can be useful :P
+	https://hoelz.ro/ref/mysql-alter-table-alter-change-modify-column
+	https://mariadb.com/kb/en/auto_increment/
 */
 
 class Schema 
@@ -19,6 +23,7 @@ class Schema
 	protected $charset = 'utf8';
 	protected $collation;
 	
+	protected $raw_lines = [];
 	protected $fields  = [];
 	protected $current_field;
 	protected $indices = []; // 'PRIMARY', 'UNIQUE', 'INDEX', 'FULLTEXT', 'SPATIAL'
@@ -38,6 +43,49 @@ class Schema
 		$this->tb_name = $tb_name;
 		$this->fromDB();
 	}	
+
+	static function FKcheck(bool $status){
+		$conn = DB::getConnection();   
+
+		$st = $conn->prepare("SET FOREIGN_KEY_CHECKS=" . ((int) $status) .";");
+		$res = $st->execute();
+	}
+
+	static function enableForeignKeyConstraints(){
+		return self::FKcheck(1);
+	}
+
+	static function disableForeignKeyConstraints(){
+		return self::FKcheck(0);
+	}
+
+	static function hasTable(string $name){
+		return in_array($name, $this->tables);
+	} 
+
+	static function hasColumn(string $table, string $column){
+		$conn = DB::getConnection();   
+
+		$res = DB::select("SHOW COLUMNS FROM `$table` LIKE '$column'");
+		return !empty($res);
+	} 
+
+	static function rename(string $ori, string $final){
+		return DB::select("RENAME TABLE `$ori` TO `$final`;");
+	}	
+
+	static function drop(string $table){
+		return DB::select("DROP TABLE `{$table}`;");
+	}
+
+	static function dropIfExists(string $table){
+		return DB::select("DROP TABLE IF EXISTS `{$table}`;");
+	}
+
+	function columnExists(string $column){
+		return static::hasColumn($this->tb_name, $column);
+	}
+
 
 	function setEngine(string $val){
 		$this->engine = $val;
@@ -416,8 +464,8 @@ class Schema
 	*/
 	
 	// autoincrement
-	function auto(){
-		$this->fields[$this->current_field]['auto'] =  true;
+	function auto(bool $val = true){
+		$this->fields[$this->current_field]['auto'] =  $val;
 		return $this;
 	}
 
@@ -442,7 +490,7 @@ class Schema
 		return $this;
 	}
 	
-	function removeDefault(){
+	function dropDefault(){
 		$this->fields[$this->current_field]['default'] =  NULL;
 		return $this;
 	}
@@ -517,7 +565,7 @@ class Schema
 		$this->fks[$this->current_field]['on'] = $table;
 		return $this;
 	}
-	
+		
 	function onDelete(string $action){
 		$this->fks[$this->current_field]['on_delete'] = $action;
 		return $this;
@@ -527,6 +575,12 @@ class Schema
 		$this->fks[$this->current_field]['on_update'] = $action;
 		return $this;
 	}
+
+	function constraint(string $constraint_name){
+		$this->fks[$this->current_field]['constraint'] = $constraint_name;
+		return $this;
+	}
+
 	
 	// INDICES >>>
 	
@@ -622,11 +676,22 @@ class Schema
 		return $res;
 	}
 		
+	// FOREIGN KEY (`abono_id`) REFERENCES `abonos` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
+	private function addFKs(){
+		foreach ($this->fks as $name => $fk){
+			$on_delete  = !empty($fk['on_delete'])  ? 'ON DELETE ' .$fk['on_delete']  : '';
+			$on_update  = !empty($fk['on_update'])  ? 'ON UPDATE ' .$fk['on_update']  : '';
+			$constraint = !empty($fk['constraint']) ? 'CONSTRAINT `'.$fk['constraint'].'`' : '';
+			
+			$this->commands[] = trim("ALTER TABLE  `{$this->tb_name}` ADD $constraint FOREIGN KEY (`$name`) REFERENCES `{$fk['on']}` (`{$fk['references']}`) $on_delete $on_update").';';
+		}
+	} 
+
 	function createTable(){
 		if (empty($this->fields))
 			throw new \Exception("No fields!");
-		
-		$commands = [
+
+		$this->commands = [
 			'SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";',
 			/*
 			'SET AUTOCOMMIT = 0;',
@@ -646,7 +711,7 @@ class Schema
 		
 		$cmd = "CREATE TABLE `{$this->tb_name}` (\n$cmd\n) ENGINE={$this->engine} DEFAULT CHARSET={$this->charset};";
 		
-		$commands[] = $cmd;
+		$this->commands[] = $cmd;
 		
 		// Indices
 		
@@ -677,29 +742,20 @@ class Schema
 			$cmd = substr($cmd,0,-2);
 			$cmd = "ALTER TABLE `{$this->tb_name}` \n$cmd;";
 			
-			$commands[] = $cmd;
+			$this->commands[] = $cmd;
 		}		
 		
 		
-		// FKs
-		
-		// FOREIGN KEY (`abono_id`) REFERENCES `abonos` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
-		foreach ($this->fks as $name => $fk){
-			$on_delete = !empty($fk['on_delete']) ? 'ON DELETE '.$fk['on_delete'] : '';
-			$on_update = !empty($fk['on_update']) ? 'ON UPDATE '.$fk['on_update'] : '';
-			
-			$commands[] = trim("ALTER TABLE  `{$this->tb_name}` ADD FOREIGN KEY (`$name`) REFERENCES `{$fk['on']}` (`{$fk['references']}`) $on_delete $on_update").';';
-		}
-		//exit; //		
+		// FKs		
+		$this->addFKs();
 				
-		//$commands[] = 'COMMIT;';		
-		$this->commands = $commands;
+		//$this->commands[] = 'COMMIT;';		
 		$this->query = implode("\r\n",$this->commands)."\n";
 
 		$conn = DB::getConnection();   
 	  
 		$rollback = function() use ($conn){
-			$st = $conn->prepare("DROP TABLE `{$this->tb_name}`;");
+			$st = $conn->prepare("DROP TABLE IF EXISTS `{$this->tb_name}`;");
 			$res = $st->execute();
 		};
 
@@ -735,15 +791,22 @@ class Schema
 		return $this;
 	}
 
+	function dropTableIfExists(){
+		$this->commands[] = "DROP TABLE IF EXISTS `{$this->tb_name}`;";
+		return $this;
+	}
+
+
 	// TRUNCATE `az`.`xxy`
 	function truncateTable(string $tb){
 		$this->commands[] = "TRUNCATE `{$this->tb_name}`.`$tb`;";
 		return $this;
 	}
 
+
 	// RENAME TABLE `az`.`xxx` TO `az`.`xxy`;
-	function renameTable(string $ori, string $final){
-		$this->commands[] = "RENAME TABLE `{$this->tb_name}`.`$ori` TO `{$this->tb_name}`.`$final`;";
+	function renameTable(string $final){
+		$this->commands[] = "RENAME TABLE `{$this->tb_name}` TO `$final`;";
 		return $this;
 	}	
 
@@ -836,7 +899,7 @@ class Schema
 
 
 	function addSpatial(string $column){
-		$this->commands[] = "ALTER TABLE  ADD SPATIAL INDEX(`$column`);";
+		$this->commands[] = "ALTER TABLE ADD SPATIAL INDEX(`$column`);";
 		return $this;
 	}
 		
@@ -846,17 +909,20 @@ class Schema
 	}
 
 
-	#
-	# Hay operaciones muy complejas para realizarse con un sola función porque llevarían
-	# demasiados parámetros:
-	#
-	# addColumn()
-	# addAutoIncrement()
-	# removeAutoIncrement()
-	#
-	#
+	function dropForeign(string $name){
+		$this->commands[] = "ALTER TABLE `{$this->tb_name}` DROP FOREIGN KEY `$name`";
+		return $this;
+	}
 
-	// From DB
+	// alias
+	function dropFK(string $constraint_name){
+		return $this->dropForeign($constraint_name);
+	}
+
+
+	// From DB 
+	//
+	// another way to implement is reading "SHOW COLUMNS FROM `table_name`;"
 	protected function fromDB(){
 		if (!in_array($this->tb_name, $this->tables)){
 			return;
@@ -891,6 +957,8 @@ class Schema
 				
 				$field      = Strings::slice($str, '/`([a-z_]+)`/i');
 				$type       = Strings::slice($str, '/([a-z_]+)/i');
+
+				$this->raw_lines[$field] = $lines[$i];
 
 				if ($type == 'enum' || $type == 'set'){
 					$array = Strings::slice($str, '/\((.*)\)/i');
@@ -1041,7 +1109,11 @@ class Schema
 				
 			if (isset($field['default'])){
 				$def .= "DEFAULT {$field['default']} ";
-			} 
+			}
+			
+			if (isset($field['auto']) && $field['auto'] === false){
+				$def = str_replace('AUTO_INCREMENT', '', $def);
+			}
 			
 			if (isset($field['after'])){  
 				$def .= "AFTER {$field['after']}";
@@ -1077,7 +1149,11 @@ class Schema
 			}
 		}
 
+		// FKs
+		$this->addFKs();
+
 		$this->query = implode("\r\n",$this->commands);
+
 
 		$conn = DB::getConnection();   
 

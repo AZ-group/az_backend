@@ -1992,9 +1992,9 @@ class DumbController extends Controller
         ->setCharset('utf8')
         ->setCollation('utf8_general_ci')
 
+        ->integer('id')->auto()->unsigned()->pri()
         ->int('edad')->unsigned()
         ->varchar('firstname')
-        ->serial('id')->pri()
         ->varchar('lastname')->nullable()->charset('utf8')->collation('utf8_unicode_ci')
         ->varchar('username')->unique()
         ->varchar('password', 128)
@@ -2048,11 +2048,11 @@ class DumbController extends Controller
         ->softDeletes() // agrega DATETIME deleted_at 
         ->datetimes()  // agrega DATETIME(s) no-nullables created_at y deleted_at
 
-        ->integer('id')->auto()->unsigned()->pri()
         ->varchar('correo')->unique()
 
         ->int('user_id')->index()
-        ->foreign('user_id')->references('id')->on('users')->onDelete('cascade')->onUpdate('restrict')
+        ->foreign('user_id')->references('id')->on('users')->onDelete('cascade')
+        //->foreign('user_id')->references('id')->on('users')->constraint('fk_uid')->onDelete('cascade')->onUpdate('restrict')
         
         ;
 
@@ -2064,91 +2064,13 @@ class DumbController extends Controller
         //var_dump($sc->dd());
     }    
 
-    function create_table_fail()
-    {       
-        $sc = new Schema('facturas');
-
-        $sc->setEngine('InnoDB');
-        $sc->setCharset('utf8');
-        $sc->setCollation('utf8_general_ci');
-
-        $sc->integer('id')->unsigned()->auto();
-        $sc->int('edad')->unsigned();
-        $sc->varchar('firstname');
-       // $sc->serial('sid');
-        $sc->varchar('lastname')->nullable()->charset('utf8')->collation('utf8_unicode_ci');
-        $sc->varchar('username')->unique();
-        $sc->varchar('password', 128);
-        $sc->char('password_char')->nullable();
-        $sc->varbinary('texto_vb', 300);
-
-        // BLOB and TEXT columns cannot have DEFAULT values.
-        $sc->text('texto');
-        $sc->tinytext('texto_tiny');
-        $sc->mediumtext('texto_md');
-        $sc->longtext('texto_long');
-        $sc->blob('codigo');
-        $sc->tinyblob('blob_tiny');
-        $sc->mediumblob('blob_md');
-        $sc->longblob('blob_long');
-        $sc->binary('bb', 255);
-        $sc->json('json_str');
-
-        
-        $sc->int('karma')->default(100);
-        $sc->int('code')->zeroFill();
-        $sc->bigint('big_num');
-        $sc->bigint('ubig')->unsigned();
-        $sc->mediumint('medium');
-        $sc->smallint('small');
-        $sc->tinyint('tiny');
-        $sc->decimal('saldo');
-        $sc->float('flotante');
-        $sc->double('doble_p');
-        $sc->real('num_real');
-
-        $sc->bit('some_bits', 3)->index();
-        $sc->boolean('active')->default(1);
-        $sc->boolean('paused')->default(true);
-
-        $sc->set('flavors', ['strawberry', 'vanilla']);
-        $sc->enum('role', ['admin', 'normal']);
-
-
-        /*
-            The major difference between DATETIME and TIMESTAMP is that TIMESTAMP values are converted from the current time zone to UTC while storing, and converted back from UTC to the current time zone when accessd. The datetime data type value is unchanged.
-        */
-
-        $sc->time('hora');
-        $sc->year('birth_year');
-        $sc->date('fecha');
-        $sc->datetime('vencimiento')->nullable();
-        $sc->timestamp('ts')->currentTimestamp()->comment('some comment'); // solo un first
-
-
-        $sc->softDeletes(); // agrega DATETIME deleted_at 
-        $sc->datetimes();  // agrega DATETIME(s) no-nullables created_at y deleted_at
-
-       
-        $sc->varchar('correo')->unique();
-
-        $sc->int('user_id')->index();
-        //$sc->foreign('user_id')->references('id')->on('users')->onDelete('cascade')->onUpdate('restrict');
-
-        //Debug::dd($sc->getSchema(), 'SCHEMA');
-        //exit; //
-
-        $res = $sc->create();
-        Debug::dd($res, 'Excecuted?');
-        //var_dump($sc->dd());
-    }    
-
     function alter_table()
-    {       
+    { 
+        Schema::FKcheck(false);
+        
         $sc = new Schema('facturas');
-
-        //Debug::dd($sc->getSchema());
-
+        //var_dump($sc->columnExists('correo'));
+       
         $res = $sc
         //->timestamp('vencimiento')
         //->varchar('lastname', 50)->collate('utf8_esperanto_ci')
@@ -2167,11 +2089,19 @@ class DumbController extends Controller
         //->field('password_char')->default(false)->nullable(false)
         
 
-        // creo un campo nuevo
+        // creo campos nuevos
+        //
         //->varchar('nuevo_campito', 50)->nullable()->after('ts')
-        ->text('aaa')->first()->nullable()
+        //->text('aaa')->first()->nullable()
+
+        //->dropFK('facturas_ibfk_1')
+        //->foreign('user_id')->references('id')->on('users')->onDelete('cascade')->onUpdate('restrict')
                 
+        //->field('id')->auto(false)
+        //->renameTable('boletas')
+
         ->change();
+        Schema::FKcheck(true);
 
         Debug::dd($sc->dd());
     }
