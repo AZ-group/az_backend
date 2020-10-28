@@ -2,7 +2,7 @@
 
 use simplerest\core\Schema;
 
-class CreateCableCategories /* implements IMigration */
+class CreateCableCategories
 {
     /**
 	* Run migration.
@@ -20,6 +20,11 @@ class CreateCableCategories /* implements IMigration */
         ->fk('id_parent_category')->references('id')->on('cable_categories')
 
         ->create();
+    }
+
+    public function down()
+    {
+        Schema::drop('cable_categories');
     }
 }
 

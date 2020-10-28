@@ -2199,6 +2199,34 @@ Puede observarse que:
 	- Se pueden anular los ignore comentando la línea con una #almohadilla 
 	
 
+# Migrations
+
+Los archivos de migraciones son creados con el comando "make migrate" o "migrations make":
+
+	$ php com migrations make create_cables
+o
+	$ php com make migration create_cables
+
+
+Para ejecutar las migraciones pendiente es con "migrations migrate"
+
+	$ php com migrations migrate
+
+	Migrating '2020_10_28_161483_create_cables.php'
+	Migrated  '2020_10_28_161483_create_cables.php' --ok
+	Migrating '2020_10_28_161757_create_cable_categories.php'
+	Migrated  '2020_10_28_161757_create_cable_categories.php' --ok
+
+Para volver para atrás migraciones con "migrations rollback"	
+
+	$ php com migrations rollback
+
+	Rolling back '2020_10_28_161483_create_cables.php'
+	Rolled back  '2020_10_28_161483_create_cables.php' --ok
+	Rolling back '2020_10_28_161757_create_cable_categories.php'
+	Rolled back  '2020_10_28_161757_create_cable_categories.php' --ok
+
+
 # NGINX web server
 
 Agregar en el bloque lo siguiente:

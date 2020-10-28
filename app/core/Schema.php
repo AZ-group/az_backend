@@ -82,15 +82,24 @@ class Schema
 	} 
 
 	static function rename(string $ori, string $final){
-		return DB::select("RENAME TABLE `$ori` TO `$final`;");
+		$conn = DB::getConnection();   
+
+		$st = $conn->prepare("RENAME TABLE `$ori` TO `$final`;");
+		return $st->execute();
 	}	
 
 	static function drop(string $table){
-		return DB::select("DROP TABLE `{$table}`;");
+		$conn = DB::getConnection();   
+
+		$st = $conn->prepare("DROP TABLE `{$table}`;");
+		return $st->execute();
 	}
 
 	static function dropIfExists(string $table){
-		return DB::select("DROP TABLE IF EXISTS `{$table}`;");
+		$conn = DB::getConnection();   
+
+		$st = $conn->prepare("DROP TABLE IF EXISTS `{$table}`;");
+		return $st->execute();
 	}
 
 

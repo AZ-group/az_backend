@@ -19,16 +19,30 @@ class MigrationsController extends Controller
     /*
         Implementar --force para ejecutar en migración
 
+        Migrating: 2014_10_12_000000_create_users_table
+        Migrated:  2014_10_12_000000_create_users_table
+        Migrating: 2014_10_12_100000_create_password_resets_table
+        Migrated:  2014_10_12_100000_create_password_resets_table
+        Migrating: 2020_10_28_145609_as_d_f
+        Migrated:  2020_10_28_145609_as_d_f
+
     */
     function migrate() {
         foreach (new \DirectoryIterator(MIGRATIONS_PATH) as $fileInfo) {
             if($fileInfo->isDot()) continue;
-           
-            $class_name = Strings::toCamelCase(substr(substr($fileInfo->getFilename(),18),0,-4));
-            Debug::dd($class_name);
 
-            require MIGRATIONS_PATH . DIRECTORY_SEPARATOR . $fileInfo->getFilename();
+            $filename   = $fileInfo->getFilename();            
+            $class_name = Strings::toCamelCase(substr(substr($filename,18),0,-4));
+            
+            require MIGRATIONS_PATH . DIRECTORY_SEPARATOR . $filename;
+
+            if (!class_exists($class_name)){
+                throw new \Exception ("Class '$class_name' does not exists in $filename");
+            }
+
+            echo "Migrating '$filename'\r\n";
             (new $class_name())->up();
+            echo "Migrated  '$filename' --ok\r\n";
         }         
     }
 
@@ -41,7 +55,22 @@ class MigrationsController extends Controller
         Las debe borrar? o solo des-hacer y mover el puntero?
     */
     function rollback() {
+        foreach (new \DirectoryIterator(MIGRATIONS_PATH) as $fileInfo) {
+            if($fileInfo->isDot()) continue;
 
+            $filename   = $fileInfo->getFilename();            
+            $class_name = Strings::toCamelCase(substr(substr($filename,18),0,-4));
+            
+            require MIGRATIONS_PATH . DIRECTORY_SEPARATOR . $filename;
+
+            if (!class_exists($class_name)){
+                throw new \Exception ("Class '$class_name' does not exists in $filename");
+            }
+
+            echo "Rolling back '$filename'\r\n";
+            (new $class_name())->down();
+            echo "Rolled back  '$filename' --ok\r\n";
+        }     
     }
 
     /*

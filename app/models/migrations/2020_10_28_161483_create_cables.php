@@ -20,5 +20,10 @@ class CreateCables /* implements IMigration */
 
         ->create();
     }
+
+    public function down()
+    {
+        Schema::drop('cables');
+    }
 }
 

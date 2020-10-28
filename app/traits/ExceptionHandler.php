@@ -47,7 +47,7 @@ trait ExceptionHandler
 
         $error_location = $this->config['debug'] ? 'Error on line number '.$e->getLine().' in file - '.$e->getFile() : '';
 
-        $backtrace = $this->generateCallTrace();
+        $backtrace = debug_backtrace();
         
         if (php_sapi_name() == 'cli'){
             Debug::dd($error_location, 'ERROR LOCATION');
