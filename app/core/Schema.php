@@ -19,7 +19,7 @@ class Schema
 	protected $tables;
 	protected $tb_name;
 
-	protected $engine;
+	protected $engine = 'InnoDB';
 	protected $charset = 'utf8';
 	protected $collation;
 	
@@ -59,8 +59,19 @@ class Schema
 		return self::FKcheck(0);
 	}
 
-	static function hasTable(string $name){
-		return in_array($name, $this->tables);
+	static function hasTable(string $tb_name, string $db_name = null)
+	{
+		if ($db_name == null){
+			$res = DB::select("SHOW TABLES LIKE '$tb_name';");
+		}else {
+			$res = DB::select("SELECT * 
+			FROM information_schema.tables
+			WHERE table_schema = '$db_name' 
+				AND table_name = '$tb_name'
+			LIMIT 1;");
+		}
+
+		return (!empty($res));	
 	} 
 
 	static function hasColumn(string $table, string $column){
@@ -82,10 +93,14 @@ class Schema
 		return DB::select("DROP TABLE IF EXISTS `{$table}`;");
 	}
 
+
+	function tableExists(){
+		return in_array($this->tb_name, $this->tables);
+	} 
+
 	function columnExists(string $column){
 		return static::hasColumn($this->tb_name, $column);
 	}
-
 
 	function setEngine(string $val){
 		$this->engine = $val;
@@ -550,14 +565,19 @@ class Schema
 	
 	// FKs
 	
-	function foreign(string $name){
-		$this->current_field = $name;
+	function foreign(string $field_name){
+		$this->current_field = $field_name;
 		$this->fks[$this->current_field] = [];
 		return $this;
 	}
+
+	// alias
+	function fk(string $field_name){
+		return $this->foreign($field_name);
+	}
 	
-	function references(string $field){
-		$this->fks[$this->current_field]['references'] = $field;
+	function references(string $field_name){
+		$this->fks[$this->current_field]['references'] = $field_name;
 		return $this;
 	}
 	
@@ -688,8 +708,21 @@ class Schema
 	} 
 
 	function createTable(){
-		if (empty($this->fields))
+		if ($this->tableExists()){
+			throw new \Exception("Table {$this->tb_name} already exists");
+		}
+
+		if (empty($this->fields)){
 			throw new \Exception("No fields!");
+		}	
+
+		if ($this->engine == NULL){
+			throw new \Exception("Please specify table engine");
+		}
+		
+		if ($this->charset == NULL){
+			throw new \Exception("Please specify charset");
+		}
 
 		$this->commands = [
 			'SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";',

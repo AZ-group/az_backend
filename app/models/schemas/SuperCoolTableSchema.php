@@ -17,14 +17,14 @@ class SuperCoolTableSchema implements ISchema
 			'id_name'		=> 'id',
 
 			'attr_types'	=> [
-			'id' => 'INT',
-			'name' => 'STR',
-			'age' => 'INT',
-			'active' => 'INT',
-			'belongs_to' => 'INT',
-			'deleted_at' => 'STR',
-			'locked' => 'INT'
-		],
+				'id' => 'INT',
+				'name' => 'STR',
+				'age' => 'INT',
+				'active' => 'INT',
+				'belongs_to' => 'INT',
+				'deleted_at' => 'STR',
+				'locked' => 'INT'
+			],
 
 			'nullable'		=> ['id', 'deleted_at'],
 

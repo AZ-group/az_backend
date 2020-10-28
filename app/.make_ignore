@@ -4,7 +4,6 @@
 # Models
 UsersModel.php
 FilesModel.php
-FooModel.php
 
 # Controllers
 UsersController.php

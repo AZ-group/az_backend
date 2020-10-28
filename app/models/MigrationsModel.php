@@ -4,18 +4,15 @@ namespace simplerest\models;
 
 use simplerest\core\Model;
 use simplerest\libs\ValidationRules;
-use simplerest\models\schemas\FooSchema;
+use simplerest\models\schemas\MigrationsSchema;
 
-class FooModel extends Model
+class MigrationsModel extends Model
 { 
-	
-	
-
 	protected $hidden   = [];
 	protected $not_fillable = [];
 
     function __construct(bool $connect = false){
-        parent::__construct($connect, new FooSchema());
+        parent::__construct($connect, new MigrationsSchema());
 	}	
 }
 

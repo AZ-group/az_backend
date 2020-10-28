@@ -44,7 +44,7 @@ class Strings {
     }
 
 	/*
-		WordAnother to word_another
+		CamelCase to snake_case
 	*/
 	static function fromCamelCase($name){
 		$len = strlen($name);
@@ -70,7 +70,7 @@ class Strings {
 	}
 
 	/*
-		word_another to WordAnother
+		snake_case to CamelCase
 	*/
 	static function toCamelCase($name){
         return implode('',array_map('ucfirst',explode('_',$name)));

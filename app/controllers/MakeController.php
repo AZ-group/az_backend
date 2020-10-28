@@ -41,10 +41,13 @@ class MakeController extends Controller
 {
     const SCHEMAS_PATH = MODELS_PATH . 'schemas' . DIRECTORY_SEPARATOR;
 
-    const MODEL_TEMPLATE  = CORE_PATH . 'templates' . DIRECTORY_SEPARATOR. 'Model.php';
-    const SCHEMA_TEMPLATE = CORE_PATH . 'templates' . DIRECTORY_SEPARATOR. 'Schema.php';
-    const CONTROLLER_TEMPLATE = CORE_PATH . 'templates' . DIRECTORY_SEPARATOR. 'Controller.php';
-    const API_TEMPLATE = CORE_PATH . 'templates' . DIRECTORY_SEPARATOR. 'ApiRestfulController.php';
+    const TEMPLATES = CORE_PATH . 'templates' . DIRECTORY_SEPARATOR;
+
+    const MODEL_TEMPLATE  = self::TEMPLATES . 'Model.php';
+    const SCHEMA_TEMPLATE = self::TEMPLATES . 'Schema.php';
+    const MIGRATION_TEMPLATE  = self::TEMPLATES . 'Migration.php';
+    const CONTROLLER_TEMPLATE = self::TEMPLATES . 'Controller.php';
+    const API_TEMPLATE = self::TEMPLATES . 'ApiRestfulController.php';
 
     protected $class_name;
     protected $model_name;
@@ -112,10 +115,10 @@ class MakeController extends Controller
                           
                                 -sam  = -s -a -m
                                 -samf = -s -a -m -f                       
-        Example:
-                 
-        make any baz -s -m -a -f
-        make any baz -samf
+
+        make migration rename_some_column
+        make migration another_table_change --table=foo
+
         STR;
     }
 
@@ -149,6 +152,7 @@ class MakeController extends Controller
         if ($this->class_name != null && $this->class_name == $prev_name)
             return;
 
+        $name = ucfirst($name);    
         $name_lo = strtolower($name);
 
         if (Strings::endsWith('model', $name_lo)){
@@ -160,28 +164,22 @@ class MakeController extends Controller
         $name_uc = ucfirst($name);
 
         if (strpos($name, '_') !== false) {
-            $class_name  = Strings::toCamelCase($name);
-            $model_table = $name_lo;
+            $camel_case  = Strings::toCamelCase($name);
+            $snake_case = $name_lo;
         } elseif ($name == $name_lo){
-            $model_table = $name;
-            $class_name  = ucfirst($name);
+            $snake_case = $name;
+            $camel_case  = ucfirst($name);
         } elseif ($name == $name_uc) {
-            $class_name  = $name; 
+            $camel_case  = $name; 
         }
         
-        if (!isset($model_table)){
-            $model_table = Strings::fromCamelCase($class_name);
+        if (!isset($snake_case)){
+            $snake_case = Strings::fromCamelCase($camel_case);
         }
 
-        $this->model_table  = $model_table;
-        $this->class_name   = $class_name;
-        $this->model_name   = $class_name . 'Model';
-        $this->ctr_name     = $class_name . 'Controller';
-        $this->api_name     = $class_name;     
+        $this->camel_case  = $camel_case; 
+        $this->snake_case  = $snake_case;
         
-        //Debug::dd($this->model_name,  'model name');
-        //Debug::dd($this->model_table, 'table name');
-
         $prev_name = $name;
     }
 
@@ -247,7 +245,7 @@ class MakeController extends Controller
 
         $this->setup($name);    
     
-        $filename = $this->ctr_name.'.php';
+        $filename = $this->camel_case . 'Controller'.'.php';
         $dest_path = CONTROLLERS_PATH . $sub_path . $filename;
 
         if (in_array($dest_path, $this->excluded_files)){
@@ -277,7 +275,7 @@ class MakeController extends Controller
         }
         
         $data = file_get_contents(self::CONTROLLER_TEMPLATE);
-        $data = str_replace('__NAME__', $this->ctr_name, $data);
+        $data = str_replace('__NAME__', $this->camel_case . 'Controller', $data);
         $data = str_replace('__NAMESPACE', $namespace, $data);
 
         $ok = (bool) file_put_contents($dest_path, $data);
@@ -292,7 +290,7 @@ class MakeController extends Controller
     function api($name, ...$opt) { 
         $this->setup($name);    
     
-        $filename = $this->api_name.'.php';
+        $filename = $this->camel_case.'.php';
 
         $dest_path = API_PATH . $filename;
 
@@ -323,7 +321,7 @@ class MakeController extends Controller
         }
 
         $data = file_get_contents(self::API_TEMPLATE);
-        $data = str_replace('__NAME__', $this->api_name, $data);
+        $data = str_replace('__NAME__', $this->camel_case, $data);
         $data = str_replace('__SOFT_DELETE__', 'true', $data); // debe depender del schema
 
         $ok = (bool) file_put_contents($dest_path, $data);
@@ -346,7 +344,7 @@ class MakeController extends Controller
     function schema($name, ...$opt) { 
         $this->setup($name);    
 
-        $filename = $this->class_name.'Schema.php';
+        $filename = $this->camel_case.'Schema.php';
 
         // destination
         $dest_path = self::SCHEMAS_PATH . $filename;
@@ -378,10 +376,10 @@ class MakeController extends Controller
         }
 
         $file = file_get_contents(self::SCHEMA_TEMPLATE);
-        $file = str_replace('__NAME__', $this->class_name.'Schema', $file);
+        $file = str_replace('__NAME__', $this->camel_case.'Schema', $file);
 
         try {
-            $fields = DB::select("SHOW COLUMNS FROM {$this->model_table}");
+            $fields = DB::select("SHOW COLUMNS FROM {$this->snake_case}");
         } catch (\Exception $e) {
             echo '[ SQL Error ] '. DB::getLog(). "\r\n";
             echo $e->getMessage().  "\r\n";
@@ -457,7 +455,7 @@ class MakeController extends Controller
             //Strings::replace('### TRAITS', "use Uuids;", $file);        
         }
 
-        Strings::replace('__TABLE_NAME__', "'{$this->model_table}'", $file);  
+        Strings::replace('__TABLE_NAME__', "'{$this->snake_case}'", $file);  
         Strings::replace('__ID__', "'$id_name'", $file);  
         Strings::replace('__ATTR_TYPES__', $attr_types, $file);
         Strings::replace('__NULLABLES__', '['. implode(', ',array_map($escf, $nullables)). ']',$file);        
@@ -476,10 +474,11 @@ class MakeController extends Controller
 
     function getUuid(){
         try {
-            $fields = DB::select("SHOW COLUMNS FROM {$this->model_table}");
+            $fields = DB::select("SHOW COLUMNS FROM {$this->snake_case}");
         } catch (\Exception $e) {
             echo '[ SQL Error ] '. DB::getLog(). "\r\n";
             echo $e->getMessage().  "\r\n";
+            throw $e;
         }
         
         $id_name =  NULL;
@@ -502,7 +501,7 @@ class MakeController extends Controller
     function model($name, ...$opt) { 
         $this->setup($name);    
 
-        $filename = $this->model_name.'.php';
+        $filename = $this->camel_case . 'Model'.'.php';
 
         // destination
         $dest_path = MODELS_PATH . $filename;
@@ -534,15 +533,15 @@ class MakeController extends Controller
         }
 
         $file = file_get_contents(self::MODEL_TEMPLATE);
-        $file = str_replace('__NAME__', $this->class_name.'Model', $file);
+        $file = str_replace('__NAME__', $this->camel_case.'Model', $file);
 
         $imports = [];
         $traits  = [];
         $proterties = [];
 
-        $imports[] = "use simplerest\\models\\schemas\\{$this->class_name}Schema;";
+        $imports[] = "use simplerest\\models\\schemas\\{$this->camel_case}Schema;";
        
-        Strings::replace('__SCHEMA_CLASS__', "{$this->class_name}Schema", $file); 
+        Strings::replace('__SCHEMA_CLASS__', "{$this->camel_case}Schema", $file); 
 
         if ($uuid = $this->getUuid()){
             $imports[] = 'use simplerest\traits\Uuids;';
@@ -561,4 +560,28 @@ class MakeController extends Controller
            echo "[ Done ] '$dest_path' was generated\r\n";
         } 
     }
+
+    function migration($name, ...$opt) 
+    {
+        $this->setup($name);
+
+        // 2020_10_28_141833_yyy
+        $date = date("Y_m_d");
+        $secs = time() - 1603750000;
+        $filename = $date . '_'. $secs . '_' . $this->snake_case . '.php'; 
+
+        // destination
+        $dest_path = MIGRATIONS_PATH . $filename;
+
+        $file = file_get_contents(self::MIGRATION_TEMPLATE);
+        $file = str_replace('__NAME__', $this->camel_case, $file);
+
+        $ok = (bool) file_put_contents($dest_path, $file);
+        
+        if (!$ok) {
+            throw new \Exception("Failed trying to write $dest_path");
+        } else {
+           echo "[ Done ] '$dest_path' was generated\r\n";
+        } 
+    }    
 }

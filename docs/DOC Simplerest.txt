@@ -2142,19 +2142,19 @@ created_by
 
 Para generar modelos, controladores y apis se utiliza el comando make de la siguiente forma: 
 
-	make schema SuperAwesome [-f | --force]
-    make schema super_awesome  [-f | --force]
+	php com make schema SuperAwesome [-f | --force]
+    php com make schema super_awesome  [-f | --force]
 
-    make model SuperAwesomeModel  [-f | --force]
-    make model SuperAwesome [-f | --force]
-    make model super_awesome  [-f | --force]
+    php com make model SuperAwesomeModel  [-f | --force]
+    php com make model SuperAwesome [-f | --force]
+    php com make model super_awesome  [-f | --force]
 
-    make controller SuperAwesome  [-f | --force]
+    php com make controller SuperAwesome  [-f | --force]
 
-    make api SuperAwesome  [-f | --force]
-    make api super_awesome  [-f | --force]
+    php com make api SuperAwesome  [-f | --force]
+    php com make api super_awesome  [-f | --force]
 
-    make any SuperAwesome  [-s | --schema ] 
+    php com make any SuperAwesome  [-s | --schema ] 
                             [-m | --model] 
                             [-c | --controller ] 
                             [-a | --api ] 
@@ -2162,11 +2162,11 @@ Para generar modelos, controladores y apis se utiliza el comando make de la sigu
 
 Ejemplo:
     
-    make any baz -s -m -a -f
+    php com make any baz -s -m -a -f
 
 Lo anterior es equivalente a:
 
-	make any baz -samf
+	php com make any baz -samf
 
 <-- solo existen (hasta ahora) los atajos -sam y -samf 
 

@@ -79,7 +79,7 @@ En Bash los hilos se crearon con este script:
     #!/bin/bash
 
     for i in {1..5}; do
-        ./com.sh dumb create_bulk &
+        php com dumb create_bulk &
         sleep 2	
     done
 
@@ -310,7 +310,7 @@ Implementación:
 
 Ejecuto:
 
-    ./com.sh dumb get_bulk && cat logs/log.txt 
+    php com dumb get_bulk && cat logs/log.txt 
 
 Resultado:
 
@@ -330,7 +330,7 @@ Disparo los INSERTs concurrentes (y espero 10 segundos a que todos arranquen)
 Ejecuto:
 
     rm logs/log.txt
-    ./com.sh dumb get_bulk && cat logs/log.txt 
+    php com dumb get_bulk && cat logs/log.txt 
 
 Resultado:
 

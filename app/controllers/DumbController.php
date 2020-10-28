@@ -2084,6 +2084,7 @@ class DumbController extends Controller
         //->dropColumn('paused')
         //->dropIndex('correo')
         //->dropPrimary('id')
+        //->renameTable('boletas')
         //->dropTable()
 
         //->field('password_char')->default(false)->nullable(false)
@@ -2098,12 +2099,17 @@ class DumbController extends Controller
         //->foreign('user_id')->references('id')->on('users')->onDelete('cascade')->onUpdate('restrict')
                 
         //->field('id')->auto(false)
-        //->renameTable('boletas')
+        
 
         ->change();
-        Schema::FKcheck(true);
 
-        Debug::dd($sc->dd());
+        Schema::FKcheck(true);
+        //Debug::dd($sc->dd());
+    }
+
+    function has_table(){
+        Debug::dd(Schema::hasTable('users'));
+        Debug::dd((new Schema('users'))->tableExists());
     }
 
 }

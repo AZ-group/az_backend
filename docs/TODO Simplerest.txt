@@ -1,5 +1,23 @@
 # TODO
 
+- Implementar:
+
+  php com make migration nombre_migracion -- ok
+  php com migrations make nombre_migracion --ok <-- equivale al anterior
+
+  php com migrations migrate
+
+
+- Migraciones *sin* el método down() <-- el estado anterior se obtiene del historial de migraciones.
+
+- Absorver la DB de Fabricio con:
+
+  migrations --from:db_name 
+
+
+<-- pensar bien que comandos voy a usar y la sintaxis
+
+
 - Mecanismo para evitar dejar fuera de línea una API Restful:
 
   - Si se desea agregar un campo / tabla a la DB.....
@@ -990,6 +1008,15 @@ Obviamente que los tipos string e int siguen siendo opcionales si ya están defi
 
 Objetivo: poder crear recursos de nuestra propiedad en carpetas ajenas donde lógicamente poseemos permisos de lectura y escritura.
 
+
+- Implementar Scopes como los de Eloquent de Laravel
+
+https://codingdriver.com/how-to-use-scopes-in-laravel.html
+https://medium.com/@janaksan_/using-scope-with-laravel-7c80dd6a2c3d
+https://dev.to/bertheyman/the-magic-of-query-scopes-in-laravel-pfp
+https://www.csrhymes.com/2019/12/29/using-eloquent-query-scopes.html
+https://www.techalyst.com/posts/creating-and-using-query-scopes-with-laravel-5
+
 - Chequear:
 
 SI está en un folder y no es de mi propiedad ni soy el admin ni tengo permiso de escritura =>
@@ -1312,3 +1339,13 @@ iat (issued at): identifies the UTC Unix time at which the JWT was issued
 jti (JWT ID): provides a unique identifier for the JWT.
 
 https://stackoverflow.com/questions/38897514/what-to-store-in-a-jwt
+
+
+- Leer sobre Flat-file databases
+
+https://en.wikipedia.org/wiki/Flat-file_database
+
+
+- Evaluar usar un motor de plantillas como Twing entre otras cosas para el envio de emails
+
+https://en.wikipedia.org/wiki/Twig_(template_engine)
