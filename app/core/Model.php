@@ -805,7 +805,7 @@ class Model {
 		}
 		
 		if (!empty($where)){
-			$q  .= 'WHERE '.ltrim($where);
+			$q  .= ' WHERE '.ltrim($where);
 		}
 		
 		$group = (!empty($this->group)) ? 'GROUP BY '.implode(',', $this->group) : '';

@@ -2219,12 +2219,14 @@ Para ejecutar las migraciones pendiente es con "migrations migrate"
 
 Para volver para atrás migraciones con "migrations rollback"	
 
-	$ php com migrations rollback
+	$ php com migrations rollback [--step==N | --all]
 
 	Rolling back '2020_10_28_161483_create_cables.php'
 	Rolled back  '2020_10_28_161483_create_cables.php' --ok
 	Rolling back '2020_10_28_161757_create_cable_categories.php'
 	Rolled back  '2020_10_28_161757_create_cable_categories.php' --ok
+
+<-- por defecto solo regresa una migración hacia atrás
 
 
 # NGINX web server

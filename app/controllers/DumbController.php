@@ -2112,4 +2112,8 @@ class DumbController extends Controller
         Debug::dd((new Schema('users'))->tableExists());
     }
 
+    function test(){
+        Debug::dd(Schema::getTables('az'));
+    }
+
 }

@@ -2,6 +2,7 @@
 
 namespace simplerest\core;
 
+use simplerest\core\Model;
 use simplerest\libs\DB;
 use simplerest\libs\Strings;
 use simplerest\libs\Debug;
@@ -43,6 +44,18 @@ class Schema
 		$this->tb_name = $tb_name;
 		$this->fromDB();
 	}	
+
+	/*
+	static function getTables(string $db_name){
+		$m = new Model(true);
+		return $m->fromRaw("SELECT * FROM information_schema.tables")->where(['table_schema', $db_name])->get();
+	}
+	*/
+
+	static function getTablesFromCurrentDb(){
+		return DB::select('SHOW TABLES', 'COLUMN');
+
+	}
 
 	static function FKcheck(bool $status){
 		$conn = DB::getConnection();   
