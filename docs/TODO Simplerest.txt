@@ -1,18 +1,28 @@
 # TODO
 
-- Implementar:
-
-  php com make migration nombre_migracion -- ok
-  php com migrations make nombre_migracion --ok <-- equivale al anterior
-
-  php com migrations migrate
-
 
 - Migraciones *sin* el método down() <-- el estado anterior se obtiene del historial de migraciones.
 
+
 - Absorver la DB de Fabricio con:
 
-  migrations --from:db_name 
+  php com make migration --from=db[.table] 
+
+
+- Falta la opción --table=
+
+  make migration another_table_change --table=foo
+
+
+- Poder especificar el campo en vez del nombre de la FK para su remoción
+
+  dropForeignByColumnName() 
+  dropFKByColumnName() --alias--
+
+
+- Squashing Migrations
+
+https://laravel.com/docs/8.x/migrations#squashing-migrations
 
 
 - Mecanismo para evitar dejar fuera de línea una API Restful:
@@ -198,11 +208,6 @@ y
       make -fams baz 		
       etc
 
-- Implementación de migraciones:
-
-make schema:  DB -----> Schema [done]
-migration  :  Model --> 
-
 - Mejorar las reglas generadas en el Schema:
 
   { 
@@ -374,7 +379,7 @@ https://dzone.com/articles/solving-the-options-performance-issue-with-single
 
 - Analizar que pasa con OPTIONS !!! no puede ser que demore tanto !
 
-- Probar si la performance no se ve afectada con "named arguments" y aplicar de mínima a la clase Model. 
+- Probar si la performance no se ve afectada con "named arguments" (de PHP 8) y aplicar de mínima a la clase Model. 
 
 https://stitcher.io/blog/php-8-named-arguments
 https://dev.to/jopacicdev/what-s-new-in-php-8-and-what-does-that-mean-4kdf
@@ -519,16 +524,15 @@ https://www.sourcefuse.com/blog/rest-api-best-practices/
 
 	Otra opción sería hacer que un usuario pueda hacer un impersonate a otros usuarios cuyos roles sean iguales o interiores al rol padre de quien usa el impersonate. Para eso necesito armar el árbol de genealógico de roles.
 
-
-	{
-		"role": "superadmin"
-	}
+    {
+      "role": "superadmin"
+    }
 
 	o
 
-	{
-		"uid": "400"  <-- rol de un superadmin
-	}
+    {
+      "uid": "400"  <-- rol de un superadmin
+    }
 
 
 - Analizar en cada request (y en promedio) de cuánto tiempo es la ejecución de cada componente del sistema (FrontController, ApiController, AuthController, Model, DB, etc)
@@ -591,19 +595,13 @@ Aún sin implementar invalidación de tokens es posible expulsar a todos los usu
 
 - Arreglar la falta de normalización de los folders.
 
-- Generar Modelos, Controladores y APIs via comando (sin sobre-escribir existente excepto que se especifique y posiblemente se confimre) basado en plantillas. ***
-
 - DotEnv
-
-- Id opcionalmente no autoincrementales por seguridad !
 
 - Enviar efectivamente correos -prioridad alta-
 
 - Correos con formato. <-- ver como es en Laravel que usa un motor de plantillas.
 
 - En app/libs/Factory.php está mal que en check() se haga referencia a una versión concreta de AuthController ya que está dentro de una librería que no está versionada.
-
-- Dejar tablas de prueba con nombres como foo y bar.
 
 - Generar algún tipo de alerta / warning si en producción el access token estuviera configurado para durar más de 1500 minutos  (poco más de un día). El generar tokens con vencimiento alto sería un problema enorme que obligaría a lidiar con unalista negra.
 
@@ -626,18 +624,6 @@ Y debería ser así:
  También sería válido:
 
   sendError('Please confirm your e-mail') <-- en tal caso el error sería un 500
-
-
-- Cambios en las tablas del ACL:
-
-  - La tabla permissions debería llamarse resource_permissions
-
-  - Los 'roles' deberían ser una tabla en la DB
-
-  - Debería crearse una tabla 'role_permissions' en vez de seguir manteniendo los permisos para cada rol en el archivo .php de de cada api.
-
-  <-- la tabla 'roles' y 'role_permissions' deberían compilarse de alguna forma y ser incluidos dentro del payload del access_token para evitar andar leyéndolas cada vez. ¿O sera que con REDIS lo soluciono realmente?
-
 
 - Conceptos:
 
@@ -1060,18 +1046,6 @@ https://www.tutorialesprogramacionya.com/sqlserverya/temarios/descripcion.php?in
 https://docs.aws.amazon.com/es_es/redshift/latest/dg/r_Subquery_examples.html
 https://www.mundoracle.com/subconsultas.html?Pg=sql_plsql_6.htm
   
-- Generador de modelos, controladores y apis (resource controllers) como en Laravel:
-
-Ejemplo:
-
-  php index.php make -mca Products
-
--m model
--c controller 
--a api controller
-
-https://stackoverflow.com/questions/43187735/laravel-5-4-create-model-controller-and-migration-in-single-artisan-command
-
 
 - Usar archivos .env 
 
@@ -1254,9 +1228,7 @@ Content-Length: ...
 - Simplificar la forma de crear la conexion a la DB como en Laravel Lummen:
 https://lumen.laravel.com/docs/6.x/database
 
-- Generar Modelos con sus schemas a partir de la DB como con CRUDO usando un comando.
-
-- Migrations, seeders,...
+- Seeders,...
 
 En az\docs\etc dejé unas capturas de pantalla pero se puede ver como funciona sobre el final de este vídeo:
 https://www.youtube.com/watch?v=w6u8amnFhSo

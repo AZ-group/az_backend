@@ -115,7 +115,7 @@ class MigrationsController extends Controller
     function fresh() {
         Schema::FKcheck(0);
         
-        $tables = Schema::getTablesFromCurrentDb();
+        $tables = Schema::getTables();
 
         $conn = DB::getConnection();   
         try{

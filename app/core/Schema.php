@@ -43,16 +43,9 @@ class Schema
 		$this->engine_ver = (int) DB::select('SELECT VERSION() AS ver')[0]['ver'];
 		$this->tb_name = $tb_name;
 		$this->fromDB();
-	}	
-
-	/*
-	static function getTables(string $db_name){
-		$m = new Model(true);
-		return $m->fromRaw("SELECT * FROM information_schema.tables")->where(['table_schema', $db_name])->get();
 	}
-	*/
 
-	static function getTablesFromCurrentDb(){
+	static function getTables(){
 		return DB::select('SHOW TABLES', 'COLUMN');
 
 	}
