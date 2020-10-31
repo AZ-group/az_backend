@@ -1,8 +1,9 @@
 <?php
 
 use simplerest\core\Schema;
+use simplerest\core\interfaces\IMigration;
 
-class CreateCableCategories
+class CreateCableCategories implements IMigration
 {
     /**
 	* Run migration.

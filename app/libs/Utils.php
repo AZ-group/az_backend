@@ -3,10 +3,11 @@
 namespace simplerest\libs;
 
 use PHPMailer\PHPMailer\PHPMailer;
+use simplerest\libs\Factory;
 
 class Utils {
 	static function send_mail(string $to_email, string $to_name, $subject, $body, $alt_body = null){
-		$config = include CONFIG_PATH . 'config.php';
+		$config = Factory::config();
 
 		$mail = new PHPMailer();
         $mail->isSMTP();

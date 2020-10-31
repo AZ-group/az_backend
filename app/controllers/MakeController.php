@@ -576,6 +576,35 @@ class MakeController extends Controller
         $file = file_get_contents(self::MIGRATION_TEMPLATE);
         $file = str_replace('__NAME__', $this->camel_case, $file);
 
+
+        $up_rep = '';
+        foreach ($opt as $o){
+            if (preg_match('/^--to[=|:]([a-z][a-z0-9A-Z]+)$/', $o, $matches)){
+                $to_db = $matches[1];
+            }
+
+            if (preg_match('/^--table[=|:]([a-z][a-z0-9A-Z]+)$/', $o, $matches)){
+                $tb_name = $matches[1];
+            }
+
+            //$tb_name = Strings::slice($o, '/^--table[=|:]([a-z][a-z0-9A-Z]+)$/');
+        }
+
+        if (!empty($to_db)){
+            $up_rep .= "Factory::config()['db_connection_default'] = '$to_db';\r\n\r\n";
+        }
+        
+        if (!empty($tb_name)){
+            if (!empty($up_rep)){
+                $up_rep .= "\t\t";
+            }
+
+            $up_rep .= "\$sc = new Schema('$tb_name');\r\n";
+        }
+        
+        $up_rep .= "";        
+        Strings::replace('### UP', $up_rep, $file);
+
         $ok = (bool) file_put_contents($dest_path, $file);
         
         if (!$ok) {

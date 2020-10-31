@@ -22,6 +22,7 @@ use simplerest\libs\Validator;
 use simplerest\libs\Files;
 use simplerest\libs\Time;
 use simplerest\core\Schema;
+//use simplerest\models\CablesModel;
 
 
 class DumbController extends Controller
@@ -2112,8 +2113,39 @@ class DumbController extends Controller
         Debug::dd((new Schema('users'))->tableExists());
     }
 
+    function asdf(){
+        $res = DB::select("SELECT TABLE_NAME
+		FROM information_schema.tables
+		WHERE table_schema = '$db_name';", 
+		'COLUMN');
+    }
+
+    function xxyy(){
+        $o = '--to=simplerest';
+        echo strlen($o);
+
+
+        $to_db   = Strings::slice($o, '/^--to[=|:]([a-z][a-z0-9A-Z]+)$/');
+        Debug::dd($to_db);
+    }
+
+    function test_get_conn(){
+        Factory::config()['db_connection_default'] = 'db1';
+
+        Debug::dd(DB::select('SELECT * FROM users'));
+    }
+
     function test(){
-        Debug::dd(Schema::getTables('az'));
+        Factory::config()['db_connection_default'] = 'db2';
+
+        $sc = new Schema('cables');
+
+        $sc
+        ->int('id')->unsigned()->auto()->pri()
+        ->varchar('nombre', 40)
+        ->float('calibre')
+
+        ->create();
     }
 
 }

@@ -6,6 +6,7 @@ use simplerest\core\Model;
 use simplerest\libs\DB;
 use simplerest\libs\Strings;
 use simplerest\libs\Debug;
+use simplerest\libs\Factory;
 
 /*
 	Migrations
@@ -39,15 +40,29 @@ class Schema
 
 
 	function __construct($tb_name){
-		$this->tables = DB::select('SHOW TABLES', 'COLUMN');
+		$this->tables = self::getTables();
 		$this->engine_ver = (int) DB::select('SELECT VERSION() AS ver')[0]['ver'];
 		$this->tb_name = $tb_name;
 		$this->fromDB();
 	}
 
-	static function getTables(){
-		return DB::select('SHOW TABLES', 'COLUMN');
+	static function getTables(string $conn_id = null) {	
+		$config = Factory::config();
+		
+		if ($conn_id != null){
+			if (!isset($config['db_connections'][$conn_id])){
+				throw new \Exception("Connection Id '$conn_id' not defined");
+			}			
+		} else {
+			$conn_id = $config['db_connection_default'];
+		}
 
+		$db_name = $config['db_connections'][$conn_id]['db_name'];
+
+		return DB::select("SELECT TABLE_NAME 
+		FROM information_schema.tables
+		WHERE table_schema = '$db_name';", 
+		'COLUMN');
 	}
 
 	static function FKcheck(bool $status){

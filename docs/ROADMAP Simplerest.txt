@@ -5,7 +5,7 @@
     Seeders
     Response re-escrito
     ApiController pullido con una sola instancia y 5 métodos separados
-    Folders funcionando
+    Folders normalizados y funcionando correctamente
 
 - Alpha 1 .. 4
 
@@ -17,6 +17,8 @@
 
 - Beta 1 .. 2
 
+    Documentación en línea
+    Traducciones del fw + documentación
     Soporte para REDIS, Memcached, etc
     Probado en Nginx
     Pruebas unitarias para todo
@@ -34,7 +36,7 @@
 
 - 1.2
 
-    ORM bastante compatible con Eloquent
+    ORM mayormente compatible con Eloquent
 
 - 1.3 
 

@@ -2,6 +2,8 @@
 
 namespace simplerest\libs;
 
+use simplerest\libs\Config;
+
 class Factory {
 	static function response() {
 		return \simplerest\core\Response::getInstance();
@@ -15,7 +17,7 @@ class Factory {
 		static $instance;
 
 		if ($instance == null){
-			$instance = new  \simplerest\libs\Validator();
+			$instance = new \simplerest\libs\Validator();
 		}
 
         return $instance;
@@ -32,12 +34,12 @@ class Factory {
 	}
 
 	static function config(){
-		static $arr;
+		static $instance;
 
-		if ($arr == null){
-			$arr = include CONFIG_PATH . 'config.php';
+		if ($instance == null){
+			$instance = new Config();
 		}
 
-        return $arr;
+        return $instance;
 	}
 }

@@ -22,7 +22,7 @@ class Response
 
 
     protected function __construct() { 
-        static::$config = include CONFIG_PATH . 'config.php';
+        static::$config = Factory::config();
         static::$pretty = static::$config['pretty'];
     }
 

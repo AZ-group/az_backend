@@ -376,6 +376,33 @@ Las urls comienzan *sin* /api si en /config/config.php
 	'REMOVE_API_SLUG' => true
 
 
+### La clase Config
+
+Para usar la utilería Config debe hacerse a través de Factory para acceder a la misma instancia:
+
+# Obtener instancia única:
+
+	Factory::config()
+
+
+# Introducir y leer datos (de forma no-persistente)
+
+Se puede escribir mediante el método set() y leer con get() o bien acceder como array ya que se implementa la interfaz ArrayAccess:
+
+	Factory::config()['xxx'] = 'zzz';
+    Debug::dd(Factory::config()['xxx']);  // 'zzz'
+
+o
+	
+	Factory::config()->set('xxx','zzz');
+	Debug::dd(Factory::config()->get('xxx'));  // 'zzz' 
+
+o
+
+	Factory::config()->set('xxx','zzz');
+	Debug::dd(Factory::config()['xxx']);  // 'zzz'   
+
+
 ### Controlador
 
 Para demostrar como ejecutar un controlador desde la linea de comandos ejemplificaremos con un simple controlador ubicado en la carpeta controllers:
@@ -2227,6 +2254,74 @@ Para volver para atrás migraciones con "migrations rollback"
 	Rolled back  '2020_10_28_161757_create_cable_categories.php' --ok
 
 <-- por defecto solo regresa una migración hacia atrás
+
+
+# Multitenant
+
+El método DB::getConnection() permite especificar opcionalmente la base de datos a la que nos queremos conectar y la clase Model acepta una conexión así que es posible hacer lo siguiente:
+
+Ej:
+
+	$conn = DB::getConnection('db2');
+
+	$m = (new Model())
+		->setConn($conn)
+		->table('cables');
+		
+	Debug::dd($m->get());
+
+
+Otra forma de seleccionar una base de datos es cambiar la conexión por defecto:
+
+Ej:
+
+	Factory::config()['db_connection_default'] = 'db2';
+
+	$m = (new Model(true))
+		->table('cables');
+		
+	Debug::dd($m->get());
+
+o
+
+	Factory::config()['db_connection_default'] = 'db2';
+
+	$m = (new CablesModel())
+	->connect();
+
+	Debug::dd($m->get());
+
+<-- require de la clase CablesModel y del schema CablesSchema
+
+o 
+
+	Factory::config()['db_connection_default'] = 'db2';
+
+	$m = DB::table('cables');
+	Debug::dd($m->get());
+
+
+Ej. con migraciones:
+
+	Factory::config()['db_connection_default'] = 'db2';
+
+	$sc = new Schema('cables');
+
+	$sc
+	->int('id')->unsigned()->auto()->pri()
+	->varchar('nombre', 40)
+	->float('calibre')
+
+	->create();
+
+Para generar el archivo de migración anterior (las primeras dos líneas) se puede usar --to combinado con --table:
+
+	php com make migration creacion_tabla_cables_bla_bla --to=db2 --table=cables
+
+
+Especificamente sobre migraciones, al trabajar con múltiples bases de datos hay que tener en cuenta que el método fresh() que comienza haciendo DROP TABLEs sobre la DB por seleccionada por defecto por lo que si queremos correr migraciones sobre la DB_B pero tenemos seleccionada la DB_A, comenzará eliminando todas las tablas de DB_A pero podemos especificar el id de conexión al que se conectará y sobre el cual hará los DROP TABLEs:
+
+	php com migrations fresh --from=db_b --force
 
 
 # NGINX web server

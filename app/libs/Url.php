@@ -13,7 +13,7 @@ class Url {
         }
         */
 
-        $config = include CONFIG_PATH . 'config.php';
+        $config = Factory::config();
         
         if ($config['HTTPS'] == 1 || strtolower($config['HTTPS']) == 'on'){
             $protocol = 'https:';

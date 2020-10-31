@@ -29,17 +29,18 @@ return [
 			'user'	=> 'boctulus', 
 			'pass'	=> 'gogogo#*$U&_441@#'
 		],
-		/*
+		
 		'db2' => [
 			'host'	=> 'localhost',
 			'driver' => 'mysql',
-			'db_name' => 'simplerest', 
+			'db_name' => 'az2', 
 			'user'	=> 'boctulus', 
 			'pass'	=> 'gogogo#*$U&_441@#'
 		]
-		*/
 	], 
 
+	'db_connection_default' => 'db1',
+	
 	'DateTimeZone' => 'America/Argentina/Buenos_Aires',
 
 	'error_handling'   => true,

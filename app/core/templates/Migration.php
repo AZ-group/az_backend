@@ -2,7 +2,7 @@
 
 use simplerest\core\Schema;
 
-class __NAME__ /* implements IMigration */
+class __NAME__ implements IMigration
 {
     /**
 	* Run migration.
@@ -11,7 +11,7 @@ class __NAME__ /* implements IMigration */
     */
     public function up()
     {
-        //
+        ### UP
     }
 }
 

@@ -3,6 +3,7 @@
 namespace simplerest\libs;
 
 use simplerest\core\Model;
+use simplerest\libs\Factory;
 
 class DB 
 {
@@ -18,7 +19,7 @@ class DB
 	}
 
     public static function getConnection(string $conn_id = null, $options = null) {
-		$config = include CONFIG_PATH . 'config.php';
+		$config = Factory::config();
 		
 		$cc = count($config['db_connections']);
 		
@@ -32,7 +33,9 @@ class DB
 			if (static::$current_id_conn == null){
 				if ($cc == 1){
 					static::$current_id_conn = array_keys($config['db_connections'])[0];
-				} else {
+				} elseif (!empty($config['db_connection_default'])) {
+					static::$current_id_conn = $config['db_connection_default'];
+				} else {	
 					throw new \InvalidArgumentException('No database selected');
 				}	
 			}

@@ -109,25 +109,54 @@ class MigrationsController extends Controller
 
         <--- para no usar el método down()
 
-        Nota: Comienza haciendo un TRUNCATE de la tabla `migrations` o sea borra todo inclusive los campos con  batch=0
+        Nota: Comienza haciendo un DROP DATABASE
 
     */
-    function fresh() {
+    function fresh(...$opt) 
+    {   
+        $config = Factory::config();
+
+        $force = false;
+        $conn_id = $config['db_connection_default'];
+
+        foreach ($opt as $o){
+            if ($o == '--force'){
+                $force = true;
+                continue;
+            }
+
+            $_conn = Strings::slice($o, '/^--from[=|:]([a-zA-Z][0-9a-zA-Z]+)$/');
+            if (!empty($_conn)){
+                $conn_id = $_conn;
+                continue;
+            }
+        }
+
+        if (!$force){
+            echo "fresh: this method is destructive. Every table for '$conn_id' will be dropped. Please use option --force if you want to procede.\r\n";
+            exit;
+        }
+
+        if ($conn_id == NULL || !isset($config['db_connections'][$conn_id])){
+            throw new \Exception("Connection Id '$conn_id' not defined");
+        }
+
         Schema::FKcheck(0);
         
+        Factory::config()['db_connection_default'] = $conn_id;
+        $conn = DB::getConnection();  
+
         $tables = Schema::getTables();
-
-        $conn = DB::getConnection();   
+        
         try{
-            foreach($tables as $table){
-
+            foreach($tables as $table) {
                 echo "Dropping table '$table'\r\n";
                 $st = $conn->prepare("DROP TABLE IF EXISTS `$table`;");
                 $res = $st->execute();
                 echo "Dropped table  '$table' --ok\r\n";
-
-                $this->migrate();
             }
+
+            $this->migrate();
         } catch (\PDOException $e) {    
             Debug::dd("DROP TABLE for `$table` failed", "PDO Error");
             Debug::dd($e->getMessage(), "MSG"); 
