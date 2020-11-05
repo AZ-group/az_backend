@@ -1987,17 +1987,18 @@ class DumbController extends Controller
     */
     function create_table()
     {       
-        $sc = (new Schema('facturas'))
+        //Factory::config()['db_connection_default'] = 'db2';
+        $sc = (new Schema('facturas3'))
 
         ->setEngine('InnoDB')
         ->setCharset('utf8')
         ->setCollation('utf8_general_ci')
 
-        ->integer('id')->auto()->unsigned()->pri()
+        ->integer('id')->auto()->unsigned()
         ->int('edad')->unsigned()
         ->varchar('firstname')
         ->varchar('lastname')->nullable()->charset('utf8')->collation('utf8_unicode_ci')
-        ->varchar('username')->unique()
+        ->varchar('username')
         ->varchar('password', 128)
         ->char('password_char')->nullable()
         ->varbinary('texto_vb', 300)
@@ -2027,7 +2028,7 @@ class DumbController extends Controller
         ->double('doble_p')
         ->real('num_real')
 
-        ->bit('some_bits', 3)->index()
+        ->bit('some_bits', 3)
         ->boolean('active')->default(1)
         ->boolean('paused')->default(true)
 
@@ -2049,13 +2050,19 @@ class DumbController extends Controller
         ->softDeletes() // agrega DATETIME deleted_at 
         ->datetimes()  // agrega DATETIME(s) no-nullables created_at y deleted_at
 
-        ->varchar('correo')->unique()
+        ->varchar('correo')
+        ->int('user_id');
 
-        ->int('user_id')->index()
-        ->foreign('user_id')->references('id')->on('users')->onDelete('cascade')
+        // INDICES
+        $sc->pri(['id']);
+        $sc->unique(['username']);
+        $sc->index(['some_bits']);
+        $sc->unique(['correo']);
+        $sc->index(['user_id']);
+
+        // FKs
+        $sc->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
         //->foreign('user_id')->references('id')->on('users')->constraint('fk_uid')->onDelete('cascade')->onUpdate('restrict')
-        
-        ;
 
         //Debug::dd($sc->getSchema(), 'SCHEMA');
         /////exit;
@@ -2113,21 +2120,88 @@ class DumbController extends Controller
         Debug::dd((new Schema('users'))->tableExists());
     }
 
-    function asdf(){
-        $res = DB::select("SELECT TABLE_NAME
-		FROM information_schema.tables
-		WHERE table_schema = '$db_name';", 
-		'COLUMN');
+    function xxy(){
+        $str = "`lastname` varchar(60) CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT 'NN',
+        ";
+        Debug::dd($str, 'STR');
+
+        $charset    = Strings::slice($str, '/CHARACTER SET ([a-z0-9_]+)/');
+        Debug::dd($charset, 'CHARSET');
+        Debug::dd($str, 'STR');
+
+        $collation  = Strings::slice($str, '/COLLATE ([a-z0-9_]+)/');
+        Debug::dd($collation, 'COLLATION');
+        Debug::dd($str, 'STR');
+        
+        $default    = Strings::slice($str, '/DEFAULT (\'?[a-zA-Z0-9_]+\'?)/');
+        Debug::dd($default, "DEFAULT");
+        Debug::dd($str, 'STR');
+
+        $nullable   = Strings::slice($str, '/(NOT NULL)/') == NULL;
+        Debug::dd($nullable, "NULLABLE");
+        Debug::dd($str, 'STR');
+
+        $auto       = Strings::slice($str, '/(AUTO_INCREMENT)/') == 'AUTO_INCREMENT';
+        Debug::dd($auto, "AUTO");
+        Debug::dd($str, 'STR');
     }
 
-    function xxyy(){
-        $o = '--to=simplerest';
-        echo strlen($o);
+    function xxxz(){
+        $str = 'CONSTRAINT `facturas_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION';
+        Debug::dd($str, 'STR');
+
+        $constraint = Strings::slice($str, 'c([a-zA-Z0-9_]+)` /', function($s){
+            //var_dump($s);
+                return ($s == null) ? 'DEFAULT' : $s;
+            }); 
+
+        Debug::dd($constraint, 'CONSTRAINT');    
+
+        //Debug::dd($constraint);
+        //exit; //
+        Debug::dd($str, 'STR');
+
+        $primary = Strings::slice($str, '/PRIMARY KEY \(([a-zA-Z0-9_`,]+)\)/');
+        Debug::dd($str, 'STR');	
+        Debug::dd($primary, 'PRIMARY');
+
+        /*
+
+        Compuesto:
+        UNIQUE KEY `correo` (`correo`,`hora`) USING BTREE,
+
+        */
+        $unique  = Strings::sliceAll($str, '/UNIQUE KEY `([a-zA-Z0-9_]+)` \(([a-zA-Z0-9_`,]+)\)/');
+        Debug::dd($str, 'STR');	
+        Debug::dd($unique, 'UNIQUE');					
+
+        /*
+            CONSTRAINT `facturas_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCAD
+
+        */
+        $fk     = Strings::slice($str, '/FOREIGN KEY \(`([a-zA-Z0-9_]+)`\)/');
+        $fk_ref = Strings::sliceAll($str, '/REFERENCES `([a-zA-Z0-9_]+)` \(`([a-zA-Z0-9_]+)`\)/');
+        Debug::dd($str, 'STR (before ON UPDATE)');	
+        $fk_on_update  = Strings::slice($str, '/ ON UPDATE (RESTRICT|NO ACTION|CASCADE|SET NULL)/');
+        Debug::dd($str, 'STR (before ON DELETE)');	
+        $fk_on_delete  = Strings::slice($str, '/ ON DELETE (RESTRICT|NO ACTION|CASCADE|SET NULL)/');
+
+        Debug::dd($str, 'STR (final)');	 
+        Debug::dd($fk, 'FK');
+        Debug::dd($fk_ref, 'REFERENCES');
+        Debug::dd($fk_on_update, 'ON UPDATE');
+        Debug::dd($fk_on_delete, 'ON DELETE');    
+
+        /*
+        IDEM
+        */
+        $index   = Strings::sliceAll($str, '/KEY `([a-zA-Z0-9_]+)` \(([a-zA-Z0-9_`,]+)\)/');
+        Debug::dd($str, 'STR');
+        Debug::dd($index, 'INDEX');
 
 
-        $to_db   = Strings::slice($o, '/^--to[=|:]([a-z][a-z0-9A-Z]+)$/');
-        Debug::dd($to_db);
     }
+
 
     function test_get_conn(){
         Factory::config()['db_connection_default'] = 'db1';

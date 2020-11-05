@@ -12,9 +12,9 @@ class CreateCables implements IMigration
     */
     public function up()
     {
-        $s = new Schema('cables');
+        $sc = new Schema('cables');
 
-        $s
+        $sc
         ->int('id')->unsigned()->auto()->pri()
         ->varchar('nombre', 40)
         ->float('calibre')

@@ -626,50 +626,64 @@ class Schema
 		return $this;
 	}
 
-	function constraint(string $constraint_name){
-		$this->fks[$this->current_field]['constraint'] = $constraint_name;
+	function constrained(string $constraint_name){
+		$this->fks[$this->current_field]['fk_constraint'] = $constraint_name;
 		return $this;
 	}
 
 	
 	// INDICES >>>
 	
-	protected function setIndex(string $type){
-		if (!in_array($type, ['PRIMARY', 'UNIQUE', 'INDEX', 'FULLTEXT', 'SPATIAL']))
-			throw new \InvalidArgumentException("Invalid index $type");
-		
-		$this->indices[$this->current_field] = $type;
-	}
-	
-	function primary(){
-		$this->setIndex('PRIMARY');
+	function primary(Array $fields, string $constraint = null){
+		if ($constraint == null){
+			$constraint = 'DEFAULT';
+		}
+
+		$this->indices['PRIMARY'][$constraint]['fields'][] = $fields;
 		return $this;
 	}
 	
-	function pri(){
-		$this->primary();
+	function pri(Array $fields, string $constraint = null){
+		$this->primary($fields, $constraint);
 		return $this;
 	}
 	
-	function unique(){
-		$this->setIndex('UNIQUE');
+	function unique(Array $fields, string $constraint = null){
+		if ($constraint == null){
+			$constraint = 'DEFAULT';
+		}
+
+		$this->indices['UNIQUE'][$constraint]['fields'][] = $fields;
 		return $this;
 	}
 	
-	function index(){
-		$this->setIndex('INDEX');
+	function index(Array $fields, string $constraint = null){ 
+		if ($constraint == null){
+			$constraint = 'DEFAULT';
+		}
+
+		$this->indices['INDEX'][$constraint]['fields'][] = $fields;
 		return $this;
 	}
 	
-	function fulltext(){
-		$this->setIndex('FULLTEXT');
+	function fulltext(Array $fields, string $constraint = null){ 
+		if ($constraint == null){
+			$constraint = 'DEFAULT';
+		}
+
+		$this->indices['FULLTEXT'][$constraint]['fields'][] = $fields;
 		return $this;
 	}
 	
-	function spatial(){
-		$this->setIndex('SPATIAL');
+	function spatial(string $field, string $constraint = null){ 
+		if ($constraint == null){
+			$constraint = 'DEFAULT';
+		}
+
+		$this->indices['SPATIAL'][$constraint]['fields'][] = [$field];
 		return $this;
 	}
+	
 	
 	///////////////////////////////
 	
@@ -731,7 +745,7 @@ class Schema
 		foreach ($this->fks as $name => $fk){
 			$on_delete  = !empty($fk['on_delete'])  ? 'ON DELETE ' .$fk['on_delete']  : '';
 			$on_update  = !empty($fk['on_update'])  ? 'ON UPDATE ' .$fk['on_update']  : '';
-			$constraint = !empty($fk['constraint']) ? 'CONSTRAINT `'.$fk['constraint'].'`' : '';
+			$constraint = !empty($fk['fk_constraint']) ? 'CONSTRAINT `'.$fk['fk_constraint'].'`' : '';
 			
 			$this->commands[] = trim("ALTER TABLE  `{$this->tb_name}` ADD $constraint FOREIGN KEY (`$name`) REFERENCES `{$fk['on']}` (`{$fk['references']}`) $on_delete $on_update").';';
 		}
@@ -780,24 +794,32 @@ class Schema
 		
 		if (count($this->indices) >0)
 		{			
+
+			Debug::dd($this->indices, 'INDICES');
+			exit;
+
 			$cmd = '';		
-			foreach ($this->indices as $nombre => $tipo){
-			
+			foreach ($this->indices as $tipo => $ix_arr) {			
 				switch ($tipo){
-					case 'INDEX':
-						$cmd .= "ADD INDEX (`$nombre`),\n";
-					break;
 					case 'PRIMARY':
 						// PRIMARY can not be "ADDed"
 					break;
+					case 'INDEX':
+						$constraint = (array_key_first($ix_arr) == 'DEFAULT' ? $ix_arr['DEFAULT']['fields'][0][0] : array_key_first($ix_arr));
+						$cmd .= "ADD INDEX (`$nombre`),\n";
+					break;					
 					case 'UNIQUE':
 						$cmd .= "ADD UNIQUE KEY `$nombre` (`$nombre`),\n";
 					break;
 					case 'SPATIAL':
 						$cmd .= "ADD SPATIAL KEY `$nombre` (`$nombre`),\n";
 					break;
+					case 'FULLTEXT':
+						$cmd .= "ADD FULLTEXT KEY `$nombre` (`$nombre`),\n";  // sin probar
+					break;
 					
 					default:
+						Debug::dd($tipo, 'TIPO INVALIDO');
 						throw new \Exception("Invalid index type");
 				}				
 			}
@@ -909,6 +931,24 @@ class Schema
 	}
 
 
+
+	function addPrimary(string $column){
+		$this->commands[] = "ALTER TABLE `{$this->tb_name}` ADD PRIMARY KEY(`$column`);";
+		return $this;	
+	}
+		
+	// implica primero remover el AUTOINCREMENT sobre el campo !
+	// ej: ALTER TABLE `super_cool_table` CHANGE `id` `id` INT(11) NOT NULL;
+	function dropPrimary(string $name){
+		if ($this->prev_schema['fields'][$name]['auto']){
+			throw new \Exception("To be able to DROP PRIMARY KEY, first remove AUTO_INCREMENT");
+		}
+
+		$this->commands[] = "ALTER TABLE `{$this->tb_name}` DROP PRIMARY KEY;";
+		return $this;
+	}
+
+
 	function addIndex(string $column){
 		$this->commands[] = "ALTER TABLE `{$this->tb_name}` ADD INDEX(`$column`);";
 		return $this;
@@ -928,23 +968,6 @@ class Schema
 	// alias
 	function renameIndexTo(string $final){
 		$this->commands[] = "ALTER TABLE `{$this->tb_name}` RENAME INDEX `{$this->current_field}` TO `$final`;";
-		return $this;
-	}
-
-
-	function addPrimary(string $column){
-		$this->commands[] = "ALTER TABLE `{$this->tb_name}` ADD PRIMARY KEY(`$column`);";
-		return $this;	
-	}
-		
-	// implica primero remover el AUTOINCREMENT sobre el campo !
-	// ej: ALTER TABLE `super_cool_table` CHANGE `id` `id` INT(11) NOT NULL;
-	function dropPrimary(string $name){
-		if ($this->prev_schema['fields'][$name]['auto']){
-			throw new \Exception("To be able to DROP PRIMARY KEY, first remove AUTO_INCREMENT");
-		}
-
-		$this->commands[] = "ALTER TABLE `{$this->tb_name}` DROP PRIMARY KEY;";
 		return $this;
 	}
 
@@ -972,6 +995,17 @@ class Schema
 	}
 
 
+	function addFullText(string $column){
+		$this->commands[] = "ALTER TABLE ADD FULLTEXT INDEX(`$column`);";
+		return $this;
+	}
+		
+	function dropFullText(string $name){
+		$this->commands[] = $this->dropIndex($name);
+		return $this;
+	}
+
+
 	function dropForeign(string $name){
 		$this->commands[] = "ALTER TABLE `{$this->tb_name}` DROP FOREIGN KEY `$name`";
 		return $this;
@@ -985,7 +1019,6 @@ class Schema
 
 	// From DB 
 	//
-	// another way to implement is reading "SHOW COLUMNS FROM `table_name`;"
 	protected function fromDB(){
 		if (!in_array($this->tb_name, $this->tables)){
 			return;
@@ -1000,9 +1033,16 @@ class Schema
 		$lines = explode("\n", $table_def["Create Table"]);
 		$lines = array_map(function($l){ return trim($l); }, $lines);
 		
+		$last_line     = $lines[count($lines) -1];
+		$this->prev_schema['engine']  = Strings::slice($last_line, '/ENGINE=([a-zA-Z][a-zA-Z0-9_]+)/');
+		$this->prev_schema['charset'] = Strings::slice($last_line, '/CHARSET=([a-zA-Z][a-zA-Z0-9_]+)/');
+
 		$fields = [];
+		$this->prev_schema['indices'] = [];
+	
 		$cnt = count($lines)-1;
-		for ($i=1; $i<$cnt; $i++){
+		for ($i=1; $i<$cnt; $i++)
+		{
 			$str = $lines[$i];
 			
 			if ($lines[$i][0] == '`')
@@ -1023,44 +1063,53 @@ class Schema
 
 				$this->raw_lines[$field] = $lines[$i];
 
+
+				if ($field == null){
+					throw new \Exception("Field parsing failed");
+				}
+
 				if ($type == 'enum' || $type == 'set'){
 					$array = Strings::slice($str, '/\((.*)\)/i');
 				}else{
 					$len = Strings::slice($str, '/\(([0-9,]+)\)/');					
 				}
-				
-				$charset    = Strings::slice($str, '/CHARACTER SET ([a-z0-9_]+)/');
-				$collation  = Strings::slice($str, '/COLLATE ([a-z0-9_]+)/');
-				
-				$default    = Strings::slice($str, '/DEFAULT ([a-zA-Z0-9_\(\)]+)/');
-				//Debug::dd($default, "DEFAULT($field)");
 
+
+				$to_lo = function($s){ return strtolower($s); };
+				$to_up = function($s){ return strtoupper($s); };
+
+
+				$charset    = Strings::slice($str, '/CHARACTER SET ([a-z0-9_]+)/');
+				$collation  = Strings::slice($str, '/COLLATE ([a-z0-9_]+)/');				
+				$default    = Strings::slice($str, '/DEFAULT (\'?[a-zA-Z0-9_]+\'?)/');
+	
 				$nullable   = Strings::slice($str, '/(NOT NULL)/') == NULL;
 				$auto       = Strings::slice($str, '/(AUTO_INCREMENT)/') == 'AUTO_INCREMENT';
-				//Debug::dd($nullable, "NULLABLE($field)");
 
 
-				// [CONSTRAINT [symbol]] CHECK (expr) [[NOT] ENFORCED]	
-				$check      = Strings::slice($str, '/CHECK (\(.*)/', function($s){
-					$s = substr($s, 1);
-					
-					if ($s[strlen($s)-1] == '"')
-						$s = substr($s, 0, -1);
-					
-					if ($s[strlen($s)-1] == ',')
-						$s = substr($s, 0, -1);
-					
-					$s = substr($s, 0, -1);
-					
-					return $s;
-				});
+				// Attributes
+				$unsigned = Strings::slice($str, '/(unsigned)/i', $to_lo) == 'unsigned';
+				$zerofill = Strings::slice($str, '/(zerofill)/i', $to_lo) == 'zerofill';
+				$binary   = Strings::slice($str, '/(binary)/i'  , $to_lo) == 'binary';
+	
+				$attr = [];
+
+				if ($unsigned != null){
+					$attr[] = 'unsigned'; 
+				}
+
+				if ($zerofill != null){
+					$attr[] = 'zerofill';
+				}
+
+				if ($binary != null){
+					$attr[] = 'binary';
+				}
+
+				/*		
+				Debug::dd($field, "FIELD ($field) ***");
+				Debug::dd($this->raw_lines[$field], 'RAW');
 				
-				//if (strlen($str)>1)
-				//	throw new \Exception("Parsing error!");				
-			
-				/*
-				Debug::dd($field, 'FIELD ***');
-				Debug::dd($lines[$i], 'LINES');
 				Debug::dd($type, 'TYPE');
 				Debug::dd($array, 'ARRAY / SET');
 				Debug::dd($len, 'LEN');
@@ -1068,46 +1117,215 @@ class Schema
 				Debug::dd($collation, 'COLLATION');
 				Debug::dd($nullable, 'NULLBALE');
 				Debug::dd($default, 'DEFAULT');
+	
 				Debug::dd($auto, 'AUTO');
-				Debug::dd($check, 'CHECK');
+				Debug::dd($attr, 'ATTR');
+				//Debug::dd($check, 'CHECK');
 				echo "-----------\n";
-				*/					
+				exit; //
+				*/			
+								
 
 				$this->prev_schema['fields'][$field]['type'] = strtoupper($type);
 				$this->prev_schema['fields'][$field]['auto'] = $auto; 
-				//$this->prev_schema['fields'][$field]['attr'] = ...
+				$this->prev_schema['fields'][$field]['attr'] = $attr;
 				$this->prev_schema['fields'][$field]['len'] = $len;
+				$this->prev_schema['fields'][$field]['array'] = $array;
 				$this->prev_schema['fields'][$field]['nullable'] = $nullable;
 				$this->prev_schema['fields'][$field]['charset'] = $charset;
 				$this->prev_schema['fields'][$field]['collation'] = $collation;
 				$this->prev_schema['fields'][$field]['default'] = $default;
-				// $this->prev_schema['fields'][$field]['after'] =  ...
-				// $this->prev_schema['fields'][$field]['first'] = ...
-
-			}else{
-				// son índices de algún tipo
-				//Debug::dd($str);
-				
-				$primary = Strings::slice($str, '/PRIMARY KEY \(`([a-zA-Z0-9_]+)`\)/');				
-				$unique  = Strings::slice_all($str, '/UNIQUE KEY `([a-zA-Z0-9_]+)` \(`([a-zA-Z0-9_]+)`\)/');
-				$index   = Strings::slice_all($str, '/KEY `([a-zA-Z0-9_]+)` \(`([a-zA-Z0-9_]+)`\)/');
-				
-				/*
-				Debug::dd($primary);
-				Debug::dd($unique);
-				Debug::dd($index);
-				echo "-----------\n";
-				*/	
-				
-				if ($primary != NULL){
-					$this->prev_schema['indices'][$field] = 'PRIMARY';
-				} elseif ($unique != NULL){
-					$this->prev_schema['indices'][$field] = 'UNIQUE';
-				}if ($index != NULL){
-					$this->prev_schema['indices'][$field] = 'INDEX';
-				}
 			}
+
+
+			/*
+
+				Simple:
+					PRIMARY KEY (`id`),
+
+				Compuesta:
+					PRIMARY KEY (`id`,`co`) USING BTREE
+
+				Con nombre: 
+					CONSTRAINT `pk_id` PRIMARY KEY (`id`,`co`) USING BTREE
+
+				
+				https://stackoverflow.com/a/3303836/980631
+
+			*/
+
+			if (strlen($str)<5){ // *
+				continue;
+			}
+
+			$constraint = Strings::slice($str, '/CONSTRAINT `([a-zA-Z0-9_]+)` /', function($s){
+				return ($s != null) ? $s : 'DEFAULT';
+			});
+
+			$primary = Strings::slice($str, '/PRIMARY KEY \(([a-zA-Z0-9_`,]+)\)/');
+			
+			/*
+			
+				Compuesto:
+					UNIQUE KEY `correo` (`correo`,`hora`) USING BTREE,
+
+			*/
+			$unique   = Strings::sliceAll($str, '/UNIQUE KEY `([a-zA-Z0-9_]+)` \(([a-zA-Z0-9_`,]+)\)/');	
+
+			$spatial  = Strings::sliceAll($str, '/SPATIAL KEY `([a-zA-Z0-9_]+)` \(([a-zA-Z0-9_`,]+)\)/');
+
+			$fulltext = Strings::sliceAll($str, '/FULLTEXT KEY `([a-zA-Z0-9_]+)` \(([a-zA-Z0-9_`,]+)\)/');
+			
+			/*
+				IDEM
+
+				https://dev.mysql.com/doc/refman/8.0/en/create-index.html
+			*/
+			$index   = Strings::sliceAll($str, '/KEY `([a-zA-Z0-9_]+)` \(([a-zA-Z0-9_`,]+)\)/');
+
+
+			$ix_type 			= Strings::slice($str, '/USING (BTREE|HASH)/');
+			$algorithm_option	= Strings::slice($str, '/ALGORITHM[ ]?[=]?[ ]?(DEFAULT|INPLACE|COPY)/');
+			$lock_option		= Strings::slice($str, '/LOCK[ ]?[=]?[ ]?(DEFAULT|NONE|SHARED|EXCLUSIVE)/');
+			
+
+			/*
+				CONSTRAINT `facturas_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+
+				--[ CONSTRAINT ]-- 
+				'facturas_ibfk_1'
+
+
+				--[ FK ]-- 
+				'user_id'
+
+
+				--[ REFERENCES ]-- 
+				array (
+				0 => 'users',
+				1 => 'id',
+				)
+
+				--[ ON UPDATE ]-- 
+				NULL
+
+				--[ ON DELETE ]-- 
+				'CASCADE'
+
+			*/
+			$fk            = Strings::slice($str, '/FOREIGN KEY \(`([a-zA-Z0-9_]+)`\)/');
+			$fk_ref        = Strings::sliceAll($str, '/REFERENCES `([a-zA-Z0-9_]+)` \(`([a-zA-Z0-9_]+)`\)/');
+			$fk_on_update  = Strings::slice($str, '/ON UPDATE (RESTRICT|NO ACTION|CASCADE|SET NULL)/');
+			$fk_on_delete  = Strings::slice($str, '/ON DELETE (RESTRICT|NO ACTION|CASCADE|SET NULL)/');
+
+			/*
+			if ($fk != null){
+				Debug::dd($fk, 'FK');
+				Debug::dd($fk_ref, 'REFERENCES');
+				Debug::dd($fk_on_update, 'ON UPDATE');
+				Debug::dd($fk_on_delete, 'ON DELETE'); 
+			}
+			*/
+	
+
+			// [CONSTRAINT [symbol]] CHECK (expr) [[NOT] ENFORCED]	
+			$check   = Strings::sliceAll($str, '/CHECK \((.*)\) (ENFORCED|NOT ENFORCED)/');
+			
+			/*
+				Sin probar (req. MySQL 8.0+)
+
+				array(1) {
+					["checks"]=>
+					array(1) {
+						["post_content_check"]=>
+						array(1) {
+						[0]=>
+						array(2) {
+							[0]=>
+							string(94) " CASE WHEN DTYPE = 'Post' THEN CASE WHEN content IS NOT NULL THEN 1 ELSE 0 END ELSE 1 END = 1 "
+							[1]=>
+							string(12) "NOT ENFORCED"
+						}
+						}
+					}
+				}
+
+				https://stackoverflow.com/questions/7522026/how-do-i-add-a-custom-check-constraint-on-a-mysql-table
+			*/	
+			if ($check != null){
+				$prev_schema['checks'] [$constraint] [] = $check;   
+			} else {	
+				$check   = Strings::slice($str, '/CHECK \((.*)\)/');
+			
+				if ($check != null){
+					$prev_schema['checks'] [$constraint] [] = [$check]; 
+				}	
+			}			
+
+			$fn_rl = function($str){
+				return str_replace('`', '', $str);
+			};
+
+
+			/*
+			Debug::dd($constraint, 'CONSTRAINT', function($val){
+				return ($val != null);
+			});
+			*/
+			
+			
+			//Debug::dd($str, "RESIDUO DE STR for {$lines[$i]}");
+			
+		
+			if ($primary != NULL){	
+				$tmp = explode(',',$primary);
+				$this->prev_schema['indices']['PRIMARY'] [$constraint ] = [
+					'fields' =>	array_map($fn_rl, $tmp)
+				];
+			} elseif ($unique != NULL){
+				$tmp = explode(',',$unique[1]);
+				$this->prev_schema['indices']['UNIQUE']  [$unique[0]  ] = [
+					'fields' => array_map($fn_rl, $tmp),
+					'index_type' => $ix_type,
+					'algorithm_option' => $algorithm_option,
+					'lock_option' => $lock_option
+				];
+			} elseif ($spatial != NULL){
+				$tmp = explode(',',$spatial[1]);
+				$this->prev_schema['indices']['SPATIAL'] [$spatial[0] ] = [
+					'fields' => array_map($fn_rl, $tmp),
+					'index_type' => $ix_type,
+					'algorithm_option' => $algorithm_option,
+					'lock_option' => $lock_option
+				];	
+			} elseif ($fulltext != NULL){
+				$tmp = explode(',',$fulltext[1]);
+				$this->prev_schema['indices']['FULLTEXT'][$fulltext[0]] = [
+					'fields' => array_map($fn_rl, $tmp),
+					'index_type' => $ix_type,
+					'algorithm_option' => $algorithm_option,
+					'lock_option' => $lock_option
+				];	
+			} elseif ($index != NULL){
+				$tmp = explode(',',$index[1]);
+				$this->prev_schema['indices']['INDEX']   [$index[0]   ] = array_map($fn_rl, $tmp);
+			} elseif ($fk != null){	
+				$this->fks[$fk]['references'] = $fk_ref[1];	
+				$this->fks[$fk]['on'] = $fk_ref[0];
+				$this->fks[$fk]['on_delete'] = 	$fk_on_delete ?? 'NO ACTION';
+				$this->fks[$fk]['on_update'] = 	$fk_on_update ?? 'NO ACTION';		
+			}		
 		}
+
+		/*
+		echo "[[[[[]]]]]-----------\r\n";
+		Debug::dd($this->prev_schema['indices'], "INDICE RESULTANTE");
+		Debug::dd($this->fks, "FKs");
+		Debug::dd($this->prev_schema['fields'], 'FIELDS');
+		echo "-----------\r\n\r\n";
+
+		exit; /////
+		*/
 		
 	}
 
@@ -1120,14 +1338,14 @@ class Schema
 	// ALTER TABLE `users` CHANGE `id` `id` INT(20) UNSIGNED NOT NULL;
 	function change()
 	{	
+		$this->indices = $this->prev_schema['indices'];
+
 		foreach ($this->fields as $name => $field)
 		{
 			if (isset($this->prev_schema['fields'][$name])){
 				$this->fields[$name] = array_merge($this->prev_schema['fields'][$name], $this->fields[$name]);
 			} 		
-
-			$this->indices[$name] = $this->prev_schema['indices'][$name] ?? NULL;
-			
+		
 			$field = $this->fields[$name];
 
 			//Debug::dd($this->fields[$name]);
@@ -1197,17 +1415,20 @@ class Schema
 
 		foreach ($this->indices as $name => $type){			
 			switch($type){
-				case "INDEX":
-					$this->commands[] = $this->addIndex($name);
-				break;
 				case "PRIMARY":
 					$this->commands[] = $this->addPrimary($name);
 				break;
+				case "INDEX":
+					$this->commands[] = $this->addIndex($name);
+				break;				
 				case "UNIQUE": 
 					$this->commands[] = $this->addUnique($name);
 				break;
 				case "SPATIAL": 
 					$this->commands[] = $this->addSpatial($name);
+				break;
+				case "FULLTEXT": 
+					$this->commands[] = $this->addFullText($name);
 				break;
 			}
 		}
@@ -1251,6 +1472,10 @@ class Schema
 			'indices'	=> $this->indices,
 			'fks'		=> $this->fks
 		];
+	}
+
+	function getCurrentSchema(){
+		return $this->prev_schema;
 	}
 }
 

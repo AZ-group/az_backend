@@ -58,7 +58,13 @@ class Debug
 		return $ret;
 	}	
 
-	static public function dd($var, $msg = null){
+	static public function dd($val, $msg = null, callable $precondition_fn = null){
+		if ($precondition_fn != NULL){
+            if (!call_user_func($precondition_fn, $val)){
+				return;
+			}
+		}
+
 		$cli = (php_sapi_name() == 'cli');
 		
 		$pre = !$cli;
@@ -67,13 +73,16 @@ class Debug
 			$pre = false;
 		}
 
+		$ret = null;
 		if ($pre) {
-			self::pre(function() use ($var, $msg){ 
-				echo self::export($var, $msg); 
+			self::pre(function() use ($val, $msg, $ret){ 
+				$ret = self::export($val, $msg); 
 			});
 		} else {
-			echo self::export($var, $msg);
+			$ret = self::export($val, $msg);
 		}
+     
+     	echo $ret; 
 	}
 
 }

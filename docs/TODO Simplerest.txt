@@ -8,7 +8,9 @@
 
   php com make migration --from=db[.table] 
 o
-  php com make migration --from=db[.table] --to=destination_db
+  php com make migration --from=db[.table] --to=destination_db [--table=some_table]
+o
+  php com make migration --from=db[.table] --to=destination_db[.table]
 
 
 - Poder especificar el campo en vez del nombre de la FK para su remoción
@@ -16,6 +18,11 @@ o
   dropForeignByColumnName() 
   dropFKByColumnName() --alias--
 
+- Poder especificar la DB además de la tabla en Schema así:
+
+  new Schema('db.table')
+
+<-- obviamente que para que sea válido el nombre de la DB no puede repetirse entre distintas conexiones del archivo config.  
 
 - Squashing Migrations
 
@@ -800,6 +807,20 @@ https://tech.ebayinc.com/engineering/caching-http-post-requests-and-responses/
 https://developer.cdn.mozilla.net/es/docs/Web/HTTP/Caching
 
 
+- Estudiar si implementar Facades
+
+En vez de hacer 
+
+  (new Cache())->put('hello','world', 600);
+
+permite usar la sintaxis
+
+  Cache::put('hello','world', 600);
+
+https://stackoverflow.com/questions/42223986/what-is-facades-used-in-laravel
+https://medium.com/a-young-devoloper/understanding-laravel-facades-4802025899e6
+
+
 - Implementar una forma sencilla de enviar correos, quizás como en Laravel
 
   use App\Mail\WelcomeMessage;
@@ -1173,6 +1194,20 @@ https://restdb.io/docs/querying-with-the-api
 
 https://gorm.io/
 https://developpaper.com/basic-usage-of-golang-gorm-operation-mysql-and-gorm/
+https://www.prisma.io/dataguide/types/relational/comparing-sql-query-builders-and-orms
+https://stackoverflow.com/questions/398134/what-are-the-advantages-of-using-an-orm
+
+"Imaginate Amazon. El desarrollador que está laburando en el algoritmo que ordena los productos según los intereses del comprador no le importa conocer los detalles del WHERE que filtra a los vendedores que hacen envíos al país del comprador. 
+
+El tipo necesita una lista de objetos availableProduct que se encargue de atar la sesión del visitante, los perfiles de los vendedores, la configuración de cada producto, el código que convierte el precio a la moneda preferida del visitante y todo lo demás.
+
+Podés armar una clase availableProduct y escribir los WHEREs vos... O podés usar un ORM y crear un availableProduct que es un product, atado a un vendedor, atado a una condición regional de venta, etcétera. El ORM te ahorra trabajo y te estandariza la sintaxis"
+
+"las bases de datos no SQL más populares hoy en día son documentales (como Mongo). Un ORM es un mapeador de relaciones. Las bases de datos documentales no están diseñadas para trazar relaciones entre los objetos (eso se hace en una capa superior). El equivalente a un ORM documental es un ODM."
+
+- Dar soporte a MongoDB 
+
+https://docs.mongodb.com/manual/tutorial/query-documents/
 
 
 - Implementar X-Rate-Limit-Limit, X-Rate-Limit-Remaining y X-Rate-Limit-Reset
@@ -1343,3 +1378,107 @@ https://en.wikipedia.org/wiki/Flat-file_database
 - Evaluar usar un motor de plantillas como Twing entre otras cosas para el envio de emails
 
 https://en.wikipedia.org/wiki/Twig_(template_engine)
+
+
+- Dar soporte al manejo de Views (view tables) ya que son readonly y no pueden tratarse como cualquier modelo.
+
+https://stackoverflow.com/questions/36287364/how-to-create-the-migrations-for-database-views-using-php-artisan-in-laravel
+https://programmingarehard.com/2013/11/10/eloquent_and_views.html/
+
+
+- Dar soporte a tablas temporarias ! 
+
+https://alexvanderbist.com/2020/advanced-laravel-migrations-using-temporary-tables/
+
+
+- Implementar algo como "Unit of Work" de Doctrine 2 para minimizar las cantidad de consultas:
+
+https://culttt.com/2014/07/07/doctrine-2-different-eloquent/
+
+
+- Por qué generar las migraciones con métodos encadenados y no simplemente SQL como en Doctrine ?
+
+/**
+ * Auto-generated Migration: Please modify to your needs!
+ */
+  final class Version20180601193057 extends AbstractMigration
+  {
+      public function getDescription() : string
+      {
+          return 'This is my example migration.';
+      }
+
+      public function up(Schema $schema) : void
+      {
+          $this->addSql('CREATE TABLE example_table (id INT AUTO_INCREMENT NOT NULL, title VARCHAR(255) DEFAULT NULL, PRIMARY KEY(id))');
+      }
+
+      public function down(Schema $schema) : void
+      {
+          $this->addSql('DROP TABLE example_table');
+      }
+  }
+
+
+<--- RTA: porque ese SQL solo sería válido para un MOTOR de base de datos en particular ! aunque es más rápido y tiene sentido cuando estás haciendo un CREATE TABLE IF NOT EXISTS
+
+https://www.doctrine-project.org/projects/doctrine-migrations/en/3.0/reference/managing-migrations.html
+
+
+- Implementar comando diff para migraciones como en Doctrine
+
+php com migrations diff
+
+"The command generates a migration by comparing project current database to mapping information. Doctrine provides this command to generate migration classes by changing entity mappings instead of manually adding modifications to migration class."
+
+http://www.laraveldoctrine.org/docs/current/migrations/diff
+
+
+<-- 
+
+"In Laravel we use migration files to create the database schema. In Doctrine 2, the database is automatically created to reflect the meta data in the entity annotations."
+
+
+Doctrine can generate blank migrations for you to modify or it can generate functional migrations for you by comparing the current state of your database schema to your mapping information.
+
+By default the Doctrine Migrations command line tool will only add the "diff" command if the ORM is present. Without the ORM, you'll have to add the diff command to your console application manually, passing in your schema provider implementation to the diff command's constructor   
+
+<-- esto pasa porque solo con el ORM se mantiene un Schema (como annotations) 
+
+
+- También es buena idea que en vez de incluir la descripción como parte del archivo, ésta este dentro de la clase: 
+
+  public function getDescription() : string
+  {
+      return 'This is my example migration.';
+  }
+
+- El versionado en el nombre de la clase de migraciones es muy deseable: 
+
+  final class Version20180601193057 extends AbstractMigration {
+    //...
+  }
+
+- El rollback además del --step=N sea --to=version
+
+https://www.doctrine-project.org/projects/doctrine-migrations/en/3.0/reference/managing-migrations.html
+
+
+- Comando para des-marcar / marcar una migración para "batch" en la tabla de migraciones:
+
+https://www.doctrine-project.org/projects/doctrine-migrations/en/3.0/reference/managing-migrations.html#managing-the-version-table
+
+
+- En Schema agregar
+  
+  ->addSql()
+  ->abortIf()
+  ->addColumn()
+
+- Eventos before / after en las migraciones  
+
+- Generar documentación de una tabla foo con Swagger API
+
+  https://www.youtube.com/watch?v=Kziad2G-dkE
+  https://docs.microsoft.com/en-us/dotnet/architecture/microservices/multi-container-microservice-net-applications/data-driven-crud-microservice
+

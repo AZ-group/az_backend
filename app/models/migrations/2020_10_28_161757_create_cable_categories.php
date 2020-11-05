@@ -12,9 +12,9 @@ class CreateCableCategories implements IMigration
     */
     public function up()
     {
-        $s = new Schema('cable_categories');
+        $sc = new Schema('cable_categories');
 
-        $s
+        $sc
         ->int('id')->unsigned()->auto()->pri()
         ->varchar('nombre', 40)
         ->int('id_parent_category')->unsigned()->nullable()->index()
