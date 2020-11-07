@@ -1988,17 +1988,17 @@ class DumbController extends Controller
     function create_table()
     {       
         //Factory::config()['db_connection_default'] = 'db2';
-        $sc = (new Schema('facturas3'))
+        $sc = (new Schema('facturas'))
 
         ->setEngine('InnoDB')
         ->setCharset('utf8')
         ->setCollation('utf8_general_ci')
 
-        ->integer('id')->auto()->unsigned()
+        ->integer('id')->auto()->unsigned()->pri()
         ->int('edad')->unsigned()
         ->varchar('firstname')
         ->varchar('lastname')->nullable()->charset('utf8')->collation('utf8_unicode_ci')
-        ->varchar('username')
+        ->varchar('username')->unique()
         ->varchar('password', 128)
         ->char('password_char')->nullable()
         ->varbinary('texto_vb', 300)
@@ -2028,7 +2028,7 @@ class DumbController extends Controller
         ->double('doble_p')
         ->real('num_real')
 
-        ->bit('some_bits', 3)
+        ->bit('some_bits', 3)->index()
         ->boolean('active')->default(1)
         ->boolean('paused')->default(true)
 
@@ -2050,19 +2050,13 @@ class DumbController extends Controller
         ->softDeletes() // agrega DATETIME deleted_at 
         ->datetimes()  // agrega DATETIME(s) no-nullables created_at y deleted_at
 
-        ->varchar('correo')
-        ->int('user_id');
+        ->varchar('correo')->unique()
 
-        // INDICES
-        $sc->pri(['id']);
-        $sc->unique(['username']);
-        $sc->index(['some_bits']);
-        $sc->unique(['correo']);
-        $sc->index(['user_id']);
-
-        // FKs
-        $sc->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+        ->int('user_id')->index()
+        ->foreign('user_id')->references('id')->on('users')->onDelete('cascade')
         //->foreign('user_id')->references('id')->on('users')->constraint('fk_uid')->onDelete('cascade')->onUpdate('restrict')
+        
+        ;
 
         //Debug::dd($sc->getSchema(), 'SCHEMA');
         /////exit;
@@ -2080,16 +2074,21 @@ class DumbController extends Controller
         //var_dump($sc->columnExists('correo'));
        
         $res = $sc
+
+        
         //->timestamp('vencimiento')
         //->varchar('lastname', 50)->collate('utf8_esperanto_ci')
         //->varchar('username', 50)
         //->column('ts')->nullable()
         //->field('deleted_at')->nullable()
-        //->field('correo')->unique()
+        //->column('correo')->unique()
+        // ->field('correo')->default(false)->nullable(true)
         
-        //->renameColumn('binario', 'codigo')
-        //->renameIndex('id', 'user_id')
-        //->dropColumn('paused')
+
+        //->renameColumn('karma', 'carma')
+        //->field('id')->index()
+        //->renameIndex('id', 'idx')
+        ->dropColumn('saldo')
         //->dropIndex('correo')
         //->dropPrimary('id')
         //->renameTable('boletas')
@@ -2098,8 +2097,10 @@ class DumbController extends Controller
         //->field('password_char')->default(false)->nullable(false)
         
 
-        // creo campos nuevos
-        //
+        /*
+         creo campos nuevos
+        */
+        
         //->varchar('nuevo_campito', 50)->nullable()->after('ts')
         //->text('aaa')->first()->nullable()
 
@@ -2112,7 +2113,7 @@ class DumbController extends Controller
         ->change();
 
         Schema::FKcheck(true);
-        //Debug::dd($sc->dd());
+        Debug::dd($sc->dd());
     }
 
     function has_table(){
@@ -2147,10 +2148,10 @@ class DumbController extends Controller
     }
 
     function xxxz(){
-        $str = 'CONSTRAINT `facturas_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION';
+        $str = 'CONSTRAINT `facturas_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE';
         Debug::dd($str, 'STR');
 
-        $constraint = Strings::slice($str, 'c([a-zA-Z0-9_]+)` /', function($s){
+        $constraint = Strings::slice($str, '/CONSTRAINT `([a-zA-Z0-9_]+)` /', function($s){
             //var_dump($s);
                 return ($s == null) ? 'DEFAULT' : $s;
             }); 
@@ -2171,7 +2172,7 @@ class DumbController extends Controller
         UNIQUE KEY `correo` (`correo`,`hora`) USING BTREE,
 
         */
-        $unique  = Strings::sliceAll($str, '/UNIQUE KEY `([a-zA-Z0-9_]+)` \(([a-zA-Z0-9_`,]+)\)/');
+        $unique  = Strings::slice_all($str, '/UNIQUE KEY `([a-zA-Z0-9_]+)` \(([a-zA-Z0-9_`,]+)\)/');
         Debug::dd($str, 'STR');	
         Debug::dd($unique, 'UNIQUE');					
 
@@ -2180,22 +2181,16 @@ class DumbController extends Controller
 
         */
         $fk     = Strings::slice($str, '/FOREIGN KEY \(`([a-zA-Z0-9_]+)`\)/');
-        $fk_ref = Strings::sliceAll($str, '/REFERENCES `([a-zA-Z0-9_]+)` \(`([a-zA-Z0-9_]+)`\)/');
-        Debug::dd($str, 'STR (before ON UPDATE)');	
-        $fk_on_update  = Strings::slice($str, '/ ON UPDATE (RESTRICT|NO ACTION|CASCADE|SET NULL)/');
-        Debug::dd($str, 'STR (before ON DELETE)');	
-        $fk_on_delete  = Strings::slice($str, '/ ON DELETE (RESTRICT|NO ACTION|CASCADE|SET NULL)/');
+        $fk_ref = Strings::slice($str, '/REFERENCES `([a-zA-Z0-9_]+)`/');
 
-        Debug::dd($str, 'STR (final)');	 
+        Debug::dd($str, 'STR');	
         Debug::dd($fk, 'FK');
-        Debug::dd($fk_ref, 'REFERENCES');
-        Debug::dd($fk_on_update, 'ON UPDATE');
-        Debug::dd($fk_on_delete, 'ON DELETE');    
+        Debug::dd($fk, 'REFERENCES');
 
         /*
         IDEM
         */
-        $index   = Strings::sliceAll($str, '/KEY `([a-zA-Z0-9_]+)` \(([a-zA-Z0-9_`,]+)\)/');
+        $index   = Strings::slice_all($str, '/KEY `([a-zA-Z0-9_]+)` \(([a-zA-Z0-9_`,]+)\)/');
         Debug::dd($str, 'STR');
         Debug::dd($index, 'INDEX');
 
@@ -2209,7 +2204,7 @@ class DumbController extends Controller
         Debug::dd(DB::select('SELECT * FROM users'));
     }
 
-    function test(){
+    function test_conn2(){
         Factory::config()['db_connection_default'] = 'db2';
 
         $sc = new Schema('cables');
@@ -2220,6 +2215,10 @@ class DumbController extends Controller
         ->float('calibre')
 
         ->create();
+    }
+
+    function hateoas_test(){
+        
     }
 
 }

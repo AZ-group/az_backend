@@ -3,7 +3,7 @@
 namespace simplerest\controllers;
 
 use simplerest\core\Controller;
-use simplerest\core\Schema;
+use simplerest\core\Request;
 use simplerest\libs\Factory;
 use simplerest\libs\Debug;
 use simplerest\libs\DB;
@@ -561,155 +561,6 @@ class MakeController extends Controller
         } 
     }
 
-    protected function generateMigrationCode(string $conn_id = null) 
-    {   
-        $tables = Schema::getTables($conn_id);
-        
-        foreach ($tables as $tb){
-
-            if ($tb != 'facturas'){
-                continue; ////
-            }
-            Debug::dd($tb, 'TABLE');
-
-            $s = new Schema($tb);
-
-            $schema = $s->getCurrentSchema();
-            //Debug::dd($schema, "SCHEMA para $tb");
-            //exit;
-
-            $lines = [];
-
-            $lines[] = "\$sc = new Schema('$tb');\r\n";
-            $lines[] = "->setEngine('{$schema['engine']}');\r\n";
-            $lines[] = "->setCharset('{$schema['charset']}');\r\n\r\n";
-     
-            foreach ($schema['fields'] as $name => $field){                
-                //Debug::dd($field, "Field $name");
-
-                $type = strtolower($field['type']);
-                $name_wrapped = "'$name'";
-
-                switch($type){
-                    case 'bigint':
-                    case 'mediumint':
-                    case 'smallint':
-                    case 'tinyint':
-                    case 'boolean':
-                    case 'float':
-                    case 'double':
-                    case 'real':
-                    case 'char':
-                    case 'tinytext':
-                    case 'mediumtext':
-                    case 'longtext':
-                    case 'blob':
-                    case 'tinyblob':
-                    case 'mediumblob':
-                    case 'longblob':
-                    case 'json':
-                    case 'time':
-                    case 'year':
-                    case 'date':
-                    case 'datetime':
-                    case 'timestamp':
-                    case 'point':
-                    case 'multipoint':
-                    case 'linestring':
-                    case 'polygon':
-                    case 'multipolygon':
-                    case 'geometry':
-                    case 'geometrycollection':
-                        $lines[] = "->$type($name_wrapped)";
-                    break;    
-
-                    case 'int':
-                    case 'serial': 
-                    case 'text': 
-                    case 'varchar': 
-                    case 'bit': 
-                    case 'binary':
-                    case 'varbinary':                         
-                        if (isset($field['len'])){
-                            $lines[] = "->$type($name_wrapped, {$field['len']})";
-                        } else {
-                            $lines[] = "->$type($name_wrapped)";
-                        }                        
-                    break;    
-
-                    case 'decimal': 
-                        $lines[] = "->$type($name_wrapped, [{$field['len']}])";
-                    break; 
-
-                    //  `flavors` set('strawberry','vanilla') NOT NULL,
-                    case 'set': 
-                    case 'enum': 
-                        $lines[] = "->$type($name_wrapped, [{$field['array']}])";
-                    break;        
-
-                    default: 
-                        echo "[ Warning ] Type '{$field['type']} not supported for migrations ***\r\n";
-                }
-
-            
-                if (isset($field['charset'])){
-                    $lines[] = "->setCharset('{$field['charset']}')";
-                }
-
-                if (isset($field['collation'])){
-                    $lines[] = "->setCollation('{$field['collation']}')";
-                }
-
-                if ($field['auto']){
-                    $lines[] = '->auto()';
-                }
-
-                if ($field['nullable']){
-                    $lines[] = '->nullable()';
-                }
-
-                if ($field['default']){
-                    $lines[] = "->default({$field['default']})";
-                }
-
-                if (isset($schema['indices']['PRIMARY'])){      
-                    $_name = array_key_first($schema['indices']['PRIMARY']);
-                    
-                    if (in_array($name, $schema['indices']['PRIMARY'][$_name])){
-                        $constraint = null;
-                        if ($_name != 'DEFAULT'){
-                            $constraint = "'$_name'";
-                        }
-
-                        $lines[] = "->pri($constraint)";
-                    }
-                }
-
-                if (isset($schema['indices']['UNIQUE'])){      
-                    $_name = array_key_first($schema['indices']['UNIQUE']);
-                    
-                    if (in_array($name, $schema['indices']['UNIQUE'][$_name])){
-                        $constraint = null;
-                        if ($_name != 'DEFAULT'){
-                            $constraint = "'$_name'";
-                        }
-
-                        $lines[] = "->unique($constraint)";
-                    }
-                }
-
-
-
-                $lines[count($lines)-1] .= "\r\n";
-            }
-
-            echo implode("", $lines). "\r\n";
-
-
-            //exit; ///
-        }
-    }
-
     function migration($name, ...$opt) 
     {
         $this->setup($name);
@@ -725,14 +576,14 @@ class MakeController extends Controller
         $file = file_get_contents(self::MIGRATION_TEMPLATE);
         $file = str_replace('__NAME__', $this->camel_case, $file);
 
-        $to_db     = null;
-        $tb_name   = null;
-        $conn_id   = null;
+        $to_db   = null;
+        $tb_name = null;
+        $from_db = null;
 
         $up_rep = '';
         foreach ($opt as $o){
             if (preg_match('/^--to[=|:]([a-z][a-z0-9A-Z]+)$/', $o, $matches)){
-                $to_db   = $matches[1];
+                $to_db = $matches[1];
             }
 
             if (preg_match('/^--table[=|:]([a-z][a-z0-9A-Z]+)$/', $o, $matches)){
@@ -740,16 +591,13 @@ class MakeController extends Controller
             }
 
             if (preg_match('/^--from[=|:]([a-z][a-z0-9A-Z]+)$/', $o, $matches)){
-                $conn_id = $matches[1];
+                $from_db = $matches[1];
             }
         }
 
 
-        if ($conn_id != null){
-            $this->generateMigrationCode($conn_id);
-        }
+        Debug::dd($from_db, 'FROM DB');
 
-        exit; ///
 
         if (!empty($to_db)){
             $up_rep .= "Factory::config()['db_connection_default'] = '$to_db';\r\n\r\n";
@@ -766,11 +614,6 @@ class MakeController extends Controller
         $up_rep .= "";        
         Strings::replace('### UP', $up_rep, $file);
 
-
-        /////////////////
-        echo $file;
-        exit;
-        ////////////////
 
         $ok = (bool) file_put_contents($dest_path, $file);
         

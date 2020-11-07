@@ -4,7 +4,7 @@ use simplerest\core\Schema;
 
 use simplerest\libs\Factory;
 
-class __NAME__ implements IMigration
+class CosasLocas 
 {
     /**
 	* Run migration.
@@ -13,7 +13,10 @@ class __NAME__ implements IMigration
     */
     public function up()
     {
-        ### UP
+        Factory::config()['db_connection_default'] = 'db2';
+
+		$sc = new Schema('users');
+
     }
 }
 

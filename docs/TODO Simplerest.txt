@@ -961,14 +961,14 @@ protected $defaultIncludes = [
 
 Los include parameters se pueden parametrizar (o sea pueden aceptar parámetros), ej:
 
-public function includeUsers(Role $role, ParamBag $paramBag)
-{
-    list($orderCol, $orderBy) = $paramBag->get('order') ?: ['created_at', 'desc'];
+  public function includeUsers(Role $role, ParamBag $paramBag)
+  {
+      list($orderCol, $orderBy) = $paramBag->get('order') ?: ['created_at', 'desc'];
 
-    $users = $role->users()->orderBy($orderCol, $orderBy)->get();
+      $users = $role->users()->orderBy($orderCol, $orderBy)->get();
 
-    return $this->collection($users, App::make(UserTransformer::class));
-}
+      return $this->collection($users, App::make(UserTransformer::class));
+  }
 
 
 Leer en detalle:
@@ -1482,3 +1482,9 @@ https://www.doctrine-project.org/projects/doctrine-migrations/en/3.0/reference/m
   https://www.youtube.com/watch?v=Kziad2G-dkE
   https://docs.microsoft.com/en-us/dotnet/architecture/microservices/multi-container-microservice-net-applications/data-driven-crud-microservice
 
+
+- Hacer "inserciones en Bulk" usando colecciones. 
+
+Se puede crear una "colección" con POST (ya implementado) y luego de recibir los IDs ... hacer PUTs sobre cada uno.
+
+https://stackoverflow.com/questions/17292656/how-to-design-a-restful-api-for-bulk-inserts-and-updates
