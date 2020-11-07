@@ -795,29 +795,34 @@ class DumbController extends Controller
         SELECT  name, cost, id FROM products WHERE (1 = 1)  AND belongs_to = ?  OR name IN ('CocaCola', 'PesiLoca') OR (cost <= ? AND cost >= ?)
     */
     function or_where(){
-        Debug::dd(DB::table('products')->showDeleted()
+        $q = DB::table('products')->showDeleted()
         ->select(['name', 'cost', 'id'])
         ->where(['belongs_to', 90])
         ->orWhere(['name', ['CocaCola', 'PesiLoca']])
         ->orWhere([
             ['cost', 550, '<='],
             ['cost', 100, '>=']
-        ])
-        ->get());
+        ]);
+
+        //Debug::dd($q->get());
+        Debug::dd($q->dd());
     }
     
     // A OR (B AND C)
     function or_where2(){
-        Debug::dd(DB::table('products')->showDeleted()
+        $q = DB::table('products')->showDeleted()
         ->select(['name', 'cost', 'id', 'description'])
         ->whereNotNull('description')
         ->orWhere([ 
                     ['cost', 100, '>='],
                     ['cost', 500, '<']
-        ])        
-        ->get());
+        ]);
+
+        Debug::dd($q->get());
+        Debug::dd($q->dd());
     }
 
+        
     /*
         Showing also deleted records
 
@@ -866,6 +871,62 @@ class DumbController extends Controller
         Debug::dd($rows);
     }
 
+
+
+    /*
+    array (
+        'op' => 'and,
+        'q' => array (
+            array (
+                'op' => 'or',
+                'q' => array (
+                        array (
+                            0 => ' cost > ?',
+                            1 => ' id < ',
+                        ),        
+
+                        array (
+                            0 => ' cost <= ?',
+                            1 => ' description IS NOT ?',
+                        )
+                )
+            ),
+
+            array(
+                0 => 'id = ?'
+            )
+        )
+    )
+    */
+
+    /*
+     SELECT id, cost, size, description, belongs_to FROM products WHERE ((cost > 100 AND size = '1L') OR (cost <= 100 AND description IS NOT NULL)) AND belongs_to > 150;
+    */
+    function where_adv()
+    {
+        $m = (new Model())
+        ->table('products')
+
+        ->group(function($q){  // <-- group *
+           $q->where([
+                ['cost', 100, '>'],
+                ['id', 50, '<']
+            ]) 
+            // OR
+            ->orWhere([
+                ['cost', 100, '<='],
+                ['description', NULL, 'IS NOT']
+            ]);  
+        })
+        // AND
+        ->where(['belongs_to', 150, '>'])
+        
+        ->select(['id', 'cost', 'size', 'description', 'belongs_to']);
+
+       Debug::dd($m->get()); 
+	   var_dump($m->dd());
+    }
+   
 
     // SELECT * FROM products WHERE ((cost < IF(size = "1L", 300, 100) AND size = '1L' ) AND belongs_to = 90) AND deleted_at IS NULL ORDER BY cost ASC
     function where_raw(){
@@ -2218,7 +2279,7 @@ class DumbController extends Controller
     }
 
     function hateoas_test(){
-        
+
     }
 
 }

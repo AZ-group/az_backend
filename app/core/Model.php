@@ -612,12 +612,9 @@ class Model {
 		else
 			$fields = $this->fields;	
 
-		if (!$existance){
-			if (empty($conjunction))
-				$conjunction = 'AND';
-
-			// remove hidden
-			
+		if (!$existance)
+		{			
+			// remove hidden			
 			if (!empty($this->hidden)){			
 			
 				if (empty($this->select_raw_q)){
@@ -764,50 +761,10 @@ class Model {
 
 		$q  .= $joins;
 		
+
 		// WHERE
-		$where = '';
-		
-		if (!empty($this->where_raw_q))
-			$where = $this->where_raw_q.' ';
-
-		if (!empty($this->where)){
-			$implode = '';
-
-			$cnt = count($this->where);
-
-			if ($cnt>0){
-				$implode .= $this->where[0];
-				for ($ix=1; $ix<$cnt; $ix++){
-					$implode .= ' '.$this->where_group_op[$ix] . ' '.$this->where[$ix];
-				}
-			}			
-
-			$where = trim($where);
-
-			if (!empty($where)){
-				$where = rtrim($where);
-				$where = "($where) AND ". $implode. ' ';
-			}else{
-				$where = "$implode ";
-			}
-		}			
-
-		$where = trim($where);
-		
-		if ($this->inSchema(['deleted_at'])){
-			if (!$this->show_deleted){
-				if (empty($where))
-					$where = "deleted_at IS NULL";
-				else
-					$where =  ($where[0]=='(' && $where[strlen($where)-1] ==')' ? $where :   "($where)" ) . " AND deleted_at IS NULL";
-
-			}
-		}
-		
-		if (!empty($where)){
-			$q  .= ' WHERE '.ltrim($where);
-		}
-		
+		$q  .= ' WHERE '. $this->where_formed();
+				
 		$group = (!empty($this->group)) ? 'GROUP BY '.implode(',', $this->group) : '';
 		$q  .= " $group";
 
@@ -890,6 +847,50 @@ class Model {
 		return $q;	
 	}
 
+	function where_formed(){
+		$where = '';
+		
+		if (!empty($this->where_raw_q))
+			$where = $this->where_raw_q.' ';
+
+		if (!empty($this->where)){
+			$implode = '';
+
+			$cnt = count($this->where);
+
+			if ($cnt>0){
+				$implode .= $this->where[0];
+				for ($ix=1; $ix<$cnt; $ix++){
+					$implode .= ' '.$this->where_group_op[$ix] . ' '.$this->where[$ix];
+				}
+			}			
+
+			$where = trim($where);
+
+			if (!empty($where)){
+				$where = rtrim($where);
+				$where = "($where) AND ". $implode. ' ';
+			}else{
+				$where = "$implode ";
+			}
+		}			
+
+		$where = trim($where);
+		
+		if ($this->inSchema(['deleted_at'])){
+			if (!$this->show_deleted){
+				if (empty($where))
+					$where = "deleted_at IS NULL";
+				else
+					$where =  ($where[0]=='(' && $where[strlen($where)-1] ==')' ? $where :   "($where)" ) . " AND deleted_at IS NULL";
+
+			}
+		}
+		
+		return ltrim($where);
+	}
+
+
 	function getBindings(){
 		$pag = !empty($this->pag_vals) ? [ $this->pag_vals[0][1], $this->pag_vals[1][1] ] : [];
 
@@ -918,6 +919,10 @@ class Model {
 
 	protected function bind(string $q)
 	{
+		if ($this->conn == null){
+			$this->connect();
+		}
+
 		$st = $this->conn->prepare($q);		
 
 		foreach($this->select_raw_vals as $ix => $val){
@@ -972,8 +977,8 @@ class Model {
 		$sh3 = count($this->where_raw_vals);	
 
 
-		foreach($this->w_vals as $ix => $val){
-				
+		foreach($this->w_vals as $ix => $val)
+		{				
 			if(is_null($val)){
 				$type = \PDO::PARAM_NULL;
 			}elseif(isset($this->w_vars[$ix]) && isset($this->schema['attr_types'][$this->w_vars[$ix]])){
@@ -984,7 +989,10 @@ class Model {
 			elseif(is_bool($val))
 				$type = \PDO::PARAM_BOOL;
 			elseif(is_string($val))
-				$type = \PDO::PARAM_STR;	
+				$type = \PDO::PARAM_STR;
+			elseif(is_array($val)){
+				throw new \Exception("where value can not be an array!");				
+			}	
 
 			$st->bindValue($ix +1 + $sh1 + $sh2 + $sh3, $val, $type);
 			//echo "Bind: ".($ix+1)." - $val ($type)\n";
@@ -1080,7 +1088,7 @@ class Model {
 		}
 				
 		$sql = Arrays::str_replace_array('?', $bindings, $pre_compiled_sql);
-		return trim(preg_replace('!\s+!', ' ', $sql));
+		return trim(preg_replace('!\s+!', ' ', $sql.';'));
 	}
 
 	// Debug query
@@ -1286,8 +1294,38 @@ class Model {
 		}	
 	}
 
+	function getWhereVals(){
+		return $this->w_vals;
+	}
 
-	function _where($conditions, $group_op = 'AND', $conjunction)
+	function getWhereVars(){
+		return $this->w_vars;
+	}
+
+	// crea un grupo dentro del where
+	function group(callable $closure) 
+	{	
+		$m = new Model();		
+		call_user_func($closure, $m);	
+
+		$w_formed = $m->where_formed();
+		$w_vars   = $m->getWhereVars();
+		$w_vals   = $m->getWhereVals();
+
+		//Debug::dd($w_formed, 'W_FORMED');
+		//Debug::dd($w_vars, 'W_VARS');
+		//Debug::dd($w_vals, 'W_VALS');
+		//exit; //
+
+		$this->where[] = "($w_formed)";	
+		$this->w_vars  = array_merge($this->w_vars, $w_vars);
+		$this->w_vals  = array_merge($this->w_vals, $w_vals);
+		$this->where_group_op[] = 'AND';
+
+		return $this;
+	}
+
+	protected function _where($conditions, $group_op = 'AND', $conjunction)
 	{
 		if (empty($conditions)){
 			return;
@@ -1358,7 +1396,8 @@ class Model {
 		$this->where[] = ' ' .$ws_str;
 		////////////////////////////////////////////
 
-		//Debug::dd($this->where);
+		//Debug::dd($this->where, '$this->where');
+		//Debug::dd($this->where_group_op, 'OPERATORS');
 		//exit;
 		//Debug::dd($this->w_vars, 'WHERE VARS');	
 		//Debug::dd($this->w_vals, 'WHERE VALS');	
