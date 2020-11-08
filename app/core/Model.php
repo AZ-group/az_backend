@@ -478,6 +478,13 @@ class Model {
 		return $this;
 	}
 
+
+	function reorder(){
+		$this->order = [];
+		$this->raw_order = [];
+		return $this;
+	}
+
 	function take(int $limit){
 		$this->limit = $limit;
 		return $this;
@@ -1312,11 +1319,6 @@ class Model {
 		$w_vars   = $m->getWhereVars();
 		$w_vals   = $m->getWhereVals();
 
-		//Debug::dd($w_formed, 'W_FORMED');
-		//Debug::dd($w_vars, 'W_VARS');
-		//Debug::dd($w_vals, 'W_VALS');
-		//exit; //
-
 		$this->where[] = "($w_formed)";	
 		$this->w_vars  = array_merge($this->w_vars, $w_vars);
 		$this->w_vals  = array_merge($this->w_vals, $w_vals);
@@ -1405,6 +1407,30 @@ class Model {
 		return;
 	}
 
+	function whereColumn(string $field1, string $field2, string $op = '='){
+		$validation = Factory::validador()->validate([ 
+					'col1' => ['type' => 'alpha_num_dash'], 
+					'col2' => ['type' => 'alpha_num_dash']
+				],
+				[
+					'col1' => $field1, 
+					'col2' => $field2
+				]);
+
+		if (!$validation){
+			throw new InvalidValidationException(json_encode($validation));
+		}
+
+
+
+		if (!in_array($op, ['=', '>', '<', '<=', '>=', '!='])){
+			throw new \InvalidArgumentException("Invalid operator '$op'");
+		}	
+
+		$this->where_raw_q = "{$field1}{$op}{$field2}";
+		return $this;
+	}
+
 	function where($conditions, $conjunction = 'AND'){
 		$this->_where($conditions, 'AND', $conjunction);
 		return $this;
@@ -1484,7 +1510,6 @@ class Model {
 		$this->orderBy(['created_at' => 'ASC']);
 		return $this;
 	}
-
 	
 	function _having(array $conditions, $group_op = 'AND', $conjunction)
 	{	

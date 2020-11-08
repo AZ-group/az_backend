@@ -926,6 +926,15 @@ class DumbController extends Controller
        Debug::dd($m->get()); 
 	   var_dump($m->dd());
     }
+
+
+    function where_col(){
+        $m = (DB::table('users'))
+        ->whereColumn('firstname', 'lastname', '=');  
+
+        Debug::dd($m->get()); 
+	    var_dump($m->dd());
+    }
    
 
     // SELECT * FROM products WHERE ((cost < IF(size = "1L", 300, 100) AND size = '1L' ) AND belongs_to = 90) AND deleted_at IS NULL ORDER BY cost ASC
@@ -953,9 +962,11 @@ class DumbController extends Controller
         SELECT * FROM products WHERE EXISTS (SELECT 1 FROM users WHERE products.belongs_to = users.id AND users.lastname IS NOT NULL);
     */
     function where_exists(){
-        Debug::dd(DB::table('products')->showDeleted()
-        ->whereExists('(SELECT 1 FROM users WHERE products.belongs_to = users.id AND users.lastname = ?)', ['AB'])
-        ->get());
+        $m = DB::table('products')->showDeleted()
+        ->whereExists('(SELECT 1 FROM users WHERE products.belongs_to = users.id AND users.lastname = ?)', ['AB']);
+
+        Debug::dd($m->get());
+        Debug::dd($m->dd());
     }
 
     /*
@@ -2278,8 +2289,5 @@ class DumbController extends Controller
         ->create();
     }
 
-    function hateoas_test(){
-
-    }
 
 }

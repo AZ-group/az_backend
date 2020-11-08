@@ -955,6 +955,7 @@ Las APIs que extienden a ApiController también tienen varios event hooks
 
 Existen otros hooks en en ApiController relacionados con el acceso a folders.
 
+
 ### Validaciones
 
 El framework incluye un validador que está integrado a nivel de la API Rest y puede también incluirse a nivel de los modelos o bien usarse de forma aislada.
