@@ -46,6 +46,10 @@ class FrontController
                 $_params = array_slice($argv, 1);
             }
             
+            if (!isset($_params[0])){
+                return; // *
+            }
+
             $req = Request::getInstance();  
     
             if ($_params[0]=='api' || $config['REMOVE_API_SLUG']) {

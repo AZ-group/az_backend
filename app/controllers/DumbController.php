@@ -2289,5 +2289,4 @@ class DumbController extends Controller
         ->create();
     }
 
-
 }

@@ -5,6 +5,10 @@ use simplerest\libs\Debug;
 
 $route = Route::getInstance();
 
+Route::get('hello', function(){
+	return "Hellooooo";
+});
+
 // http://az.lan/calc/sum/4/5
 Route::get('calc/sum', function($a, $b){
     return "La suma de $a y $b da ". ($a + $b);
@@ -34,4 +38,3 @@ Route::delete('cosas', function($id){
 });
 
 
-Route::compile();

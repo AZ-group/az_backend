@@ -12,6 +12,15 @@
     $config = include __DIR__ . '/config/config.php';
 
         
+    ////////////////////
+
+    foreach ($config['providers'] as $provider){
+        $p = new $provider();
+        $p->boot();
+    }
+    
+    ///////////////////
+
     FrontController::resolve();
  	
 

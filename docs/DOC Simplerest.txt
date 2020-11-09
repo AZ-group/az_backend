@@ -462,7 +462,7 @@ El Router tiene la enorme ventaja de permitir filtrar los requests por su verbo 
 	});
 
 
-El router se habilitan desde el archivo config/config.php y se configura desde /config/route.php
+El router se habilitan desde el archivo config/config.php y se configura desde /config/routes.php
 
 
 ### Resource Controller:

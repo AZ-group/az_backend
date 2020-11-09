@@ -770,8 +770,11 @@ class Model {
 		
 
 		// WHERE
-		$q  .= ' WHERE '. $this->where_formed();
-				
+		$where_section = $this->where_formed();
+		if (!empty($where_section)){
+			$q  .= ' WHERE ' . $where_section;
+		}
+						
 		$group = (!empty($this->group)) ? 'GROUP BY '.implode(',', $this->group) : '';
 		$q  .= " $group";
 
@@ -1121,6 +1124,7 @@ class Model {
 
 
 		//Debug::dd($q, 'Q'); ////////
+		//Debug::dd($this->dd());
 		//var_dump($this->from());
 		//exit;
 

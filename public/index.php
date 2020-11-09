@@ -11,8 +11,17 @@
 
     $config = include __DIR__ . '../../config/config.php';
 
+
+    ////////////////////
+    foreach ($config['providers'] as $provider){
+        $p = new $provider();
+        $p->boot();
+    }
+    ///////////////////
+
     if ($config['ROUTER']){        
-        include __DIR__ . '../../config/route.php';
+        include __DIR__ . '../../config/routes.php';
+        Route::compile();
         Route::resolve();
     } 
 

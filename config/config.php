@@ -113,6 +113,15 @@ return [
 		'app_id' => '533640957216135',
 		'app_secret' => '234a9cf42e8710ed813d45ed9e0fb212', 
 		'callback_url' => 'https://simplerest.mapapulque.ro/login/fb_login'
-	]
+	],
+
+	/*
+		Service Providers
+	*/
+
+	'providers' => [
+		Devdojo\Calculator\CalculatorServiceProvider::class,
+		// ...
+    ],
 	
 ];

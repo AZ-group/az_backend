@@ -2,7 +2,7 @@
     "name": "felipe/simplerest",
     "description": "API Rest framework for PHP",
     "type": "project",
-    "license": "GPL",
+    "license": "Commercial.",
     "authors": [
         {
             "name": "boctulus",
@@ -20,7 +20,8 @@
     },
     "autoload": {
         "psr-4": {
-            "simplerest\\": "app/"
+            "simplerest\\": "app/",
+            "Devdojo\\Calculator\\": "packages/devdojo/calculator/src"
         }
     },
     "require-dev": {

@@ -1,6 +1,12 @@
 # TODO
 
 
+- Debe haber orJoin() como orWhere() y orHaving() 
+
+https://stackoverflow.com/a/36074909/980631
+https://laravel.com/docs/5.8/queries#where-exists-clauses
+
+
 - Migraciones *sin* el método down() <-- el estado anterior se obtiene del historial de migraciones.
 
 
@@ -920,6 +926,34 @@ https://en.wikipedia.org/wiki/HATEOAS
 https://programar.cloud/post/como-implementar-hateoas-en-tus-apis/
 
 
+- Implementar HAL - Hypertext Application Language
+
+http://stateless.co/hal_specification.html 
+https://netflix.github.io/genie/docs/3.0.0/rest/
+https://github.com/blongden/hal
+
+
+HATEOAS Links
+
+  self        the current search
+  first       the first page for this search
+  prev        the previous page for this search
+  next        the next page for this search
+  last        the last page for this search
+
+
+prev, next no tienen aparentemente nada que ver con la paginación (?)
+
+  "page" : {
+    "size" : 64,
+    "totalElements" : 1,
+    "totalPages" : 1,
+    "number" : 0
+  }
+
+https://netflix.github.io/genie/docs/3.0.0/rest/  
+
+
 - Implementar búsquedas complejas como en Magento
 
 https://devdocs.magento.com/guides/v2.3/rest/performing-searches.html
@@ -951,13 +985,18 @@ public function includeRole(User $user)
       return $this->item($user->role, App::make(RoleTransformer::class));
 }
 
-When including a sub-resource, we can nest relations by using the a dot notation. Let’s say every role has a list of permissions stored in a separate table and we wanted to list users with their role and permissions. We can do it like this: include=role.permissions.
+When including a sub-resource, we can nest relations by using the a dot notation. Let’s say every role has a list of permissions stored in a separate table and we wanted to list users with their role and permissions. We can do it like this: 
+
+  include=role.permissions.
 
 Sometimes, we are required to include some necessary relations by default, like an address relation for example. We can do that by using the $defaultIncludes property inside the transformer:
 
 protected $defaultIncludes = [
         'address'
 ];
+
+The $availableIncludes property tells the transformer that we may need to include some extra data with the response. It will call the includeRole method if the include query parameter is requesting the user roles.
+
 
 Los include parameters se pueden parametrizar (o sea pueden aceptar parámetros), ej:
 
@@ -971,8 +1010,36 @@ Los include parameters se pueden parametrizar (o sea pueden aceptar parámetros)
   }
 
 
+We can now order our included users list by passing parameters (/roles?include=users:order(name|asc)).
+
+
+class UserTransformer extends TransformerAbstract
+{
+    protected $availableIncludes = [
+        'roles'
+    ];
+
+    public function transform(User $user)
+    {
+        return [
+            'name' => $user->name,
+            'email' => $user->email
+        ];
+    }
+
+    public function includeRoles(User $user)
+    {
+        if (!$user->role) {
+            return null;
+        }
+
+        return $this->collection($user->roles, App::make(RoleTransformer::class));
+    }
+}
+
 Leer en detalle:
 https://www.sitepoint.com/php-fractal-make-your-apis-json-pretty-always/
+https://fractal.thephpleague.com/transformers/
 
 
 API Call	                              Action
@@ -1086,15 +1153,6 @@ https://laravel.com/docs/5.7/configuration
 https://medium.com/@sagarmaheshwary31/laravel-5-8-from-scratch-config-env-migrations-and-todos-crud-7c771bcac802
 https://github.com/vlucas/phpdotenv
 
-
-- Implementar "where anidados" como en Laravel con callbacks
-
-https://stackoverflow.com/a/25129805/980631
-
-- Debe haber orJoin() como orWhere() y orHaving() 
-
-https://stackoverflow.com/a/36074909/980631
-https://laravel.com/docs/5.8/queries#where-exists-clauses
 
 
 - Considerar usar 'seek method' en vez de OFFSET como método de optimización de queries
@@ -1233,6 +1291,7 @@ Swagger is a widely-used tool to document REST APIs that provides a way to explo
 
 https://quickadminpanel.com/blog/list-of-21-artisan-make-commands-with-parameters/
 
+
 - Ofrecer la forma de filtrado compatible con JSON:API
 
 GET /employees?filter[state]=internal&filter[title]=senior
@@ -1264,24 +1323,86 @@ https://jsonapi.org/format/#error-objects
 https://phauer.com/2015/restful-api-design-best-practices/
 
 
-- Soportar formatos JSON, XML,  YAML, CSV ...
+- JSON:API resuelve elegantemente el tema de los objetos anidados:
 
-HTTP/1.1 200 OK
-Content-Type: application/xml
-Content-Length: ...
+JSON:API has quite a lot of interesting features. "Compound documents" allow servers to respond to requests with related resources, which mimics a lot of GraphQL’s functionality without making for an overly complex system. Clients can leverage this to traverse the internal resource layout and grab more complex information.
 
-<?xml version="1.0"?>
-<account>
-    <account_number>12345</account_number>
-    <balance currency="usd">100.00</balance>
-    <link rel="deposit" href="/accounts/12345/deposit" />
-    <link rel="withdraw" href="/accounts/12345/withdraw" /> 
-    <link rel="transfer" href="/accounts/12345/transfer" />
-    <link rel="close" href="/accounts/12345/close" />
-</account>
- 
-- Simplificar la forma de crear la conexion a la DB como en Laravel Lummen:
-https://lumen.laravel.com/docs/6.x/database
+https://jsonapi.org/format/#document-compound-documents
+
+Clients can also request very specific information by using "sparse fieldsets", wherein the client only requests data from a specific resource name and a specific set of desired fields. This makes for much more efficient calls than is otherwise seen in other relational API standards. JSON:API also allows for optionality in features: you can turn anything on or off, with the client being the ultimate source of acceptance or denial.
+
+https://jsonapi.org/format/#fetching-sparse-fieldsets
+
+Más
+https://nordicapis.com/the-benefits-of-using-json-api/
+https://nordicapis.com/how-does-jsonapi-compare-to-rest-and-graphql/
+
+
+- Ejemplo de paginación HAL
+
+
+    "_links": {
+        "self": {
+            "href": "http://example.org/api/user?page=3"
+        },
+        "first": {
+            "href": "http://example.org/api/user"
+        },
+        "prev": {
+            "href": "http://example.org/api/user?page=2"
+        },
+        "next": {
+            "href": "http://example.org/api/user?page=4"
+        },
+        "last": {
+            "href": "http://example.org/api/user?page=133"
+        }
+    }
+    "count": 3,
+    "total": 498,
+    "_embedded": {
+        "users": [
+            {
+                "_links": {
+                    "self": {
+                        "href": "http://example.org/api/user/mwop"
+                    }
+                },
+                "id": "mwop",
+                "name": "Matthew Weier O'Phinney"
+            },
+            {
+                "_links": {
+                    "self": {
+                        "href": "http://example.org/api/user/mac_nibblet"
+                    }
+                },
+                "id": "mac_nibblet",
+                "name": "Antoine Hedgecock"
+            },
+            {
+                "_links": {
+                    "self": {
+                        "href": "http://example.org/api/user/spiffyjr"
+                    }
+                },
+                "id": "spiffyjr",
+                "name": "Kyle Spraggs"
+            }
+        ]
+    }
+}
+
+
+https://nordicapis.com/optimizing-the-api-response-package/
+
+
+- JSON:API vs GraphQL vs ...
+
+
+https://stackoverflow.com/questions/44711161/what-is-the-difference-between-odata-jsonapi-graphql
+https://aimeos.org/tips/graphql-vs-jsonapi-for-ecommerce/
+
 
 - Seeders,...
 
@@ -1488,3 +1609,49 @@ https://www.doctrine-project.org/projects/doctrine-migrations/en/3.0/reference/m
 Se puede crear una "colección" con POST (ya implementado) y luego de recibir los IDs ... hacer PUTs sobre cada uno.
 
 https://stackoverflow.com/questions/17292656/how-to-design-a-restful-api-for-bulk-inserts-and-updates
+
+
+- Service Providers - desde el directorio del paquete deben poder cargarse el config, vistas, traducciones,... y hasta migraciones:
+
+  /**
+     * Merge the given configuration with the existing configuration.
+     *
+     * @param  string  $path
+     * @param  string  $key
+     * @return void
+     */
+    protected function mergeConfigFrom($path, $key)
+    {
+        $config = $this->app['config']->get($key, []);
+
+        $this->app['config']->set($key, array_merge(require $path, $config));
+    }
+
+  ...
+
+  /**
+     * Register a database migration path.
+     *
+     * @param  array|string  $paths
+     * @return void
+     */
+    protected function loadMigrationsFrom($paths)
+    {
+        $this->app->afterResolving('migrator', function ($migrator) use ($paths) {
+            foreach ((array) $paths as $path) {
+                $migrator->path($path);
+            }
+        });
+    }
+
+<-- extracto de ServiceProvider.php de Laravel
+
+"Within the boot() method, you may do whatever you like: register event listeners, include a routes file, register filters, or anything else you can imagine.
+
+The register() method should only be used for, you guessed it, registering services with the container”
+
+
+- Aplicar buenas prácticas
+
+https://github.com/ryanmcdermott/clean-code-javascript
+https://github.com/thangchung/clean-code-dotnet
