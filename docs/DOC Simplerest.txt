@@ -14,6 +14,11 @@ Algunas características:
 - Colecciones para acciones masivas
 - Versionado
 - Internacionalización
+- Query Builder
+- Migrations
+- Service Providers
+- Validator y auto-validaciones en los modelos
+
 
 (*) A pesar de ser un framework orientado a API Rest es posible servir vistas aunque no posee un motor de plantillas. Es posible que esta característica sea removida en futuras versiones.
 
@@ -2323,6 +2328,52 @@ Para generar el archivo de migración anterior (las primeras dos líneas) se pue
 Especificamente sobre migraciones, al trabajar con múltiples bases de datos hay que tener en cuenta que el método fresh() que comienza haciendo DROP TABLEs sobre la DB por seleccionada por defecto por lo que si queremos correr migraciones sobre la DB_B pero tenemos seleccionada la DB_A, comenzará eliminando todas las tablas de DB_A pero podemos especificar el id de conexión al que se conectará y sobre el cual hará los DROP TABLEs:
 
 	php com migrations fresh --from=db_b --force
+
+
+# Service Providers
+
+El framework provee una forma de "plugins" o "paquetes" inspirada en la de Laravel. Los paquetes pueden alojarse en cualquier parte pero en /packages hay un paquete de demostración.
+
+Los paquetes deben registrarse en config.php agregándose a $providers[] 
+
+	/*
+		Service Providers
+	*/
+
+	'providers' => [
+		Devdojo\Calculator\CalculatorServiceProvider::class,
+		// ...
+    ],
+
+Actualmente el soporte solo cubre la rutas con funciones anónimas y controladores. Falta agregar soporte para migraciones, traducciones, vistas, etc.
+
+Los paquetes funcionan *solamente* con rutas y *no* con el FrontController.
+
+Un Service Provider debe extender la clase ServiceProvider y de mínima implementar el método boot() al inicio de la aplicación.
+
+	/**
+     * Bootstrap the application services.
+     *
+     * @return void
+     */
+    public function boot()
+    {
+        
+    }
+
+    /**
+     * Register the application services.
+     *
+     * @return void
+     */
+    public function register()
+    {
+       
+    }     
+
+
+Leer 
+https://devdojo.com/devdojo/how-to-create-a-laravel-package
 
 
 # NGINX web server

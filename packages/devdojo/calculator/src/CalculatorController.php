@@ -11,10 +11,12 @@ use simplerest\libs\DB;
 class CalculatorController extends Controller
 {
     public function add($a, $b){
+        echo "Res: ";
     	echo $a + $b;
     }
 
     public function subtract($a, $b){
+        echo "Res: ";
     	echo $a - $b;
     }
 }

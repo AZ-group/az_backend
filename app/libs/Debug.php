@@ -35,9 +35,6 @@ class Debug
 			$v = $v ? 'true' : 'false';
 		}	
 
-		
-		ob_start();
-
 		if (!empty($msg)){
 			echo "--[ $msg ]-- ". $br;
 		}
@@ -51,11 +48,6 @@ class Debug
 		if ($cli || $postman){
 			echo $p;
 		}
-
-		$ret = ob_get_contents();
-		ob_end_clean();
-
-		return $ret;
 	}	
 
 	static public function dd($val, $msg = null, callable $precondition_fn = null){
@@ -73,16 +65,13 @@ class Debug
 			$pre = false;
 		}
 
-		$ret = null;
 		if ($pre) {
-			self::pre(function() use ($val, $msg, $ret){ 
-				$ret = self::export($val, $msg); 
+			self::pre(function() use ($val, $msg){ 
+				self::export($val, $msg); 
 			});
 		} else {
-			$ret = self::export($val, $msg);
+			self::export($val, $msg);
 		}
-     
-     	echo $ret; 
 	}
 
 }

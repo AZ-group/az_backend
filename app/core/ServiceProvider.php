@@ -1,10 +1,8 @@
 <?php
 
-namespace Devdojo\Calculator;
+namespace simplerest\core;
 
-use simplerest\core\ServiceProvider;
-
-class CalculatorServiceProvider extends ServiceProvider
+class ServiceProvider 
 {
     /**
      * Bootstrap the application services.
@@ -13,7 +11,7 @@ class CalculatorServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        include __DIR__.'/routes.php';
+        
     }
 
     /**
@@ -24,5 +22,6 @@ class CalculatorServiceProvider extends ServiceProvider
     public function register()
     {
        
-    }    
+    }     
 }
+

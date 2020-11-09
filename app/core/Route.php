@@ -156,11 +156,11 @@ class Route
         }
     }
 
-    public static function compile(){    
-        $namespace = 'simplerest\\controllers\\';
-
+    public static function compile()
+    {   
         foreach (static::$routes as $verb => $callbacks){
             foreach($callbacks as $uri => $ck){
+                // anonymus functions
                 if (is_callable($ck)){
                     $r = new \ReflectionFunction($ck);
                     
@@ -170,7 +170,9 @@ class Route
 
                     //Debug::dd(static::$ck_params[$verb][$uri], "CK PARAMS : [$verb][$uri]");
                 } else {
-                    //Debug::dd($ck, "$ck is not callable");
+                    //Debug::dd($ck, "\$ck");
+
+                    $namespace = Strings::contains('\\', $ck) ? '' : 'simplerest\\controllers\\';
 
                     $pos = strpos($ck, '@');
                     if ($pos === false){
