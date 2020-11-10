@@ -16,6 +16,7 @@ Algunas características:
 - Internacionalización
 - Query Builder
 - Migrations
+- Multitenant support
 - Service Providers
 - Validator y auto-validaciones en los modelos
 
@@ -586,6 +587,131 @@ c) Usando la clase DB para obtener la instancia
 	Desventajas:
 
 	- Obtiene una conexión a la base de datos aún antes de hacer cualquier tipo de validación.
+
+
+Inserción de registros
+
+	$m = DB::table('super_cool_table');
+
+	// No hay schema ?
+	Debug::dd($m->getSchema());
+	
+	Debug::dd($m->create([
+		'name' => 'SUPER',
+		'age' => 22,
+	]));
+
+Comparar dos campos en el WHERE
+
+	$m = (DB::table('users'))
+	->whereColumn('firstname', 'lastname', '=');  
+
+	Debug::dd($m->get()); 
+
+
+Operadores OR / AND anidados en WHERE con group()
+
+	$m = DB::table('products')
+
+	->group(function($q){  
+		$q->where([
+			['cost', 100, '>'],
+			['id', 50, '<']
+		]) 
+		// OR
+		->orWhere([
+			['cost', 100, '<='],
+			['description', NULL, 'IS NOT']
+		]);  
+	})
+	// AND
+	->where(['belongs_to', 150, '>'])
+	
+	->select(['id', 'cost', 'size', 'description', 'belongs_to']);
+
+	Debug::dd($m->get()); 
+	
+
+Transacciones
+
+	DB::beginTransaction();
+
+	try {
+		$name = '';
+		for ($i=0;$i<20;$i++)
+			$name .= chr(rand(97,122));
+
+		$id = DB::table('products')->create([ 
+			'name' => $name, 
+			'description' => 'bla bla bla', 
+			'size' => rand(1,5).'L',
+			'cost' => rand(0,500),
+			'belongs_to' => 90
+		]);   
+
+		//throw new \Exception("AAA"); 
+
+		DB::commit();
+
+	} catch (\Exception $e) {
+		DB::rollback();
+		throw $e;
+	} catch (\Throwable $e) {
+		DB::rollback();            
+	}            
+
+Otra forma de realizar transacciones es usando una función anómima con transaction()
+
+	DB::transaction(function(){
+		$name = '';
+		for ($i=0;$i<20;$i++)
+			$name .= chr(rand(97,122));
+
+		$id = DB::table('products')->create([ 
+			'name' => $name, 
+			'description' => 'Esto es una prueba', 
+			'size' => rand(1,5).'L',
+			'cost' => rand(0,500),
+			'belongs_to' => 90
+		]);   
+
+		throw new \Exception("AAA"); 
+	});     
+
+
+Output mutators
+
+	$rows = DB::table('users')
+	->registerOutputMutator('username', function($str){ return strtoupper($str); })
+	->get();
+
+Transformers 
+
+	$t = new UsersTransformer();
+
+	$rows = DB::table('users')
+	->registerTransformer($t, $this)
+	->get();
+
+otro ejemplo:
+
+	$t = new \simplerest\transformers\ProductsTransformer();
+
+	$rows = DB::table('products')
+	->where(['size'=>'2L'])
+	// ...
+	->registerTransformer($t)
+	->get();
+
+Son combinables transformers con output mutators:
+
+	$t = new \simplerest\transformers\UsersTransformer();
+
+	$rows = DB::table('users')
+	->registerOutputMutator('username', function($str){ return strtoupper($str); })
+	->registerTransformer($t)
+	->get();
+
 
 
 # Fetch modes 
@@ -2334,6 +2460,12 @@ Especificamente sobre migraciones, al trabajar con múltiples bases de datos hay
 
 El framework provee una forma de "plugins" o "paquetes" inspirada en la de Laravel. Los paquetes pueden alojarse en cualquier parte pero en /packages hay un paquete de demostración.
 
+El primer paso es crear la ruta donde alojaremos el paquete y por convención (inspirada en Laravel) será dentro de /packages. Cada paquete tiene un nombre conformado por dos partes: [VENDOR or CREATOR] / [PACKAGE NAME]
+
+Luego debemos inicializar Composer dentro del directorio creado lo que generará el archivo composer.json
+
+	composer init
+
 Los paquetes deben registrarse en config.php agregándose a $providers[] 
 
 	/*
@@ -2344,6 +2476,24 @@ Los paquetes deben registrarse en config.php agregándose a $providers[]
 		Devdojo\Calculator\CalculatorServiceProvider::class,
 		// ...
     ],
+
+
+Además debe registrarse en Composer (composer.json a nivel de root) agregando el bloque:
+
+	"autoload": {
+		"classmap": [
+			"database"
+		],
+		"psr-4": {
+			"App\\": "app/",
+			"Devdojo\\Calculator\\": "packages/devdojo/calculator/src"
+		}
+	},
+
+y correr el comando
+
+	composer dump-autoload
+	
 
 Actualmente el soporte solo cubre la rutas con funciones anónimas y controladores. Falta agregar soporte para migraciones, traducciones, vistas, etc.
 

@@ -27,10 +27,11 @@ use simplerest\libs\Strings;
     make api super_awesome  [-f | --force]
 
     make any SuperAwesome  [-s | --schema ] 
-                            [-m | --model] 
-                            [-c | --controller ] 
-                            [-a | --api ] 
-                            [-f | --force]
+                           [-m | --model] 
+                           [-c | --controller ] 
+                           [-a | --api ] 
+                           [-p | --provider | --service ]
+                           [-f | --force]
 
     Example:
     
@@ -40,6 +41,7 @@ use simplerest\libs\Strings;
 class MakeController extends Controller
 {
     const SCHEMAS_PATH = MODELS_PATH . 'schemas' . DIRECTORY_SEPARATOR;
+    const SERVICE_PROVIDERS_PATH = ROOT_PATH . 'providers' . DIRECTORY_SEPARATOR; //
 
     const TEMPLATES = CORE_PATH . 'templates' . DIRECTORY_SEPARATOR;
 
@@ -48,6 +50,7 @@ class MakeController extends Controller
     const MIGRATION_TEMPLATE  = self::TEMPLATES . 'Migration.php';
     const CONTROLLER_TEMPLATE = self::TEMPLATES . 'Controller.php';
     const API_TEMPLATE = self::TEMPLATES . 'ApiRestfulController.php';
+    const SERVICE_PROVIDER_TEMPLATE = self::TEMPLATES . 'ServiceProvider.php'; //
 
     protected $class_name;
     protected $model_name;
@@ -111,8 +114,9 @@ class MakeController extends Controller
                                 [-m | --model] 
                                 [-c | --controller ] 
                                 [-a | --api ] 
+                                [-p | --provider | --service ]
                                 [-f | --force]
-                          
+                                
                                 -sam  = -s -a -m
                                 -samf = -s -a -m -f                       
 
@@ -226,6 +230,10 @@ class MakeController extends Controller
             if (in_array('-c', $opt) || in_array('--controller', $opt)){
                 $opt = array_intersect($opt, ['-f', '--force']);
                 $this->controller($name, ...$opt);
+            }
+            if (in_array('-p', $opt) || in_array('--service', $opt) || in_array('--provider', $opt)){
+                $opt = array_intersect($opt, ['-f', '--force']);
+                $this->provider($name, ...$opt);
             }
         }            
     }
@@ -623,4 +631,49 @@ class MakeController extends Controller
            echo "[ Done ] '$dest_path' was generated\r\n";
         } 
     }    
+
+
+    function provider($name, ...$opt) {
+        $this->setup($name);    
+    
+        $filename = $this->camel_case . 'ServiceProvider'.'.php';
+        $dest_path = self::SERVICE_PROVIDERS_PATH . $filename;
+
+        if (in_array($dest_path, $this->excluded_files)){
+            echo "[ Skipping ] '$dest_path'. File was ignored\r\n"; 
+            return; 
+        } elseif (file_exists($dest_path)){
+            if (!in_array('-f', $opt) && !in_array('--force', $opt)){
+                echo "[ Skipping ] '$dest_path'. File already exists. Use -f or --force if you want to override.\r\n";
+                return;
+            } elseif (!is_writable($dest_path)){
+                echo "[ Error ] '$dest_path'. File is not writtable. Please check permissions.\r\n";
+                return;
+            }
+        }
+
+        if (in_array($filename, $this->excluded_files)){
+            echo "[ Skipping ] '$dest_path'. File was ignored\r\n"; 
+            return; 
+        } elseif (file_exists($dest_path)){
+            if (!in_array('-f', $opt) && !in_array('--force', $opt)){
+                echo "[ Skipping ] '$dest_path'. File already exists. Use -f or --force if you want to override.\r\n";
+                return;
+            } elseif (!is_writable($dest_path)){
+                echo "[ Error ] '$dest_path'. File is not writtable. Please check permissions.\r\n";
+                return;
+            }
+        }
+
+        $data = file_get_contents(self::SERVICE_PROVIDER_TEMPLATE);
+        $data = str_replace('__NAME__', $this->camel_case . 'ServiceProvider', $data);
+        
+        $ok = (bool) file_put_contents($dest_path, $data);
+        
+        if (!$ok) {
+            throw new \Exception("Failed trying to write $dest_path");
+        } else {
+            print_r("$dest_path was generated\r\n");
+        } 
+    }
 }

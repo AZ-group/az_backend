@@ -2244,7 +2244,7 @@ class DumbController extends Controller
         UNIQUE KEY `correo` (`correo`,`hora`) USING BTREE,
 
         */
-        $unique  = Strings::slice_all($str, '/UNIQUE KEY `([a-zA-Z0-9_]+)` \(([a-zA-Z0-9_`,]+)\)/');
+        $unique  = Strings::sliceAll($str, '/UNIQUE KEY `([a-zA-Z0-9_]+)` \(([a-zA-Z0-9_`,]+)\)/');
         Debug::dd($str, 'STR');	
         Debug::dd($unique, 'UNIQUE');					
 
@@ -2262,7 +2262,7 @@ class DumbController extends Controller
         /*
         IDEM
         */
-        $index   = Strings::slice_all($str, '/KEY `([a-zA-Z0-9_]+)` \(([a-zA-Z0-9_`,]+)\)/');
+        $index   = Strings::sliceAll($str, '/KEY `([a-zA-Z0-9_]+)` \(([a-zA-Z0-9_`,]+)\)/');
         Debug::dd($str, 'STR');
         Debug::dd($index, 'INDEX');
 

@@ -1,6 +1,20 @@
 # TODO
 
 
+Dudas:
+
+  - Un Service Provider en Laravel puede reemplazarse por otro? serviría para cambiar el proveedor de correo (SMTP) ?
+
+  - Qué tipos de Service Provider hay? una librería también se distribuye como SP?
+
+  - JSON:API es compatible con HATEOAS ?
+
+  - JSON:API has agregative functions? parece ser que NO.
+
+
+--- Probar con NGINX
+
+
 - Debe haber orJoin() como orWhere() y orHaving() 
 
 https://stackoverflow.com/a/36074909/980631
@@ -954,7 +968,7 @@ prev, next no tienen aparentemente nada que ver con la paginación (?)
 https://netflix.github.io/genie/docs/3.0.0/rest/  
 
 
-- Implementar búsquedas complejas como en Magento
+- Implementar búsquedas complejas como en Magento (sino estuvieran cubiertas por HATEOAS)
 
 https://devdocs.magento.com/guides/v2.3/rest/performing-searches.html
 
@@ -965,7 +979,7 @@ https://fideloper.com/laravel-raw-queries
 
 - Debería el módulo de autenticación incluir la parte de registro? en Laravel existe un RegisterController aunque el problema que le veo es que tendría que cambiar las rutas porque hoy el registro está en el AuthController en /v1/api/auth y entonces estaría en donde? la ventaja de tener un RegisterController sería hooks específicos como BeforeRegister y AfterRgister
 
-- Modificar Request::header() para que obtenga de forma "case-insensitive" los headers de apache_request_headers()
+- Modificar Request::header() para que obtenga de forma "case-insensitive"  headers de apache_request_headers()
 
 Convertir a minúsculas como hace NodeJs.
 
@@ -1053,33 +1067,190 @@ DELETE /users/{id}/configurations/{id}	Delete configuration for user          *
 PATCH /users/{id}/configuration/{id}	  Update configuration for user          * 
 
 
-- Usar métodos encadenados para simplificar la creación de reglas que actualmente se hace escribiendo directamente el array $rules en el modelo.
+- Otra implementación interesante de inclusión de sub-recursos tipo-HATEOAS es esta:
 
-protected $rules = [
-        'fullname' 	  => ['min'=>3, 'max'=>40],
-        'username'	  => ['min'=>2, 'max'=>15, 'type' => 'regex:/^[a-zA-Z0-9_]+$/'], 
-		    'email'     	=> ['type'=>'email'],
-               
-]
+Para Article:
 
-Podría en su lugar......
+  public function index()
+  {
+      $articles = QueryBuilder::for(Article::class)
+          ->allowedIncludes(['author', 'comments'])
+          ->allowedSorts(['created_at', 'title'])
+          ->paginate();
 
-function __construct(){
-  // ..
+      return new \App\Http\Resources\ArticleCollection($articles)
+  }
 
-  $this->rules = new Validator()
-                  ->field('fullname)->min(3)->max(40)->string()
-                  ->field('username')->min(2)->max(50)->regex('/^[a-zA-Z0-9_]+$/')
-                  ->field('email')->email()
-                  ...
-                  ->getRules();
-}
+  public function show($articleId)
+  {
+      $article = QueryBuilder::for(Article::class)
+          ->allowedIncludes(['author', 'comments', 'comments.author'])
+          ->allowedSorts(['created_at', 'title'])
+          ->findOrFail($articleId);
 
-Obviamente que los tipos string e int siguen siendo opcionales si ya están definidos en el SCHEMA.
+      return new \App\Http\Resources\Article($article);
+  }
 
- Usar un campo folder_id en cada tabla en la que pretendo utilizar folders y usar éste en vez de la combinación entre el user_ud y el nombre del "workspace" como identificador de carpeta.
+<-- Se puede observar que index() y show() no son necesariamente iguales en cuanto a que includes aceptar siendo más permisivos en el show().
 
-Objetivo: poder crear recursos de nuestra propiedad en carpetas ajenas donde lógicamente poseemos permisos de lectura y escritura.
+https://mattstauffer.com/json-api/eloquent-resources/
+
+
+- Sacar ideas de Spatie Query Builder (librería de Laravel para APIs)
+
+https://spatie.be/docs/laravel-query-builder/v3/advanced-usage/extending-query-builder
+
+Entre otras cosas Spatie hace fácil "appending attributes" o sea propieades computadas similar a lo que hace Laravel Fractal con los transformers:
+
+  class User extends Model
+  {
+      public function getFullnameAttribute()
+      {
+          return "{$this->firstname} {$this->lastname}";
+      }
+  }
+
+https://spatie.be/docs/laravel-query-builder/v2/features/appending-attributes
+
+
+- El paquete más completo para creación de APIs en Laravel parece ser laravel-json-api
+
+https://github.com/cloudcreativity/laravel-json-api
+
+Al visitar
+
+  http://opinion-ate.test/api/v1/restaurants/1 
+
+muestra  
+
+  {
+    "data": {
+      "type": "restaurants",
+      "id": "1",
+      "attributes": {
+        "name": "Sushi Place",
+        "address": "123 Main Street",
+        "createdAt": "2020-09-20T12:29:15.000000Z",
+        "updatedAt": "2020-09-20T12:29:15.000000Z"
+      },
+      "relationships": {
+        "dishes": {
+          "links": {
+            "self": "http://opinion-ate.test/api/v1/restaurants/1/relationships/dishes",
+            "related": "http://opinion-ate.test/api/v1/restaurants/1/dishes"
+          }
+        }
+      },
+      "links": {
+        "self": "http://opinion-ate.test/api/v1/restaurants/1"
+      }
+    }
+  }
+
+
+Al visitar
+
+  http://opinion-ate.test/api/v1/restaurants/1/dishes
+
+muestra
+
+  {
+    "data": [
+      {
+        "type": "dishes",
+        "id": "1",
+        "attributes": {
+          "name": "Volcano Roll",
+          "rating": 3,
+          "createdAt": "2020-09-20T14:48:45.000000Z",
+          "updatedAt": "2020-09-20T14:48:45.000000Z"
+        },
+        "relationships": {
+          "restaurant": {
+            "links": {
+              "self": "http://opinion-ate.test/api/v1/dishes/1/relationships/restaurant",
+              "related": "http://opinion-ate.test/api/v1/dishes/1/restaurant"
+            }
+          }
+        },
+        "links": {
+          "self": "http://opinion-ate.test/api/v1/dishes/1"
+        }
+      },
+      {
+        "type": "dishes",
+        "id": "2",
+        "attributes": {
+          "name": "Salmon Nigiri",
+          "rating": 4,
+          "createdAt": "2020-09-20T14:48:45.000000Z",
+          "updatedAt": "2020-09-20T14:48:45.000000Z"
+        },
+        "relationships": {
+          "restaurant": {
+            "links": {
+              "self": "http://opinion-ate.test/api/v1/dishes/2/relationships/restaurant",
+              "related": "http://opinion-ate.test/api/v1/dishes/2/restaurant"
+            }
+          }
+        },
+        "links": {
+          "self": "http://opinion-ate.test/api/v1/dishes/2"
+        }
+      }
+    ]
+  }
+
+Es importante notar la estructura del JSON al *crear* un recurso con POST:
+
+  {
+    "data": {
+      "type": "restaurants",
+      "attributes": {
+        "name": "Spaghetti Place",
+        "address": "789 Third Street"
+      }
+    }
+  }
+
+Responde con "201 (created)" y el siguiente body 
+
+  {
+    "data": {
+      "type": "restaurants",
+      "id": "3",
+      "attributes": {
+        "name": "Spaghetti Place",
+        "address": "789 Third Street",
+        "createdAt": "2020-09-20T14:52:03.000000Z",
+        "updatedAt": "2020-09-20T14:52:03.000000Z"
+      },
+      "relationships": {
+        "dishes": {
+          "links": {
+            "self": "http://opinion-ate.test/api/v1/restaurants/3/relationships/dishes",
+            "related": "http://opinion-ate.test/api/v1/restaurants/3/dishes"
+          }
+        }
+      },
+      "links": {
+        "self": "http://opinion-ate.test/api/v1/restaurants/3"
+      }
+    }
+  }
+
+
+https://howtojsonapi.com/laravel.html
+
+
+- Ver ejemplos de JSON:API !!!
+
+https://jsonapi.org/examples/
+
+
+- Muy buen resumen sobre distintos tipos de paquetes para generar APIs en Laravel:
+
+https://speakerdeck.com/mattstauffer/getting-to-json-api-what-it-is-why-you-should-use-it-and-how-to-use-it-in-laravel?slide=110
 
 
 - Implementar Scopes como los de Eloquent de Laravel
@@ -1266,6 +1437,14 @@ Podés armar una clase availableProduct y escribir los WHEREs vos... O podés us
 - Dar soporte a MongoDB 
 
 https://docs.mongodb.com/manual/tutorial/query-documents/
+
+Sobre Mongo leer:
+
+https://www.tutorialspoint.com/mongodb/index.htm
+https://university.mongodb.com/courses/M001/about?offering_id=M001%2F2020_November_3
+https://www.sitepoint.com/building-simple-blog-app-mongodb-php/
+https://www.roytuts.com/rest-api-crud-example-in-php-and-mongodb/
+
 
 
 - Implementar X-Rate-Limit-Limit, X-Rate-Limit-Remaining y X-Rate-Limit-Reset
@@ -1649,6 +1828,26 @@ https://stackoverflow.com/questions/17292656/how-to-design-a-restful-api-for-bul
 "Within the boot() method, you may do whatever you like: register event listeners, include a routes file, register filters, or anything else you can imagine.
 
 The register() method should only be used for, you guessed it, registering services with the container”
+
+
+- Evaluar implementar un vendor:publish para los ServiceProviders 
+
+"The vendor folder should not be under revision control as such, it will be overwritten every time you deploy your solution. You use vendor:publish to copy configurable items to your application code base such that any changes you make will not keep being lost."
+
+"vendor:publish command used to copy few configuration file in your application from vendor package file.Like you are using a package where need to create a table on database and need to store few demo data.That time your packages will keep database schema and seeding and when you run vendor:publish those schema and seeding file will copy in your application.After that you just run php artisan migrate and php artisan db:seed"
+
+https://laracasts.com/discuss/channels/laravel/why-do-we-do-a-php-artisan-vendorpublish
+
+
+- Leer sobre Packages
+
+https://laravel.com/docs/8.x/packages
+
+
+- Crear ServiceProvider para envio de Mails 
+
+https://culttt.com/2015/10/12/sending-template-emails-through-mandrill-in-laravel/
+
 
 
 - Aplicar buenas prácticas

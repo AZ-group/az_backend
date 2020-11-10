@@ -619,6 +619,8 @@ class Model {
 		else
 			$fields = $this->fields;	
 
+		$paginator = null;
+
 		if (!$existance)
 		{			
 			// remove hidden			

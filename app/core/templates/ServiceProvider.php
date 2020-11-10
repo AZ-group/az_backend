@@ -1,21 +1,27 @@
 <?php
 
-namespace simplerest\core;
+namespace simplerest\providers;
 
-abstract class ServiceProvider 
+class __NAME__ 
 {
     /**
      * Bootstrap the application services.
      *
      * @return void
      */
-    abstract public function boot();
+    public function boot()
+    {
+        
+    }
 
     /**
      * Register the application services.
      *
      * @return void
      */
-    abstract public function register();
+    public function register()
+    {
+       
+    }     
 }
 
