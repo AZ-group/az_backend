@@ -164,7 +164,7 @@ class AuthController extends Controller implements IAuth
                 Factory::response()->sendError('Incorrect username / email or password', 401);
 
             $active = $row['active']; 
-            //Debug::dd($active, 'active');
+            //dd($active, 'active');
 
             if ($active == null) {
 

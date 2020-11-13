@@ -38,3 +38,11 @@ Route::delete('cosas', function($id){
 });
 
 
+
+Route::get('dumbo/kalc', function(){
+    echo 'Hello from Kalc!';
+})->name('dumbo.kalc');
+
+
+Route::get('dumbo/users', 'DumbController@get_users')
+->name('dumbo.users');

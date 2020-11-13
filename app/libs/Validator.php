@@ -163,7 +163,7 @@ class Validator implements IValidator
         bindtextdomain('validator', LOCALE_PATH);
 		textdomain('validator');
 
-		//Debug::dd($data, 'DATA:');
+		//dd($data, 'DATA:');
 
 		if (empty($rules))
 			throw new \InvalidArgumentException('No validation rules!');
@@ -184,7 +184,7 @@ class Validator implements IValidator
 			
 		$msg = [];
 		foreach($rules as $field => $rule){
-			//Debug::dd($rule, "RULE $field :");
+			//dd($rule, "RULE $field :");
 			
 			//var_export(array_diff(array_keys($rule), ['messages']));
 			if (isset($rules[$field]['messages'])){
@@ -192,7 +192,7 @@ class Validator implements IValidator
 			}				
 
 			//if (isset($data[$field]))			
-			//	Debug::dd($data[$field], 'VALOR:');			
+			//	dd($data[$field], 'VALOR:');			
 
 			//echo "---------------------------------<p/>\n";
 			
@@ -209,7 +209,7 @@ class Validator implements IValidator
 			}
 				
 			foreach ((array) $data[$field] as $dato){
-				//Debug::dd(['field' => $field, 'data' => $dato]);
+				//dd(['field' => $field, 'data' => $dato]);
 
 				//var_export($rules[$field]['messages']);
 				//var_export(array_diff(array_keys($rule), ['messages']));

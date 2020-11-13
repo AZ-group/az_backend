@@ -5,7 +5,7 @@ namespace simplerest\core;
 use simplerest\traits\ExceptionHandler;
 use simplerest\libs\Factory;
 
-include HELPERS_PATH . 'view.php';
+//include HELPERS_PATH . 'view.php';
 
 class View
 {

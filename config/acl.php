@@ -70,9 +70,9 @@ if (!$acl_cache || is_file($acl_file) !== true) {
 
     /////////////////////
 
-    //Debug::dd($acl->hasResourcePermission('list', ['basic'], 'super_cool_table'));
-    //Debug::dd($acl->getSpPermissions());
-    //Debug::dd($acl->getRolePermissions(), 'perms');
+    //dd($acl->hasResourcePermission('list', ['basic'], 'super_cool_table'));
+    //dd($acl->getSpPermissions());
+    //dd($acl->getRolePermissions(), 'perms');
     //exit;    
     /////////////////////
 

@@ -50,9 +50,9 @@ trait ExceptionHandler
         $backtrace = debug_backtrace();
         
         if (php_sapi_name() == 'cli'){
-            Debug::dd($error_location, 'ERROR LOCATION');
-            Debug::dd($e->getMessage(), 'ERR MSG');
-            Debug::dd($backtrace, 'BACKTRACE');
+            dd($error_location, 'ERROR LOCATION');
+            dd($e->getMessage(), 'ERR MSG');
+            dd($backtrace, 'BACKTRACE');
         } else {
             if (Factory::config()['debug']){
                 Factory::response()->sendError($e->getMessage(), 500, [

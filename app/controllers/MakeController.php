@@ -87,7 +87,7 @@ class MakeController extends Controller
                 }                 
             }
 
-            //Debug::dd($this->excluded_files);
+            //dd($this->excluded_files);
             //exit; ///
         }
 
@@ -604,7 +604,7 @@ class MakeController extends Controller
         }
 
 
-        Debug::dd($from_db, 'FROM DB');
+        dd($from_db, 'FROM DB');
 
 
         if (!empty($to_db)){

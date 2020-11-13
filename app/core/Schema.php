@@ -828,8 +828,8 @@ class Schema
 			}
 
 		} catch (\PDOException $e) {
-			Debug::dd($change, 'SQL with error');
-			Debug::dd($e->getMessage(), "PDO error");
+			dd($change, 'SQL with error');
+			dd($e->getMessage(), "PDO error");
 			$rollback();
 			throw $e;		
         } catch (\Exception $e) {
@@ -1036,11 +1036,11 @@ class Schema
 				$collation  = Strings::slice($str, '/COLLATE ([a-z0-9_]+)/');
 				
 				$default    = Strings::slice($str, '/DEFAULT ([a-zA-Z0-9_\(\)]+)/');
-				//Debug::dd($default, "DEFAULT($field)");
+				//dd($default, "DEFAULT($field)");
 
 				$nullable   = Strings::slice($str, '/(NOT NULL)/') == NULL;
 				$auto       = Strings::slice($str, '/(AUTO_INCREMENT)/') == 'AUTO_INCREMENT';
-				//Debug::dd($nullable, "NULLABLE($field)");
+				//dd($nullable, "NULLABLE($field)");
 
 
 				
@@ -1052,17 +1052,17 @@ class Schema
 			
 				
 				/*
-				Debug::dd($field, 'FIELD ***');
-				Debug::dd($lines[$i], 'LINES');
-				Debug::dd($type, 'TYPE');
-				Debug::dd($array, 'ARRAY / SET');
-				Debug::dd($len, 'LEN');
-				Debug::dd($charset, 'CHARSET');
-				Debug::dd($collation, 'COLLATION');
-				Debug::dd($nullable, 'NULLBALE');
-				Debug::dd($default, 'DEFAULT');
-				Debug::dd($auto, 'AUTO');
-				Debug::dd($check, 'CHECK');
+				dd($field, 'FIELD ***');
+				dd($lines[$i], 'LINES');
+				dd($type, 'TYPE');
+				dd($array, 'ARRAY / SET');
+				dd($len, 'LEN');
+				dd($charset, 'CHARSET');
+				dd($collation, 'COLLATION');
+				dd($nullable, 'NULLBALE');
+				dd($default, 'DEFAULT');
+				dd($auto, 'AUTO');
+				dd($check, 'CHECK');
 				echo "-----------\n";
 				*/
 								
@@ -1081,16 +1081,16 @@ class Schema
 
 			}else{
 				// son índices de algún tipo
-				//Debug::dd($str);
+				//dd($str);
 				
 				$primary = Strings::slice($str, '/PRIMARY KEY \(`([a-zA-Z0-9_]+)`\)/');				
 				$unique  = Strings::sliceAll($str, '/UNIQUE KEY `([a-zA-Z0-9_]+)` \(`([a-zA-Z0-9_]+)`\)/');
 				$index   = Strings::sliceAll($str, '/KEY `([a-zA-Z0-9_]+)` \(`([a-zA-Z0-9_]+)`\)/');
 				
 				/*
-				Debug::dd($primary);
-				Debug::dd($unique);
-				Debug::dd($index);
+				dd($primary);
+				dd($unique);
+				dd($index);
 				echo "-----------\n";
 				*/	
 				
@@ -1123,8 +1123,8 @@ class Schema
 
 			/*
 			if ($name == 'vencimiento'){
-				Debug::dd($this->prev_schema['fields'][$name]['nullable']);
-				Debug::dd($this->fields[$name]);
+				dd($this->prev_schema['fields'][$name]['nullable']);
+				dd($this->fields[$name]);
 				exit;
 			}
 			*/
@@ -1133,7 +1133,7 @@ class Schema
 			
 			$field = $this->fields[$name];
 
-			//Debug::dd($this->fields[$name]);
+			//dd($this->fields[$name]);
 			//exit;
 
 			$charset   = isset($field['charset']) ? "CHARACTER SET {$field['charset']}" : '';
@@ -1166,8 +1166,8 @@ class Schema
 			}	
 
 			/*			
-			Debug::dd($field['nullable'], "NULLABLE ($name)");
-			Debug::dd($field['default'], "DEFAULT ($name)");
+			dd($field['nullable'], "NULLABLE ($name)");
+			dd($field['default'], "DEFAULT ($name)");
 			exit;
 			*/
 
@@ -1236,8 +1236,8 @@ class Schema
 			DB::commit();
 		} catch (\PDOException $e) {
 			DB::rollback();
-			Debug::dd($change, 'SQL');
-			Debug::dd($e->getMessage(), "PDO error");		
+			dd($change, 'SQL');
+			dd($e->getMessage(), "PDO error");		
         } catch (\Exception $e) {
             DB::rollback();
             throw $e;

@@ -285,7 +285,7 @@ Implementación:
             ->where(['uuid', '0fefc2b1-f0d3-47aa-a875-5dbca85855f9'])
             ->select(['uuid', 'price']);    
 
-        //Debug::dd($m->dd());
+        //dd($m->dd());
         //exit;         
 
         for ($i=0; $i<4; $i++){

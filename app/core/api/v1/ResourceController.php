@@ -52,10 +52,10 @@ abstract class ResourceController extends Controller
             $this->permissions  = $this->auth['permissions'] ?? NULL;   
         }
 
-        //Debug::dd($this->uid, 'uid');
-        //Debug::dd($this->acl->getRoleName(), 'possible roles');  ///// 
-        //Debug::dd($this->roles, 'active roles');
-        //Debug::dd($this->permissions, 'permissions');
+        //dd($this->uid, 'uid');
+        //dd($this->acl->getRoleName(), 'possible roles');  ///// 
+        //dd($this->roles, 'active roles');
+        //dd($this->permissions, 'permissions');
 
         Factory::response()->asObject();
 

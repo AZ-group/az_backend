@@ -106,13 +106,13 @@ class Model {
 		*/
 	
 
-		//Debug::dd($this->table_name, 'table_name:');  // mode <-- por "model" recortado!!
+		//dd($this->table_name, 'table_name:');  // mode <-- por "model" recortado!!
 		
 		if ($this->schema == null){
 			return;
 		}	
 
-		//Debug::dd($this->schema, 'SCHEMA:');
+		//dd($this->schema, 'SCHEMA:');
 
 		$this->attributes = array_keys($this->schema['attr_types']);
 		
@@ -691,7 +691,7 @@ class Model {
 		}			
 
 
-		//Debug::dd($fields, 'FIELDS:');
+		//dd($fields, 'FIELDS:');
 
 		if (!$existance){
 			if ($aggregate_func != null){
@@ -699,8 +699,8 @@ class Model {
 					if ($aggregate_field == null)
 						$aggregate_field = '*';
 
-					//Debug::dd($fields, 'FIELDS:');
-					//Debug::dd([$aggregate_field], 'AGGREGATE FIELD:');
+					//dd($fields, 'FIELDS:');
+					//dd([$aggregate_field], 'AGGREGATE FIELD:');
 
 					if (!empty($fields))
 						$_f = implode(", ", $fields). ',';
@@ -723,7 +723,7 @@ class Model {
 			}else{
 				$q = 'SELECT ';
 
-				//Debug::dd($fields);
+				//dd($fields);
 				
 				// SELECT RAW
 				if (!empty($this->select_raw_q)){
@@ -751,8 +751,8 @@ class Model {
 		////////////////////////
 
 
-		//Debug::dd($vars, 'VARS:');
-		//Debug::dd($values, 'VALS:');
+		//dd($vars, 'VARS:');
+		//dd($values, 'VALS:');
 
 		// Validación
 		if (!empty($this->validator)){
@@ -846,9 +846,9 @@ class Model {
 		$q = String::removeRTrim('OR',  $q);
 		*/
 
-		//Debug::dd($q, 'Query:');
-		//Debug::dd($vars, 'Vars:');
-		//Debug::dd($values, 'Vals:');
+		//dd($q, 'Query:');
+		//dd($vars, 'Vars:');
+		//dd($values, 'Vals:');
 		//var_dump($q);
 		//exit;
 		//var_export($vars);
@@ -1125,8 +1125,8 @@ class Model {
 		$st = $this->bind($q);
 
 
-		//Debug::dd($q, 'Q'); ////////
-		//Debug::dd($this->dd());
+		//dd($q, 'Q'); ////////
+		//dd($this->dd());
 		//var_dump($this->from());
 		//exit;
 
@@ -1290,8 +1290,8 @@ class Model {
 		$q = $this->toSql(null, null, null, null, false, 'COUNT', $field, $alias);
 		$st = $this->bind($q);
 
-		//Debug::dd($q, 'Q');
-		//Debug::dd($this->table_raw_q, 'RAW Q');
+		//dd($q, 'Q');
+		//dd($this->table_raw_q, 'RAW Q');
 		//exit;
 
 		if (empty($this->group)){
@@ -1404,11 +1404,11 @@ class Model {
 		$this->where[] = ' ' .$ws_str;
 		////////////////////////////////////////////
 
-		//Debug::dd($this->where, '$this->where');
-		//Debug::dd($this->where_group_op, 'OPERATORS');
+		//dd($this->where, '$this->where');
+		//dd($this->where_group_op, 'OPERATORS');
 		//exit;
-		//Debug::dd($this->w_vars, 'WHERE VARS');	
-		//Debug::dd($this->w_vals, 'WHERE VALS');	
+		//dd($this->w_vars, 'WHERE VARS');	
+		//dd($this->w_vals, 'WHERE VALS');	
 
 		return;
 	}
@@ -1526,17 +1526,17 @@ class Model {
 		if ((count($conditions) == 3 || count($conditions) == 2) && !is_array($conditions[1]))
 			$conditions = [$conditions];
 	
-		//Debug::dd($conditions, 'COND:');
+		//dd($conditions, 'COND:');
 
 		$_having = [];
 		foreach ((array) $conditions as $cond) {		
 		
 			if (Arrays::is_assoc($cond)){
-				//Debug::dd($cond, 'COND PRE-CAMBIO');
+				//dd($cond, 'COND PRE-CAMBIO');
 				$cond[0] = Arrays::array_key_first($cond);
 				$cond[1] = $cond[$cond[0]];
 
-				//Debug::dd([$cond[0], $cond[1]], 'COND POST-CAMBIO');
+				//dd([$cond[0], $cond[1]], 'COND POST-CAMBIO');
 			}
 			
 			$op = $cond[2] ?? '=';	
@@ -1558,9 +1558,9 @@ class Model {
 		$this->having[] = ' ' .$ws_str;
 		////////////////////////////////////////////
 
-		//Debug::dd($this->having, 'HAVING:');
-		//Debug::dd($this->h_vars, 'VARS');
-		//Debug::dd($this->h_vals, 'VALUES');
+		//dd($this->having, 'HAVING:');
+		//dd($this->h_vars, 'VARS');
+		//dd($this->h_vals, 'VALUES');
 
 		return $this;
 	}
@@ -1768,7 +1768,7 @@ class Model {
 	
 		$this->data = $data;	
 
-		//Debug::dd($data, 'DATA');
+		//dd($data, 'DATA');
 		//exit;
 		
 		$data = $this->applyInputMutator($data, 'CREATE');
@@ -1822,7 +1822,7 @@ class Model {
 			elseif(is_string($val))
 				$type = \PDO::PARAM_STR;	
 
-			//Debug::dd($type, "TYPE for $val");	
+			//dd($type, "TYPE for $val");	
 
 			$st->bindValue($ix+1, $val, $type);
 		}

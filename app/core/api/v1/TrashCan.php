@@ -53,7 +53,7 @@ class TrashCan extends MyApiController
             
         
         //var_dump(Factory::request()->getBody());
-        //Debug::dd($this->model_name);
+        //dd($this->model_name);
         //exit;
         parent::__construct();
 

@@ -54,7 +54,7 @@ abstract class ApiController extends ResourceController
         }
         
         $perms = $this->getPermissions($this->model_table);
-        //Debug::dd($perms, 'perms'); /////
+        //dd($perms, 'perms'); /////
 
         switch ($_SERVER['REQUEST_METHOD']) {
             case 'GET':
@@ -184,13 +184,13 @@ abstract class ApiController extends ResourceController
         $this->impersonated_by = $this->auth->impersonated_by ?? null;
 
     
-        //Debug::dd($this->auth['uid'] ?? NULL, 'uid');
-        //Debug::dd($perms, 'permissions');
-        //Debug::dd($this->roles, 'roles');    
-        //Debug::dd($this->is_listable, 'is_listable?');
-        //Debug::dd($this->is_retrievable, 'is_retrievable?');
-        //Debug::dd($this->callable, 'callables');
-        //Debug::dd($this->impersonated_by, 'impersonated_by);
+        //dd($this->auth['uid'] ?? NULL, 'uid');
+        //dd($perms, 'permissions');
+        //dd($this->roles, 'roles');    
+        //dd($this->is_listable, 'is_listable?');
+        //dd($this->is_retrievable, 'is_retrievable?');
+        //dd($this->callable, 'callables');
+        //dd($this->impersonated_by, 'impersonated_by);
         //exit;
         
         /*
@@ -746,7 +746,7 @@ abstract class ApiController extends ResourceController
                     $rows = $this->instance->get();
                 
                     
-                //Debug::dd($this->instance->dd2(), 'SQL');
+                //dd($this->instance->dd2(), 'SQL');
             
                 $res = Factory::response()->setPretty($pretty);
 
@@ -1047,7 +1047,7 @@ abstract class ApiController extends ResourceController
                 //var_dump($this->instance->dd2());
             } catch (\Exception $e){
                 $affected = $this->instance->where([$id_name => $id])->dontExec()->update($data);
-                Debug::dd($this->instance->dd2());
+                dd($this->instance->dd2());
             }
 
             if ($affected !== false) {
@@ -1128,7 +1128,7 @@ abstract class ApiController extends ResourceController
             $this->onDeletingBeforeCheck($id);
 
             $rows = $this->instance->get();
-            //Debug::dd($this->instance->getLastPrecompiledQuery(), 'SQL');
+            //dd($this->instance->getLastPrecompiledQuery(), 'SQL');
             
             if (count($rows) == 0){
                 Factory::response()->code(404)->sendError("Register for $id_name=$id does not exists");

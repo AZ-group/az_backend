@@ -5,7 +5,7 @@ namespace simplerest\controllers;
 class ProductsController extends MyController
 {
 	function index(){
-		$this->view('products.php');
+		return view('products.php');
 	}
 }
 	

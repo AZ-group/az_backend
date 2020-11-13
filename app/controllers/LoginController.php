@@ -16,11 +16,11 @@ class LoginController extends MyController
 	}
 	
 	function login(){	
-		$this->view('login.php', [ 'title'=>'Ingreso', 'hidenav'=> true ]);
+		return view('login.php', [ 'title'=>'Ingreso', 'hidenav'=> true ]);
 	}
 	
 	function register(){
-		$this->view('register.php', ['title'=>'Registro', 'hidenav'=> true]);
+		return view('register.php', ['title'=>'Registro', 'hidenav'=> true]);
 	}
 
 	/*
@@ -32,7 +32,7 @@ class LoginController extends MyController
 		$res = $google_ctrl->login_or_register();
 
 		if (isset($res['data'])){
-			$this->view('generic.php', [
+			return view('generic.php', [
 				'title'=>'Google login', 
 				'hidenav'=> true,
 				'access_token' => $res['data']['access_token'],
@@ -40,7 +40,7 @@ class LoginController extends MyController
 				'refresh_token' => $res['data']['refresh_token']
 			]);
 		}else {
-			$this->view('generic.php', [
+			return view('generic.php', [
 				'title'=>'Google login', 
 				'hidenav'=> false,
 				'error' => $res['error']
@@ -59,7 +59,7 @@ class LoginController extends MyController
 		session_destroy();
 
 		if (isset($res['data'])){
-			$this->view('generic.php', [
+			return view('generic.php', [
 				'title'=>'Facebook login', 
 				'hidenav'=> true,
 				'access_token' => $res['data']['access_token'],
@@ -67,7 +67,7 @@ class LoginController extends MyController
 				'refresh_token' => $res['data']['refresh_token']
 			]);
 		}else {
-			$this->view('generic.php', [
+			return view('generic.php', [
 				'title'=>'Facebook login', 
 				'hidenav'=> false,
 				'error' => $res['error']
@@ -110,12 +110,12 @@ class LoginController extends MyController
     }
 
 	function rememberme(){
-		$this->view('rememberme.php', ['title'=>'Recuérdame', 'hidenav'=> true]);
+		return view('rememberme.php', ['title'=>'Recuérdame', 'hidenav'=> true]);
 	}
 
 	
 	function rememberme_mail_sent(){
-		$this->view('rememberme_mail_sent.php', ['title'=>'Recuérdame', 'hidenav'=> true]);
+		return view('rememberme_mail_sent.php', ['title'=>'Recuérdame', 'hidenav'=> true]);
 	}
 
 	function confirm_email($jwt, $exp)
@@ -127,7 +127,7 @@ class LoginController extends MyController
 
 		/*
 		if ($cond)			
-			$this->view('generic.php', [
+			return view('generic.php', [
 				'title'=>'Confirmación de correo', 
 				'hidenav'=> true,
 				'access_token' => $access,
@@ -136,7 +136,7 @@ class LoginController extends MyController
 			]);
 	
 		} else {
-			$this->view('generic.php', [
+			return view('generic.php', [
 				'title'=>'Confirmación de correo fallida', 
 				'hidenav'=> false,
 				'error' => $error
@@ -190,13 +190,13 @@ class LoginController extends MyController
 			// donde poder setear una nueva contraseña
 			//
 
-			$this->view('update_pass.php', [
+			return view('update_pass.php', [
 				'title'=>'Recuperación de contraseña', 
 				'hidenav'=> true
 			]);
 	
 		}else {
-			$this->view('generic.php', [
+			return view('generic.php', [
 				'title'=>'Recuperación de contraseña', 
 				'hidenav'=> false,
 				'error' => $error

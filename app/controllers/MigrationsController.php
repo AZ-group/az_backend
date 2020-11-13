@@ -165,11 +165,11 @@ class MigrationsController extends Controller
 
             $this->migrate();
         } catch (\PDOException $e) {    
-            Debug::dd("DROP TABLE for `$table` failed", "PDO Error");
-            Debug::dd($e->getMessage(), "MSG"); 
+            dd("DROP TABLE for `$table` failed", "PDO Error");
+            dd($e->getMessage(), "MSG"); 
             throw $e;
         } catch (\Exception $e) {   
-            Debug::dd($e->getMessage(), "MSG");
+            dd($e->getMessage(), "MSG");
             throw $e;
         }	             
 

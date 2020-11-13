@@ -396,17 +396,17 @@ Para usar la utilería Config debe hacerse a través de Factory para acceder a l
 Se puede escribir mediante el método set() y leer con get() o bien acceder como array ya que se implementa la interfaz ArrayAccess:
 
 	Factory::config()['xxx'] = 'zzz';
-    Debug::dd(Factory::config()['xxx']);  // 'zzz'
+    dd(Factory::config()['xxx']);  // 'zzz'
 
 o
 	
 	Factory::config()->set('xxx','zzz');
-	Debug::dd(Factory::config()->get('xxx'));  // 'zzz' 
+	dd(Factory::config()->get('xxx'));  // 'zzz' 
 
 o
 
 	Factory::config()->set('xxx','zzz');
-	Debug::dd(Factory::config()['xxx']);  // 'zzz'   
+	dd(Factory::config()['xxx']);  // 'zzz'   
 
 
 ### Controlador
@@ -545,7 +545,7 @@ a) Instanciando directamente Model en cuyo caso *no* dispondríamos de un schema
 		->select(['id', 'name', 'size'])
 		->where(['cost', 150, '>=']);
 
-	Debug::dd($m->get());
+	dd($m->get());
 
 	Ventajas: 
 
@@ -563,7 +563,7 @@ b) Instanciando una clase Model derivada
 		->select(['id', 'name', 'size'])
 		->where(['cost', 150, '>=']);
 
-	Debug::dd($m->get());
+	dd($m->get());
 
 	Ventajas: 
 
@@ -577,7 +577,7 @@ c) Usando la clase DB para obtener la instancia
 		->select(['id', 'name', 'size'])
 		->where(['cost', 150, '>=']);
     
-	Debug::dd($m->get());
+	dd($m->get());
     
 	Ventajas:
 
@@ -594,9 +594,9 @@ Inserción de registros
 	$m = DB::table('super_cool_table');
 
 	// No hay schema ?
-	Debug::dd($m->getSchema());
+	dd($m->getSchema());
 	
-	Debug::dd($m->create([
+	dd($m->create([
 		'name' => 'SUPER',
 		'age' => 22,
 	]));
@@ -606,7 +606,7 @@ Comparar dos campos en el WHERE
 	$m = (DB::table('users'))
 	->whereColumn('firstname', 'lastname', '=');  
 
-	Debug::dd($m->get()); 
+	dd($m->get()); 
 
 
 Operadores OR / AND anidados en WHERE con group()
@@ -629,7 +629,7 @@ Operadores OR / AND anidados en WHERE con group()
 	
 	->select(['id', 'cost', 'size', 'description', 'belongs_to']);
 
-	Debug::dd($m->get()); 
+	dd($m->get()); 
 	
 
 Transacciones
@@ -720,7 +720,7 @@ Los modos de obtención de datos pueden setearse  en cualquera de los casos medi
 
 Ej:
 
-	Debug::dd((new BarModel())
+	dd((new BarModel())
 	->connect()
 	->setFetchMode('ASSOC')
 	->get());
@@ -766,7 +766,7 @@ Ejemplo:
 		->where([ 'belongs_to'=> 90] )
 		->count('*', 'count');
 
-	Debug::dd(DB::getQueryLog());
+	dd(DB::getQueryLog());
 
 Otra función de debug que puede utilizarse es getLastPrecompiledQuery() y devuelve el último query antes de ser bindeado con los parámetros.
 
@@ -785,7 +785,7 @@ Ejemplo:
 	->orderBy(['id' => 'ASC'])
 	->get();
 
-	Debug::dd($m2->getLastPrecompiledQuery());
+	dd($m2->getLastPrecompiledQuery());
 
 En cualquier caso es posible realizar un debug sin ejecutar la consulta con el método dontExec()
 
@@ -799,13 +799,13 @@ Ejemplo:
 		->selectRaw('AVG(cost)')
 		->get();
 		
-	Debug::dd(DB::getQueryLog()); 
+	dd(DB::getQueryLog()); 
 	
 Como si fueran pocas funciones de debug existe el método getLog()
 
 	$model = new \simplerest\core\Model($conn);
 	$res = $model->create(['name' => 'Jhon', 'age' => 32]);
-	Debug::dd($model->getLog());
+	dd($model->getLog());
 	
 
 #### Campos manejados por el framework
@@ -988,7 +988,7 @@ Y ahora en un Controller paso $this como segundo parámetro a registerTransforme
 	->registerTransformer($t, $this)
 	->get();
 
-	Debug::dd($rows);
+	dd($rows);
 
 En el ejemplo si el controller tiene un campo is_admin (como sucede con los resource controllers en SimpleRest) entonces según el valor mostrará o no el password.
  
@@ -1001,7 +1001,7 @@ Mutators y transformers pueden usarse juntos, ej:
 	->registerTransformer($t)
 	->get();
 
-	Debug::dd($rows);
+	dd($rows);
 
 Nota: de momento los Transformers se han probado desde Controllers y no desde las APIs <-- quizás sea posible usarlos de alguna forma si surge una necesidad real.
 
@@ -2400,7 +2400,7 @@ Ej:
 		->setConn($conn)
 		->table('cables');
 		
-	Debug::dd($m->get());
+	dd($m->get());
 
 
 Otra forma de seleccionar una base de datos es cambiar la conexión por defecto:
@@ -2412,7 +2412,7 @@ Ej:
 	$m = (new Model(true))
 		->table('cables');
 		
-	Debug::dd($m->get());
+	dd($m->get());
 
 o
 
@@ -2421,7 +2421,7 @@ o
 	$m = (new CablesModel())
 	->connect();
 
-	Debug::dd($m->get());
+	dd($m->get());
 
 <-- require de la clase CablesModel y del schema CablesSchema
 
@@ -2430,7 +2430,7 @@ o
 	Factory::config()['db_connection_default'] = 'db2';
 
 	$m = DB::table('cables');
-	Debug::dd($m->get());
+	dd($m->get());
 
 
 Ej. con migraciones:
