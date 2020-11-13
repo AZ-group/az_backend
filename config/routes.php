@@ -38,7 +38,6 @@ Route::delete('cosas', function($id){
 });
 
 
-
 Route::get('dumbo/kalc', function(){
     echo 'Hello from Kalc!';
 })->name('dumbo.kalc');

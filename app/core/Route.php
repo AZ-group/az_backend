@@ -68,7 +68,6 @@ class Route
         $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
         $path = preg_replace('/(.*)\/index.php/', '/', $path);
         $path = trim($path, '/');
-        //var_dump($path);
                 
         $req_method = $_SERVER['REQUEST_METHOD'] ?? NULL;
         
@@ -84,8 +83,21 @@ class Route
 
         if (isset(static::$v_aliases[$req_method][$path])){
             $uri  = static::$v_aliases[$req_method][$path];
-            $ck   = static::$routes[$req_method][$uri];
+
+            $ck   = static::$routes[$req_method][$uri];    
+
             $args = static::$params;
+
+            if (is_callable($ck)){                
+                $data = $ck(...$args);
+                Response::getInstance()->send($data);
+            } else {
+                [$class_name, $method] = static::$ctrls[$req_method][$uri];
+                $controller_obj = new $class_name();
+
+                $data = call_user_func_array([$controller_obj, $method], $args);
+                Response::getInstance()->send($data);
+            }
 
         } else {
             $callbacks = static::$routes[$req_method];
@@ -152,23 +164,26 @@ class Route
                     }
                 }
 
-                break;
+                
+                //dd($args, 'args');
+                //dd($uri, 'uri'); 
+                //dd($ck, 'ck');
+
+                if (is_callable($ck)){                
+                    $data = $ck(...$args);
+                    Response::getInstance()->send($data);
+                } else {
+                    [$class_name, $method] = static::$ctrls[$req_method][$uri];
+                    $controller_obj = new $class_name();
+
+                    $data = call_user_func_array([$controller_obj, $method], $args);
+                    Response::getInstance()->send($data);
+                }
+
+                exit;
             }
             
         }
-
-        if (is_callable($ck)){                
-            $data = $ck(...$args);
-            Response::getInstance()->send($data);
-        } else {
-            [$class_name, $method] = static::$ctrls[$req_method][$uri];
-            $controller_obj = new $class_name();
-
-            $data = call_user_func_array([$controller_obj, $method], $args);
-            Response::getInstance()->send($data);
-        }
-
-        exit;
 
         
     }
