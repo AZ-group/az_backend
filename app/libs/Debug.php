@@ -65,13 +65,13 @@ class Debug
 			$pre = false;
 		}
 
-		//if ($pre) {
-		///	self::pre(function() use ($val, $msg){ 
+		if ($pre) {
+			self::pre(function() use ($val, $msg){ 
 				self::export($val, $msg); 
-		//	});
-		//} else {
-		//	self::export($val, $msg);
-		//}
+			});
+		} else {
+			self::export($val, $msg);
+		}
 	}
 
 }

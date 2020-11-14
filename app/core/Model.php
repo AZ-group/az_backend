@@ -573,6 +573,16 @@ class Model {
 		return $this;
 	}
 
+	function whereRegEx(string $field, $value){	
+		$this->whereRaw("$field REGEXP ?", [$value]);
+		return $this;
+	}
+
+	// alias
+	function whereRegExp(string $field, $value){
+		return $this->whereRegEx($field, $value);
+	}
+
 	function havingRaw(string $q, array $vals = null){
 		if (substr_count($q, '?') != count($vals))
 			throw new \InvalidArgumentException("Number of ? are not consitent with the number of passed values");
@@ -1333,6 +1343,17 @@ class Model {
 		return $this;
 	}
 
+
+	function when($precondition = null, callable $closure, callable $closure2 = null){
+		if (!empty($precondition)){			
+			call_user_func($closure, $this);	
+		} elseif ($closure2 != null){
+			call_user_func($closure2, $this);
+		}
+		
+		return $this;	
+	}
+
 	protected function _where($conditions, $group_op = 'AND', $conjunction)
 	{
 		if (empty($conditions)){
@@ -1426,8 +1447,6 @@ class Model {
 		if (!$validation){
 			throw new InvalidValidationException(json_encode($validation));
 		}
-
-
 
 		if (!in_array($op, ['=', '>', '<', '<=', '>=', '!='])){
 			throw new \InvalidArgumentException("Invalid operator '$op'");
@@ -1853,6 +1872,10 @@ class Model {
 
 		return $this->last_inserted_id;	
 		
+	}
+
+	function insert(Array $data){
+		return $this->create($data);
 	}
 	
 	/*

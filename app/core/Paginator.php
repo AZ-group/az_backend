@@ -34,8 +34,8 @@ class Paginator
         if (!empty($this->orders)){
             $query .= ' ORDER BY ';
             
-            foreach($this->orders as $field => $order){
-                $order = strtoupper($order);
+            foreach($this->orders as $field => $_order){
+                $order = strtoupper($_order);
                 
                 $field = filter_var($field, FILTER_SANITIZE_STRING);
 
@@ -46,8 +46,9 @@ class Paginator
                 if ($order == 'ASC' || $order == 'DESC'){
                     $query .= "$field $order, ";
                 }else
-                    throw new \InvalidArgumentException("order should be ASC or DESC!");   
+                    throw new \InvalidArgumentException("Order direction '$_order' is invalid. Order should be ASC or DESC!");   
 
+                    
                 if(!in_array($field,$this->attributes))
                     throw new \InvalidArgumentException("property '$field' not found!");   
 

@@ -1844,10 +1844,52 @@ https://laracasts.com/discuss/channels/laravel/why-do-we-do-a-php-artisan-vendor
 https://laravel.com/docs/8.x/packages
 
 
+- Investigar integraciones como la de PayPal via Serivice Provider
+
+https://www.codechief.org/article/how-to-integrate-paypal-payment-gateway-in-laravel
+https://www.positronx.io/how-to-integrate-paypal-payment-gateway-in-laravel/
+https://github.com/srmklive/laravel-paypal
+https://github.com/srmklive/laravel-paypal-demo
+
+
 - Crear ServiceProvider para envio de Mails 
 
 https://culttt.com/2015/10/12/sending-template-emails-through-mandrill-in-laravel/
 
+
+- Crear un script de instalación o un procedimiento como este:
+
+  Installation
+
+  First simply clone this repo by using following command:
+
+    git clone https://xxxxxxxxxxxxxxxx.git [your-directory]
+
+  Now navigate to the directory you cloned the repo into and run the following command
+
+  composer install
+
+      Create .env file
+
+  mv .env.example .env
+
+  Set application key
+
+    php artisan key:generate
+
+  Set your database credentials.
+
+  Migrate the databases:
+
+    php artisan migrate
+
+
+- Probar var_dumper de Symfony
+
+https://symfony.com/doc/current/components/var_dumper.html
+
+
+- Modelo: agregar soporte para JSON
 
 
 - Aplicar buenas prácticas

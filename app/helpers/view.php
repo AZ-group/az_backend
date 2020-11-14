@@ -19,7 +19,7 @@ function assets($resource){
     $config = Factory::config();
       
     $public =  $config['BASE_URL'] . 'public';
-    return protocol() . '://' . $_SERVER['HTTP_HOST']. $public. '/assets/'.$resource;
+    return http_protocol() . '://' . $_SERVER['HTTP_HOST']. $public. '/assets/'.$resource;
 }
 
 function section($view){

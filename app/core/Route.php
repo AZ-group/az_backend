@@ -266,7 +266,7 @@ class Route
             return;
         }
 
-        return protocol() . '://' . $_SERVER['SERVER_NAME'] . '/' . static::$aliases[$name]['uri'];
+        return http_protocol() . '://' . $_SERVER['SERVER_NAME'] . '/' . static::$aliases[$name]['uri'];
     }
 
     public static function post(string $uri, $callback){

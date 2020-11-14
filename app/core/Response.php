@@ -39,12 +39,12 @@ class Response
         return static::$instance;
     }
     
-    function redirect(string $url){
+    static function redirect(string $url){
         if (!headers_sent()) {
             header("Location: $url");
             exit;
         }else
-            throw new \Exception("Headers already sent in in $filename on line $line. Unable to redirect to $url");
+            throw new \Exception("Headers already sent");
     }
 
     function asObject(bool $val = true){

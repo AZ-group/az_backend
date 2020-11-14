@@ -652,14 +652,6 @@ class DumbController extends Controller
         ->get());
     }
 
-    function testx(){
-        $rows = DB::table('products')
-        ->whereNotNull('name')
-        ->get();
-
-        dd($rows);
-    }
-
     // SELECT * FROM products WHERE name IN ('CocaCola', 'PesiLoca') OR cost IN (100, 200)  OR cost >= 550 AND deleted_at IS NULL
     function filter_products3(){
 
@@ -929,6 +921,33 @@ class DumbController extends Controller
     }
 
 
+    function when(){
+        $lastname = 'Bozzo';
+
+        $m = DB::table('users')
+        ->when($lastname, function ($q) use ($lastname) {
+            $q->where(['lastname', $lastname]);
+        });
+
+        dd($m->get());
+        dd($m->dd());
+    }
+
+    function when2(){
+        $sortBy = ['name' => 'ASC'];
+
+        $m = DB::table('products')
+        ->when($sortBy, function ($q) use ($sortBy) {
+            $q->orderBy($sortBy);
+        }, function ($q) {
+            $q->orderBy(['id' => 'DESC']);
+        });
+
+        dd($m->get());
+        dd($m->dd());
+    }
+    
+
     function where_col(){
         $m = (DB::table('users'))
         ->whereColumn('firstname', 'lastname', '=');  
@@ -954,6 +973,14 @@ class DumbController extends Controller
         dd(DB::table('products')->showDeleted()
         ->whereRaw('EXISTS (SELECT 1 FROM users WHERE products.belongs_to = users.id AND users.lastname = ?  )', ['AB'])
         ->get());
+    }
+
+    function regex(){
+        $m = DB::table('products')
+        ->whereRegEx('name', 'a$');
+
+        dd($m->get());
+        dd($m->dd());
     }
 
 
@@ -1004,6 +1031,7 @@ class DumbController extends Controller
         //->offset(5)
         ->avg('cost'));
     }
+
 
     function where(){        
 
@@ -1683,10 +1711,10 @@ class DumbController extends Controller
         ->where(['cost', 200, '>='])
         ->unionAll($uno)
         ->orderBy(['id' => 'ASC'])
-        ->limit(5)
-        ->get();
+        ->limit(5);
 
-        dd($dos);
+        dd($dos->get());
+        dd($dos->dd());
     }
        
     function insert_messages() {

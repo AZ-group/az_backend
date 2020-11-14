@@ -1,4 +1,14 @@
 
+Urgente:
+
+.env
+Terminar Query Builder
+Terminar migraciones
+Solucionar problemas de casting
+Envio de correos
+Plantilla para envio de correos
+Prubas en NGINX
+
 - pre-Alpha
 
     .env
@@ -10,7 +20,7 @@
 - Alpha 1 .. 4
 
     Middlewares
-    Wheres anidados
+    Wheres anidados -- done
     Envio de correos
     Plantilla para envio de correos
     X-Rate-Limit-Limit, X-Rate-Limit-Remaining y X-Rate-Limit-Reset    

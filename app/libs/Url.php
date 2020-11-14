@@ -4,7 +4,7 @@ namespace simplerest\libs;
 
 class Url {
 
-    static function protocol(){
+    static function http_protocol(){
         /*
         if (!empty($_SERVER['HTTPS']) && ('on' == $_SERVER['HTTPS'])) {
             $protocol = 'https:';
