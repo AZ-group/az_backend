@@ -920,6 +920,48 @@ class DumbController extends Controller
 	   var_dump($m->dd());
     }
 
+    /*
+        Negador de wheres
+    */
+    function not(){
+        $m = DB::table('products')
+
+        ->not(function($q){  // <-- group *
+            $q->where([
+                 ['cost', 100, '>'],
+                 ['id', 50, '<']
+             ]) 
+             // OR
+             ->orWhere([
+                 ['cost', 100, '<='],
+                 ['description', NULL, 'IS NOT']
+             ]);  
+         })
+         // AND
+         ->where(['belongs_to', 150, '>'])
+         
+         ->select(['id', 'cost', 'size', 'description', 'belongs_to']);
+ 
+        dd($m->get()); 
+        var_dump($m->dd());
+    }
+
+    /*
+        Negador de wheres
+
+        no funciona con whereRaw ni derivados?
+    */
+    function not2(){
+        $m = DB::table('products')
+
+        ->not(function($q) {
+            $q->whereNotRegEx('name', 'a$');
+        }); 
+        
+        //dd($m->get());
+        dd($m->dd());
+    }
+
 
     function when(){
         $lastname = 'Bozzo';
@@ -959,12 +1001,118 @@ class DumbController extends Controller
 
     // SELECT * FROM products WHERE ((cost < IF(size = "1L", 300, 100) AND size = '1L' ) AND belongs_to = 90) AND deleted_at IS NULL ORDER BY cost ASC
     function where_raw(){
-        dd(DB::table('products')
+        $m = DB::table('products')
         ->where(['belongs_to' => 90])
         ->whereRaw('cost < IF(size = "1L", ?, 100) AND size = ?', [300, '1L'])
-        ->orderBy(['cost' => 'ASC'])
-        ->get());
+        ->orderBy(['cost' => 'ASC']);
+
+        dd($m->get()); 
+	    var_dump($m->dd());
     }
+
+    /*
+        SELECT * FROM products WHERE 
+
+        (
+            cost < IF(size = "1L", 300, 100) AND 
+            size = '1L'
+        ) AND 
+
+        belongs_to = 90 AND 
+
+        (
+            size = '1L' OR (cost <= 550 AND cost >= 100)
+        ) AND 
+
+        deleted_at IS NULL 
+
+
+        ORDER BY cost ASC;
+
+    */
+    function where_raw1(){
+        $m = DB::table('products')
+        
+        ->where(['belongs_to', 90])
+
+        ->group(function($q){
+        	$q->where(['size', '1L'])
+	          ->orWhere([
+	            ['cost', 550, '<='],
+	            ['cost', 100, '>=']
+	        ]);
+        })
+        
+        // AND WHERE(...)
+        ->whereRaw('cost < IF(size = "1L", ?, 100) AND size = ?', [300, '1L'])
+        
+        ->orderBy(['cost' => 'ASC']);
+
+        dd($m->get()); 
+	    var_dump($m->dd());
+    }
+
+    function where_raw1b()
+    {
+        $m = (new Model())
+        ->table('products')
+
+        ->group(function($q){  // <-- group *
+           $q->where([
+                ['cost', 100, '>'],
+                ['id', 50, '<']
+            ]) 
+            // OR
+            ->orWhere([
+                ['cost', 100, '<='],
+                ['description', NULL, 'IS NOT']
+            ]);  
+        })
+        
+        // AND
+        ->where(['belongs_to', 150, '>'])
+
+        // AND WHERE (...)
+        ->whereRaw('cost < IF(size = "1L", ?, 100) AND size = ?', [300, '1L'])
+        
+        ->select(['id', 'cost', 'size', 'description', 'belongs_to']);
+
+       dd($m->get()); 
+	   var_dump($m->dd());
+    }
+
+    /*
+        Dentro de un group() no funciona whereRaw()
+
+        Tampoco funciona whereIn() dentro de grupos.
+
+        Invalid parameter number: number of bound variables does not match number of tokens in /home/www/az/app/core/Model.php:xxxx
+
+    */
+    function where_raw1c()
+    {
+        $m = (new Model())
+        ->table('products')
+
+        ->group(function($q){  // <-- group *
+           $q->whereRaw('cost < IF(size = "1L", ?, 100) AND size = ?', [300, '1L']) // falla
+            // OR
+             ->orWhere([
+                ['cost', 100, '<='],
+                ['description', NULL, 'IS NOT']
+            ]);  
+        })
+        
+        // AND
+        ->where(['belongs_to', 150, '>'])        
+        
+        ->select(['id', 'cost', 'size', 'description', 'belongs_to']);
+
+       dd($m->get()); 
+	   var_dump($m->dd());
+    }
+
+
    
     /*
         SELECT * FROM products WHERE EXISTS (SELECT 1 FROM users WHERE products.belongs_to = users.id AND users.lastname IS NOT NULL);
@@ -978,6 +1126,14 @@ class DumbController extends Controller
     function regex(){
         $m = DB::table('products')
         ->whereRegEx('name', 'a$');
+
+        dd($m->get());
+        dd($m->dd());
+    }
+
+    function regex2(){
+        $m = DB::table('products')
+        ->whereNotRegEx('name', 'a$');
 
         dd($m->get());
         dd($m->dd());

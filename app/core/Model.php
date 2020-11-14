@@ -583,6 +583,17 @@ class Model {
 		return $this->whereRegEx($field, $value);
 	}
 
+	function whereNotRegEx(string $field, $value){	
+		$this->whereRaw("NOT $field REGEXP ?", [$value]);
+		return $this;
+	}
+
+	// alias
+	function whereNotRegExp(string $field, $value){
+		return $this->whereNotRegEx($field, $value);
+	}
+
+
 	function havingRaw(string $q, array $vals = null){
 		if (substr_count($q, '?') != count($vals))
 			throw new \InvalidArgumentException("Number of ? are not consitent with the number of passed values");
@@ -1326,7 +1337,7 @@ class Model {
 	}
 
 	// crea un grupo dentro del where
-	function group(callable $closure) 
+	function group(callable $closure, bool $negate = false) 
 	{	
 		$m = new Model();		
 		call_user_func($closure, $m);	
@@ -1335,12 +1346,18 @@ class Model {
 		$w_vars   = $m->getWhereVars();
 		$w_vals   = $m->getWhereVals();
 
-		$this->where[] = "($w_formed)";	
+		$not = $negate ? ' NOT ' : '';
+
+		$this->where[] = "$not($w_formed)";	
 		$this->w_vars  = array_merge($this->w_vars, $w_vars);
 		$this->w_vals  = array_merge($this->w_vals, $w_vals);
 		$this->where_group_op[] = 'AND';
 
 		return $this;
+	}
+
+	function not(callable $closure){
+		return $this->group($closure, true);
 	}
 
 
@@ -1379,7 +1396,7 @@ class Model {
 
 					if(is_array($cond[1]) && (empty($cond[2]) || in_array($cond[2], ['IN', 'NOT IN']) ))
 					{						
-						if($this->schema['attr_types'][$cond[0]] == 'STR')	
+						if($this->schema['attr_types'][$cond[0]] == 'STR')	//
 							$cond[1] = array_map(function($e){ return "'$e'";}, $cond[1]);   
 						
 						$in_val = implode(', ', $cond[1]);
