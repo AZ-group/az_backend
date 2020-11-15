@@ -1896,3 +1896,13 @@ https://symfony.com/doc/current/components/var_dumper.html
 
 https://github.com/ryanmcdermott/clean-code-javascript
 https://github.com/thangchung/clean-code-dotnet
+
+
+- Para hacer benchmarks de ejecución de código PHP, probar:
+
+https://github.com/phpbench/
+
+
+- Métricas con telegraf, influxdb y grafana
+
+https://aleson-itc.com/en/free-monitoring-using-influxdb-telegraf-and-grafana/

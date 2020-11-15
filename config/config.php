@@ -2,7 +2,8 @@
 
 require_once 'constants.php';
 
-setlocale(LC_ALL, 'es_AR.UTF-8');
+// puede afectar el punto decimal al formar sentencias SQL !!!
+// setlocale(LC_ALL, 'es_AR.UTF-8');
 
 return [
 	#

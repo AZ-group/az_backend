@@ -15,6 +15,7 @@ use simplerest\models\UserRolesModel;
 use PHPMailer\PHPMailer\PHPMailer;
 use simplerest\libs\Utils;
 use simplerest\libs\Strings;
+use simplerest\libs\Arrays;
 use simplerest\libs\Validator;
 //use GuzzleHttp\Client;
 //use Guzzle\Http\Message\Request;
@@ -68,6 +69,11 @@ class DumbController extends Controller
         echo "$req[0] + $req[1] = " . $res;
     }
     */    
+
+    function schema(){
+        $m = (new ProductsModel());
+        dd($m->getSchema());
+    }
 
     function use_model(){
         $m = (new Model(true))
@@ -585,8 +591,11 @@ class DumbController extends Controller
         https://stackoverflow.com/a/40964361/980631
     */
     function select2() {
-        dd(DB::table('products')->setFetchMode('COLUMN')
-        ->selectRaw('cost * ? as cost_after_inc', [1.05])->get());
+        $m = DB::table('products')->setFetchMode('COLUMN')
+        ->selectRaw('cost * ? as cost_after_inc', [1.05]);
+
+        dd($m->get());
+        dd($m->dd());
     }
 
     function select3() {
@@ -954,9 +963,10 @@ class DumbController extends Controller
     function not2(){
         $m = DB::table('products')
 
+        ->where(['belongs_to', 150, '>'])
         ->not(function($q) {
-            $q->whereNotRegEx('name', 'a$');
-        }); 
+            $q->whereRegEx('name', 'a$');
+        });
         
         //dd($m->get());
         dd($m->dd());

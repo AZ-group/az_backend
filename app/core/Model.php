@@ -155,6 +155,9 @@ class Model {
 		$this->fill($to_fill);				
 		
 		$this->soft_delete = $this->inSchema(['deleted_at']);
+
+		// Kill dupes
+		$this->schema['nullable'] = array_unique($this->schema['nullable']);
 	
 		/*
 		 Validations
@@ -793,7 +796,7 @@ class Model {
 		
 
 		// WHERE
-		$where_section = $this->where_formed();
+		$where_section = $this->whereFormedQuery();
 		if (!empty($where_section)){
 			$q  .= ' WHERE ' . $where_section;
 		}
@@ -880,7 +883,7 @@ class Model {
 		return $q;	
 	}
 
-	function where_formed(){
+	function whereFormedQuery(){
 		$where = '';
 		
 		if (!empty($this->where_raw_q))
@@ -922,7 +925,6 @@ class Model {
 		
 		return ltrim($where);
 	}
-
 
 	function getBindings(){
 		$pag = !empty($this->pag_vals) ? [ $this->pag_vals[0][1], $this->pag_vals[1][1] ] : [];
@@ -1119,9 +1121,9 @@ class Model {
 			} elseif(is_string($val))
 				$bindings[$ix] = "'$val'";	
 		}
-				
+
 		$sql = Arrays::str_replace_array('?', $bindings, $pre_compiled_sql);
-		return trim(preg_replace('!\s+!', ' ', $sql.';'));
+		return trim(preg_replace('!\s+!', ' ', $sql)).';';
 	}
 
 	// Debug query
@@ -1336,21 +1338,34 @@ class Model {
 		return $this->w_vars;
 	}
 
+	function getWhereRawVals(){
+		return $this->where_raw_vals;
+	}
+
+	function whereRawQuery(){
+		return $this->where_raw_q;
+	}
+
 	// crea un grupo dentro del where
 	function group(callable $closure, bool $negate = false) 
 	{	
+		$not = $negate ? ' NOT ' : '';
+
 		$m = new Model();		
 		call_user_func($closure, $m);	
 
-		$w_formed = $m->where_formed();
+		$w_formed = $m->whereFormedQuery();
 		$w_vars   = $m->getWhereVars();
 		$w_vals   = $m->getWhereVals();
 
-		$not = $negate ? ' NOT ' : '';
+		// sin uso aún
+		$w_raw_q    = $m->whereRawQuery();	
+		$w_raw_vals = $m->getWhereRawVals();
 
 		$this->where[] = "$not($w_formed)";	
 		$this->w_vars  = array_merge($this->w_vars, $w_vars);
 		$this->w_vals  = array_merge($this->w_vals, $w_vals);
+		
 		$this->where_group_op[] = 'AND';
 
 		return $this;
@@ -1488,7 +1503,7 @@ class Model {
 		return $this;
 	}
 
-	function find(int $id){
+	function find($id){
 		return $this->where([$this->schema['id_name'] => $id])->get();
 	}
 
