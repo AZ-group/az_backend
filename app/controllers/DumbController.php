@@ -1121,7 +1121,7 @@ class DumbController extends Controller
 				$where = "($where) AND ". $implode. ' ';  // <----------
 			}else{
 				$where = "$implode ";
-			}
+            }
 
         Una "solución" es cambiar el órden
     */
@@ -1130,16 +1130,79 @@ class DumbController extends Controller
     
         ->whereRegEx('name', 'a$')
         ->or(function($q){
-            $q->where([
-                ['cost', 100, '<='],
-                ['description', NULL, 'IS NOT']
-            ]);
-        })             
+            $q->where(['cost', 100, '<=']);
+        })     
+        ->showDeleted()        
         ->dontExec();
 
         //dd($m->get());
         dd($m->dd());
     }
+
+    function or_otro_bug(){
+        $m = DB::table('products')    
+
+        ->whereRegEx('name', 'a$')  // <--- impone un 'AND' y no debería
+        ->orWhere(['description', NULL, 'IS NOT'])
+        
+        ->showDeleted()        
+        ->dontExec();
+
+        //dd($m->get());
+        dd($m->dd());
+    }
+
+    function or_otro_bug_parche(){
+        $m = DB::table('products')    
+
+        ->group(function($q){
+            $q->whereRegEx('name', 'a$');
+        })
+        
+        ->orWhere(['description', NULL, 'IS NOT'])
+        
+        ->showDeleted()        
+        ->dontExec();
+
+        //dd($m->get());
+        dd($m->dd());
+    }
+
+    function or_bug2(){
+        $m = DB::table('products')
+    
+        ->group(function($q){
+            $q->whereRegEx('name', 'a$');
+        })
+
+        ->or(function($q){
+            $q->where(['cost', 100, '<=']);
+        })     
+        ->showDeleted()        
+        ->dontExec();
+
+        //dd($m->get());
+        dd($m->dd());
+    }
+
+    function test000001(){
+        $m = DB::table('products')
+    
+        ->group(function($q){
+            $q->where(['description', NULL, 'IS NOT'])
+            ->where(['id', 90]);
+        })
+        
+        ->or(function($q){
+            $q->where(['cost', 100, '<=']);
+        })     
+        ->showDeleted()        
+        ->dontExec();
+
+        //dd($m->get());
+        dd($m->dd());
+    }
+
 
     /*
         Funciona OK dado que el whereRegEx() es quien está dentro del or()

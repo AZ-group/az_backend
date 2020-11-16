@@ -608,8 +608,113 @@ Comparar dos campos en el WHERE
 
 	dd($m->get()); 
 
+Grupos
 
-Operadores OR / AND anidados en WHERE con group()
+Para colocar paréntesis en el WHERE del SQL resultante usando el Query Builder existen los "grupos" implementados con el método group()
+
+Ej:
+
+	DB::table('xxxx')
+	->group(function($q){
+		$q->where(condA)
+		->orWhere(condB)
+	})
+	->where(condC);
+
+
+Lo anterior en el WHERE de arma algo como
+
+	WHERE (A OR B) AND C
+
+
+Veamos otro ejemplo:
+
+	DB::table('xxxx')
+	->where(condC)
+	->group(function($q){
+		$q->where(condA)
+		->orWhere(condB)
+	});
+
+Lo anterior equivale a tener en el WHERE algo como
+
+	WHERE C AND (A OR B)
+
+
+La diferencia es que en último caso se está suponiendo que el operador que queremos usar para conectar el grupo con la primera condición (C) es un 'AND' pero podría no ser el caso por lo que se dispone de grupos especiales llamados "conectores" donde se explicita el operador de la conjunción:
+
+Conectores:
+
+	and()
+	or()
+	andNot()
+	orNot()
+
+Ej:
+	A OR (B AND C)
+
+
+En pseudo-código (ver como se usa la función where) sería algo así:	
+
+	DB::table('xxxx')
+	->where(condA)
+	->or(function($q){
+		$q->where(condB)
+		->where(condC);
+	})
+
+o ..
+
+	DB::table('xxxx')
+	->where(condA)
+	->or(function($q){
+		$q->where([
+			condB,
+			condC
+		]);
+	})
+
+
+Es importante tener en cuenta que se abren paréntesis hacia el lado derecho solamente con lo cual,
+
+	DB::table('xxxx')
+	->where(condA)
+	->where(condB)
+	->or(function($q){
+		$q->where([
+			condC
+		]);
+	})
+
+
+Genera en SQL una expresión del tipo "A AND B OR C" y *no* "(A AND B) OR C". En caso de estar buscándo lo anterior podría hacerse de la siguiente manera:
+
+	DB::table('xxxx')
+	->where([
+			condA,
+			condB
+	])
+	->or(function($q){
+		$q->where([
+			condC
+		]);
+	})
+
+Otra opción, más general, es usar un grupo también para "agrupar" las condiciones A y B
+
+	DB::table('xxxx')
+	->group(function($q){
+		$q->where(condA)
+		$q->where(condB);
+	])
+	->or(function($q){
+		$q->where([
+			condC
+		]);
+	})
+
+
+Ejemplo funcional de operadores OR / AND anidados en WHERE con group()
 
 	$m = DB::table('products')
 
@@ -630,6 +735,11 @@ Operadores OR / AND anidados en WHERE con group()
 	->select(['id', 'cost', 'size', 'description', 'belongs_to']);
 
 	dd($m->get()); 
+
+
+Nota: hay un "bug" (limitación de diseno) conocido cuando se mezclan condiciones con whereRaw() y whereRegEx con where() y el operador es 'OR'
+
+Ej:
 	
 
 Transacciones

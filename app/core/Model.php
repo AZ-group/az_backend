@@ -904,7 +904,6 @@ class Model {
 			$where = trim($where);
 
 			if (!empty($where)){
-				$where = rtrim($where);
 				$where = "($where) AND ". $implode. ' '; // <-------------
 			}else{
 				$where = "$implode ";
