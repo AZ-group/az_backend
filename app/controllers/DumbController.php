@@ -1090,6 +1090,23 @@ class DumbController extends Controller
 			}
 
         Una "solución" es cambiar el órden
+        Otra "solución" es meter el whereRegEx() dentro de un group()]
+
+
+        SELECT * FROM products WHERE 
+        
+        (
+            belongs_to > 150 AND 
+            NOT (
+                    (name REGEXP 'a$') AND  <--------- *
+                    ((cost <= 100 AND 
+                        description IS NOT NULL
+                    ))
+                ) AND 
+            size >= \'1L\'
+        ) AND 
+        deleted_at IS NULL;
+
     */
     function notor_whereraw(){
         $m = DB::table('products')
@@ -1097,7 +1114,7 @@ class DumbController extends Controller
         ->where(['belongs_to', 150, '>'])
         ->not(function($q) {
             $q->whereRegEx('name', 'a$')
-            ->or(function($q){
+            ->or(function($q){  // <-------  por falla de diseno está metiendo un 'AND'
                 $q->where([
                     ['cost', 100, '<='],
                     ['description', NULL, 'IS NOT']
@@ -1131,6 +1148,23 @@ class DumbController extends Controller
         ->whereRegEx('name', 'a$')
         ->or(function($q){
             $q->where(['cost', 100, '<=']);
+        })     
+        ->showDeleted()        
+        ->dontExec();
+
+        //dd($m->get());
+        dd($m->dd());
+    }
+
+    function or_bug_b(){
+        $m = DB::table('products')
+    
+        ->whereRegEx('name', 'a$')
+        ->or(function($q){
+            $q->group(function($q){
+                $q->where(['cost', 100, '<='])
+                ->orWhere(['id', 90]);
+            });
         })     
         ->showDeleted()        
         ->dontExec();
@@ -1177,7 +1211,9 @@ class DumbController extends Controller
 
         ->or(function($q){
             $q->where(['cost', 100, '<=']);
-        })     
+        })   
+        
+        
         ->showDeleted()        
         ->dontExec();
 

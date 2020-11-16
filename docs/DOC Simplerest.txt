@@ -737,10 +737,42 @@ Ejemplo funcional de operadores OR / AND anidados en WHERE con group()
 	dd($m->get()); 
 
 
-Nota: hay un "bug" (limitación de diseno) conocido cuando se mezclan condiciones con whereRaw() y whereRegEx con where() y el operador es 'OR'
+Nota: hay un "bug" (limitación de diseno) conocido cuando se mezclan condiciones con whereRaw() y whereRegEx con where() y el operador que le sigue a whereRaw / whereRegEx es 'OR'
 
 Ej:
+
+	->whereRegEx('name', 'a$')  // <--- impone un 'AND' y no debería
+	->orWhere(['description', NULL, 'IS NOT'])
+
+Sucede lo mismo en este caso:
+
+	->whereRegEx('name', 'a$')  // <--- impone un 'AND' y no debería
+	->or(function($q){
+        $q->where(['description', NULL, 'IS NOT']);
+    })
 	
+Genera:
+
+	SELECT * FROM products WHERE (name REGEXP 'a$') AND 
+	description IS NOT NULL;
+
+Cuando debería ser:
+
+	SELECT * FROM products WHERE (name REGEXP 'a$') OR 
+	description IS NOT NULL;
+
+La solución en estos casos en envolver el  whereRaw() o whereRegEx detro de un grupo o conector:
+
+	->group(function($q){
+            $q->whereRegEx('name', 'a$');
+    })        
+    ->orWhere(['description', NULL, 'IS NOT'])
+
+produciendo ahora el resultado esperado:
+
+	SELECT * FROM products WHERE (name REGEXP 'a$') OR 
+	description IS NOT NULL;
+
 
 Transacciones
 
