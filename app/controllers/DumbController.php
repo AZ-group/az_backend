@@ -1233,6 +1233,35 @@ class DumbController extends Controller
     }   
 
 
+    /*
+        "SELECT id, name, cost, size, description, belongs_to FROM products WHERE
+        (cost > 50 AND id <= 190) AND 
+        (active = 1 OR (name LIKE '%a%')) AND 
+        belongs_to > 1;"
+    */
+    function or_whereraw()
+    {
+        $m = (new Model())
+        ->table('products')
+
+        ->where([
+            ['cost', 50, '>'], // AND
+            ['id', 190, '<=']
+        ]) 
+        // AND
+        ->group(function($q){  
+            $q->where(['active', 1])
+            // OR
+            ->orWhereRaw('name LIKE ?', ['%a%']);  
+        })
+        // AND
+        ->where(['belongs_to', 1, '>'])
+        
+        ->select(['id', 'name', 'cost', 'size', 'description', 'belongs_to']);
+
+       dd($m->get()); 
+	   var_dump($m->dd());
+    }
 
     function when(){
         $lastname = 'Bozzo';

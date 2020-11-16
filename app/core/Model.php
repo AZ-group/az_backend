@@ -571,6 +571,14 @@ class Model {
 		return $this;
 	}
 
+	function orWhereRaw(string $q, array $vals = null){
+		$this->or(function($x) use ($q, $vals){
+			$x->whereRaw($q, $vals);
+		});
+
+		return $this;
+	}
+
 	function whereExists(string $q, array $vals = null){
 		$this->whereRaw("EXISTS $q", $vals);
 		return $this;
@@ -606,6 +614,14 @@ class Model {
 		if ($vals != null)
 			$this->having_raw_vals = $vals;
 			
+		return $this;
+	}
+
+	function orHavingRaw(string $q, array $vals = null){
+		$this->or(function($x) use ($q, $vals){
+			$x->HavingRaw($q, $vals);
+		});
+
 		return $this;
 	}
 

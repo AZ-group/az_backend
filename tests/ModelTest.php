@@ -516,6 +516,7 @@ class ModelTest extends TestCase
       'OR')
       ->orderBy(['size' => 'DESC'])
       ->get(['cost', 'size', 'belongs_to']); 
+
     $this->assertEquals(DB::getLog(), "SELECT cost, size, belongs_to FROM products GROUP BY cost,size,belongs_to HAVING belongs_to = 90 AND (cost >= 100 OR size = '1L') ORDER BY size DESC;");
 
     // 
@@ -526,6 +527,7 @@ class ModelTest extends TestCase
       ->orHaving(['size' => '1L'])
       ->orderBy(['size' => 'DESC'])
       ->get(['cost', 'size', 'belongs_to']); 
+
     $this->assertEquals(DB::getLog(), "SELECT cost, size, belongs_to FROM products GROUP BY cost,size,belongs_to HAVING belongs_to = 90 OR cost >= 100 OR size = '1L' ORDER BY size DESC;");
 
     // 
@@ -538,18 +540,9 @@ class ModelTest extends TestCase
       )
       ->orderBy(['size' => 'DESC'])
       ->get(['cost', 'size', 'belongs_to']); 
+
     $this->assertEquals(DB::getLog(), "SELECT cost, size, belongs_to FROM products GROUP BY cost,size,belongs_to HAVING belongs_to = 90 OR (cost >= 100 AND size = '1L') ORDER BY size DESC;");
 
-    // 
-    DB::table('products')
-      ->selectRaw('SUM(cost) as total_cost')
-      ->where(['size', '1L'])
-      ->groupBy(['belongs_to']) 
-      ->havingRaw('SUM(cost) > ?', [500])
-      ->limit(3)
-      ->offset(1)
-      ->get();
-    $this->assertEquals(DB::getLog(), "SELECT SUM(cost) as total_cost FROM products WHERE (size = '1L') AND deleted_at IS NULL GROUP BY belongs_to HAVING SUM(cost) > 500 LIMIT 1, 3;");
 
     // 
 
@@ -584,6 +577,43 @@ class ModelTest extends TestCase
     $this->assertEquals(DB::getLog(), "SELECT id, name, size, cost, belongs_to FROM products WHERE belongs_to IN (SELECT id FROM users WHERE password IS NULL);");
     
     }	
+
+    function test_havingRaw(){
+        
+        DB::table('products')
+          ->selectRaw('SUM(cost) as total_cost')
+          ->where(['size', '1L'])
+          ->groupBy(['belongs_to']) 
+          ->havingRaw('SUM(cost) > ?', [500])
+          ->limit(3)
+          ->offset(1)
+          ->get();
+
+        $this->assertEquals(DB::getLog(), "SELECT SUM(cost) as total_cost FROM products WHERE (size = '1L') AND deleted_at IS NULL GROUP BY belongs_to HAVING SUM(cost) > 500 LIMIT 1, 3;");
+    } 
+
+  function test_or_whereraw(){
+      $m = DB::table('products')
+
+        ->where([
+            ['cost', 50, '>'], // AND
+            ['id', 190, '<=']
+        ]) 
+        // AND
+        ->group(function($q){  
+            $q->where(['active', 1])
+            // OR
+            ->orWhereRaw('name LIKE ?', ['%a%']);  
+        })
+        // AND
+        ->where(['belongs_to', 1, '>'])        
+        ->select(['id', 'name', 'cost', 'size', 'description', 'belongs_to'])
+        ->showDeleted()
+        ->dontExec()->get();
+
+    $this->assertEquals(DB::getLog(), "SELECT id, name, cost, size, description, belongs_to FROM products WHERE (cost > 50 AND id <= 190) AND (active = 1 OR (name LIKE '%a%')) AND belongs_to > 1;");
+
+  }  
   
   function test_subqueries(){
     //  
