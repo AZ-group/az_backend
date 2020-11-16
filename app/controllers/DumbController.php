@@ -971,10 +971,10 @@ class DumbController extends Controller
         })
         // AND
         ->where(['belongs_to', 150, '>'])
-        
+        ->dontExec()
         ->select(['id', 'cost', 'size', 'description', 'belongs_to']);
 
-       dd($m->get()); 
+       //dd($m->get());  
 	   var_dump($m->dd());
     }
 
@@ -1724,7 +1724,7 @@ class DumbController extends Controller
     /*
         Debug without exec the query
     */
-    function dontexec(){
+    function dontExec(){
         DB::table('products')
         ->dontExec() 
         ->where([ 

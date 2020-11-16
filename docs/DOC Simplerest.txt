@@ -737,6 +737,22 @@ Ejemplo funcional de operadores OR / AND anidados en WHERE con group()
 	dd($m->get()); 
 
 
+Los grupos / conectores aplican también a having() y havingRaw()
+
+Ej:
+
+	DB::table('products')->showDeleted()
+
+	->groupBy(['cost', 'size', 'belongs_to'])
+	->having(['cost', 100, '>='])
+	->or(function($q){
+		$q->havingRaw('SUM(cost) > ?', [500])
+		->having(['size' => '1L']);
+	})
+	->orderBy(['size' => 'DESC'])
+	->get(['cost', 'size', 'belongs_to']); 
+
+
 Transacciones
 
 	DB::beginTransaction();

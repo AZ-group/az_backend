@@ -578,11 +578,11 @@ class ModelTest extends TestCase
           ->dontExec()
           ->get(['cost', 'size', 'belongs_to']); 
 
-        //$this->assertEquals(DB::getLog(), "SELECT cost, size, belongs_to FROM products GROUP BY cost,size,belongs_to HAVING belongs_to = 90 OR (cost >= 100 AND size = '1L') ORDER BY size DESC;");
+        $this->assertEquals(DB::getLog(), "SELECT cost, size, belongs_to FROM products GROUP BY cost,size,belongs_to HAVING belongs_to = 90 OR (cost >= 100 AND size = '1L') ORDER BY size DESC;");
     }
 
-    function test_havingRaw(){
-        
+    function test_havingRaw()
+    {        
         DB::table('products')
           ->selectRaw('SUM(cost) as total_cost')
           ->where(['size', '1L'])
@@ -593,6 +593,34 @@ class ModelTest extends TestCase
           ->get();
 
         $this->assertEquals(DB::getLog(), "SELECT SUM(cost) as total_cost FROM products WHERE (size = '1L') AND deleted_at IS NULL GROUP BY belongs_to HAVING SUM(cost) > 500 LIMIT 1, 3;");
+
+        // 
+        DB::table('products')->showDeleted()
+          ->groupBy(['cost', 'size', 'belongs_to'])
+          ->havingRaw('SUM(cost) > ?', [500])
+          ->or(function($q){
+                $q->having(['cost', 100, '>='])
+                ->having(['size' => '1L']);
+          })
+          ->orderBy(['size' => 'DESC'])
+          ->dontExec()
+          ->get(['cost', 'size', 'belongs_to']); 
+
+        $this->assertEquals(DB::getLog(), "SELECT cost, size, belongs_to FROM products GROUP BY cost,size,belongs_to HAVING (SUM(cost) > 500) OR (cost >= 100 AND size = '1L') ORDER BY size DESC;");
+
+        // 
+        DB::table('products')->showDeleted()
+          ->groupBy(['cost', 'size', 'belongs_to'])
+          ->having(['cost', 100, '>='])
+          ->or(function($q){
+                $q->havingRaw('SUM(cost) > ?', [500])
+                ->having(['size' => '1L']);
+          })
+          ->orderBy(['size' => 'DESC'])
+          ->dontExec()
+          ->get(['cost', 'size', 'belongs_to']); 
+
+        $this->assertEquals(DB::getLog(), "SELECT cost, size, belongs_to FROM products GROUP BY cost,size,belongs_to HAVING cost >= 100 OR ((SUM(cost) > 500) AND size = '1L') ORDER BY size DESC;");
     } 
 
     function test_inner_join(){

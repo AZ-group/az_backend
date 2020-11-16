@@ -838,34 +838,26 @@ class Model {
 
 	
 		// HAVING
+		$having_section = $this->havingFormedQuery();
+		
+		if (!empty($having_section)){
 
-		$having = ''; 
-		if (!empty($this->having_raw_q)){
-			$having = 'HAVING '.$this->having_raw_q; 
+			// patch
+			$having_section = str_replace(
+							[
+								'AND OR', 
+								'(AND ',
+								'(OR '
+							], 
+							[	'OR ',
+								'( ',
+								'( '
+							], $having_section);
+
+			$having_section = str_replace('(  NOT ', '(NOT ', $having_section);	
+
+			$q  .= ' HAVING ' . $having_section;
 		}
-
-		if (!empty($this->having)){
-			$implode = '';
-
-			$cnt = count($this->having);
-
-			if ($cnt>0){
-				$implode .= $this->having[0];
-				for ($ix=1; $ix<$cnt; $ix++){
-					$implode .= ' '.$this->having_group_op[$ix] . ' '.$this->having[$ix];
-				}
-			}			
-
-			if (!empty($having)){
-				$having = rtrim($having);
-				$having = "($having) AND ". $implode. ' ';
-			}else{
-				$having = "HAVING $implode ";
-			}
-		}	
-
-		$q .= ' '.$having;
-
 
 		if ($this->randomize)
 			$q .= ' ORDER BY RAND() ';
@@ -956,6 +948,37 @@ class Model {
 		
 		return ltrim($where);
 	}
+
+	function havingFormedQuery(){
+		$having = '';
+		
+		if (!empty($this->having_raw_q))
+			$having = $this->having_raw_q.' ';
+
+		if (!empty($this->having)){
+			$implode = '';
+
+			$cnt = count($this->having);
+
+			if ($cnt>0){
+				$implode .= $this->having[0];
+				for ($ix=1; $ix<$cnt; $ix++){
+					$implode .= ' '.$this->having_group_op[$ix] . ' '.$this->having[$ix];
+				}
+			}			
+
+			$having = trim($having);
+			
+			if (!empty($having)){
+				$having = "($having) AND ". $implode. ' ';
+			}else{
+				$having = "$implode ";
+			}
+		}		
+
+		return trim($having);
+	}
+
 
 	function getBindings(){
 		$pag = !empty($this->pag_vals) ? [ $this->pag_vals[0][1], $this->pag_vals[1][1] ] : [];
@@ -1373,6 +1396,18 @@ class Model {
 		return $this->where_raw_vals;
 	}
 
+	function getHavingVals(){
+		return $this->h_vals;
+	}
+
+	function getHavingVars(){
+		return $this->h_vars;
+	}
+
+	function getHavingRawVals(){
+		return $this->having_raw_vals;
+	}
+
 	// crea un grupo dentro del where
 	function group(callable $closure, string $conjunction = 'AND', bool $negate = false) 
 	{	
@@ -1381,17 +1416,34 @@ class Model {
 		$m = new Model();		
 		call_user_func($closure, $m);	
 
-		$w_formed = $m->whereFormedQuery();
-		$w_vars   = $m->getWhereVars();
-		$w_vals   = $m->getWhereVals();
+		$w_formed 	= $m->whereFormedQuery();
 
-		$w_raw_vals = $m->getWhereRawVals();
+		if (!empty($w_formed)){
+			$w_vars   	= $m->getWhereVars();
+			$w_vals   	= $m->getWhereVals();
+			$w_raw_vals = $m->getWhereRawVals();
 
-		$this->where[] = "$conjunction $not($w_formed)";	
-		$this->w_vars  = array_merge($this->w_vars, $w_vars);
-		$this->w_vals  = array_merge($this->w_vals, $w_raw_vals, $w_vals); // *
+			$this->where[] = "$conjunction $not($w_formed)";	
+			$this->w_vars  = array_merge($this->w_vars, $w_vars);
+			$this->w_vals  = array_merge($this->w_vals, $w_raw_vals, $w_vals); // *
+			
+			$this->where_group_op[] = '';
+		}
 		
-		$this->where_group_op[] = '';
+
+		$h_formed 	= $m->havingFormedQuery();
+
+		if(!empty($h_formed)){
+			$h_vars   	= $m->getHavingVars();
+			$h_vals   	= $m->getHavingVals();
+			$h_raw_vals = $m->getHavingRawVals();
+
+			$this->having[] = "$conjunction $not($h_formed)";	
+			$this->h_vars  = array_merge($this->h_vars, $h_vars);
+			$this->h_vals  = array_merge($this->h_vals, $h_raw_vals, $h_vals); // *
+			
+			$this->having_group_op[] = '';
+		}
 
 		return $this;
 	}
