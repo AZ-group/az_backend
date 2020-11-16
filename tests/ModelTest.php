@@ -475,92 +475,6 @@ class ModelTest extends TestCase
     ->where(['belongs_to' =>  90])->get();
     $this->assertEquals(DB::getLog(), "SELECT * FROM products WHERE ((cost >= 150 AND cost <= 270) AND belongs_to = 90) AND deleted_at IS NULL;");		
 
-	DB::table('products')->showDeleted()
-            ->groupBy(['name'])
-            ->having(['c', 3, '>'])
-            ->select(['name'])
-			->selectRaw('COUNT(*) as c')
-			->get();
-	$this->assertEquals(DB::getLog(), "SELECT COUNT(*) as c, name FROM products GROUP BY name HAVING c > 3;");	
-
-	DB::table('products')
-            ->groupBy(['name'])
-            ->having(['c', 3, '>='])
-            ->select(['name'])
-			->selectRaw('COUNT(name) as c')
-			->get();
-			  
-	$this->assertEquals(DB::getLog(), "SELECT COUNT(name) as c, name FROM products WHERE deleted_at IS NULL GROUP BY name HAVING c >= 3;");		
-		
-    // 
-    DB::table('products')
-      ->groupBy(['cost', 'size'])
-      ->having(['cost', 100])
-      ->get(['cost', 'size']);
-    $this->assertEquals(DB::getLog(), "SELECT cost, size FROM products WHERE deleted_at IS NULL GROUP BY cost,size HAVING cost = 100;");
-
-	// 
-    DB::table('products')->showDeleted()
-      ->groupBy(['cost', 'size'])
-      ->having(['cost', 100])
-      ->get(['cost', 'size']);
-    $this->assertEquals(DB::getLog(), "SELECT cost, size FROM products GROUP BY cost,size HAVING cost = 100;");
-	
-    // 
-    DB::table('products')->showDeleted()
-      ->groupBy(['cost', 'size', 'belongs_to'])
-      ->having(['belongs_to', 90])
-      ->having([  
-                  ['cost', 100, '>='],
-                  ['size' => '1L'] ], 
-      'OR')
-      ->orderBy(['size' => 'DESC'])
-      ->get(['cost', 'size', 'belongs_to']); 
-
-    $this->assertEquals(DB::getLog(), "SELECT cost, size, belongs_to FROM products GROUP BY cost,size,belongs_to HAVING belongs_to = 90 AND (cost >= 100 OR size = '1L') ORDER BY size DESC;");
-
-    // 
-    DB::table('products')->showDeleted()
-      ->groupBy(['cost', 'size', 'belongs_to'])
-      ->having(['belongs_to', 90])
-      ->orHaving(['cost', 100, '>='])
-      ->orHaving(['size' => '1L'])
-      ->orderBy(['size' => 'DESC'])
-      ->get(['cost', 'size', 'belongs_to']); 
-
-    $this->assertEquals(DB::getLog(), "SELECT cost, size, belongs_to FROM products GROUP BY cost,size,belongs_to HAVING belongs_to = 90 OR cost >= 100 OR size = '1L' ORDER BY size DESC;");
-
-    // 
-    DB::table('products')->showDeleted()
-      ->groupBy(['cost', 'size', 'belongs_to'])
-      ->having(['belongs_to', 90])
-      ->orHaving([  
-                  ['cost', 100, '>='],
-                  ['size' => '1L'] ] 
-      )
-      ->orderBy(['size' => 'DESC'])
-      ->get(['cost', 'size', 'belongs_to']); 
-
-    $this->assertEquals(DB::getLog(), "SELECT cost, size, belongs_to FROM products GROUP BY cost,size,belongs_to HAVING belongs_to = 90 OR (cost >= 100 AND size = '1L') ORDER BY size DESC;");
-
-
-    // 
-
-    /*
-    $o = DB::table('other_permissions', 'op');
-    $o->join('folders', 'op.folder_id', '=',  'folders.id')
-              ->join('users', 'folders.belongs_to', '=', 'users.id')
-              ->join('user_roles', 'users.id', '=', 'user_roles.user_id')
-              ->where([
-                  ['guest', 1],
-                  ['table', 'products'],
-                  ['r', 1]
-              ])
-              ->orderByRaw('users.id DESC')
-              ->get();
-    $this->assertEquals(DB::getLog(), "SELECT * FROM other_permissions as op INNER JOIN folders ON op.folder_id=folders.id INNER JOIN users ON folders.belongs_to=users.id INNER JOIN user_roles ON users.id=user_roles.user_id WHERE (guest = 1 AND table = 'products' AND r = 1) ORDER BY users.id DESC");
-    */            
-
     //  
     DB::table('products')->where(['workspace', null])->get();  
     $this->assertEquals(DB::getLog(), "SELECT * FROM products WHERE (workspace IS NULL) AND deleted_at IS NULL;");	
@@ -578,6 +492,95 @@ class ModelTest extends TestCase
     
     }	
 
+    function test_having(){
+        DB::table('products')->showDeleted()
+            ->groupBy(['name'])
+            ->having(['c', 3, '>'])
+            ->select(['name'])
+            ->selectRaw('COUNT(*) as c')
+            ->get();
+
+        $this->assertEquals(DB::getLog(), "SELECT COUNT(*) as c, name FROM products GROUP BY name HAVING c > 3;");  
+
+        DB::table('products')
+            ->groupBy(['name'])
+            ->having(['c', 3, '>='])
+            ->select(['name'])
+            ->selectRaw('COUNT(name) as c')
+            ->get();
+                  
+        $this->assertEquals(DB::getLog(), "SELECT COUNT(name) as c, name FROM products WHERE deleted_at IS NULL GROUP BY name HAVING c >= 3;");     
+            
+        // 
+        DB::table('products')
+          ->groupBy(['cost', 'size'])
+          ->having(['cost', 100])
+          ->get(['cost', 'size']);
+
+        $this->assertEquals(DB::getLog(), "SELECT cost, size FROM products WHERE deleted_at IS NULL GROUP BY cost,size HAVING cost = 100;");
+
+        // 
+        DB::table('products')->showDeleted()
+          ->groupBy(['cost', 'size'])
+          ->having(['cost', 100])
+          ->get(['cost', 'size']);
+
+        $this->assertEquals(DB::getLog(), "SELECT cost, size FROM products GROUP BY cost,size HAVING cost = 100;");
+        
+        // 
+        DB::table('products')->showDeleted()
+          ->groupBy(['cost', 'size', 'belongs_to'])
+          ->having(['belongs_to', 90])
+          ->having([  
+                      ['cost', 100, '>='],
+                      ['size' => '1L'] ], 
+          'OR')
+          ->orderBy(['size' => 'DESC'])
+          ->get(['cost', 'size', 'belongs_to']); 
+
+        $this->assertEquals(DB::getLog(), "SELECT cost, size, belongs_to FROM products GROUP BY cost,size,belongs_to HAVING belongs_to = 90 AND (cost >= 100 OR size = '1L') ORDER BY size DESC;");
+    }
+
+    function test_orHaving(){
+        // 
+        DB::table('products')->showDeleted()
+          ->groupBy(['cost', 'size', 'belongs_to'])
+          ->having(['belongs_to', 90])
+          ->orHaving(['cost', 100, '>='])
+          ->orHaving(['size' => '1L'])
+          ->orderBy(['size' => 'DESC'])
+          ->get(['cost', 'size', 'belongs_to']); 
+
+        $this->assertEquals(DB::getLog(), "SELECT cost, size, belongs_to FROM products GROUP BY cost,size,belongs_to HAVING belongs_to = 90 OR cost >= 100 OR size = '1L' ORDER BY size DESC;");
+
+        // 
+        DB::table('products')->showDeleted()
+          ->groupBy(['cost', 'size', 'belongs_to'])
+          ->having(['belongs_to', 90])
+          ->orHaving([  
+                      ['cost', 100, '>='],
+                      ['size' => '1L'] ] 
+          )
+          ->orderBy(['size' => 'DESC'])
+          ->get(['cost', 'size', 'belongs_to']); 
+
+        $this->assertEquals(DB::getLog(), "SELECT cost, size, belongs_to FROM products GROUP BY cost,size,belongs_to HAVING belongs_to = 90 OR (cost >= 100 AND size = '1L') ORDER BY size DESC;");
+
+        // 
+        DB::table('products')->showDeleted()
+          ->groupBy(['cost', 'size', 'belongs_to'])
+          ->having(['belongs_to', 90])
+          ->or(function($q){
+                $q->having(['cost', 100, '>='])
+                ->having(['size' => '1L']);
+          })
+          ->orderBy(['size' => 'DESC'])
+          ->dontExec()
+          ->get(['cost', 'size', 'belongs_to']); 
+
+        //$this->assertEquals(DB::getLog(), "SELECT cost, size, belongs_to FROM products GROUP BY cost,size,belongs_to HAVING belongs_to = 90 OR (cost >= 100 AND size = '1L') ORDER BY size DESC;");
+    }
+
     function test_havingRaw(){
         
         DB::table('products')
@@ -591,6 +594,24 @@ class ModelTest extends TestCase
 
         $this->assertEquals(DB::getLog(), "SELECT SUM(cost) as total_cost FROM products WHERE (size = '1L') AND deleted_at IS NULL GROUP BY belongs_to HAVING SUM(cost) > 500 LIMIT 1, 3;");
     } 
+
+    function test_inner_join(){
+        //    
+        $m = (new Model())->table('other_permissions', 'op')
+        ->join('folders', 'op.folder_id', '=',  'folders.id')
+        ->join('users', 'folders.belongs_to', '=', 'users.id')
+        ->join('user_roles', 'users.id', '=', 'user_roles.user_id')
+        ->where([
+          ['guest', 1],
+          ['table', 'products'],
+          ['r', 1]
+        ])
+        ->orderByRaw('users.id DESC')
+        ->dontExec();
+
+        $this->assertEquals($m->dd(), "SELECT * FROM other_permissions as op INNER JOIN folders ON op.folder_id=folders.id INNER JOIN users ON folders.belongs_to=users.id INNER JOIN user_roles ON users.id=user_roles.user_id WHERE (guest = 1 AND table = 'products' AND r = 1) ORDER BY users.id DESC;");
+    }
+
 
   function test_or_whereraw(){
       $m = DB::table('products')

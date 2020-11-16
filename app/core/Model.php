@@ -617,6 +617,7 @@ class Model {
 		return $this;
 	}
 
+	// sin probar	
 	function orHavingRaw(string $q, array $vals = null){
 		$this->or(function($x) use ($q, $vals){
 			$x->HavingRaw($q, $vals);
@@ -1544,6 +1545,7 @@ class Model {
 		return $this;
 	}
 
+	// ok
 	function orHaving($conditions, $conjunction = 'AND'){
 		$this->_having($conditions, 'OR', $conjunction);
 		return $this;

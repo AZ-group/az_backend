@@ -1891,11 +1891,23 @@ https://symfony.com/doc/current/components/var_dumper.html
 
 - Modelo: 
 
+  - Agregar updateOrInsert()
+
+  https://laravel.com/docs/8.x/queries#update-or-insert  
+
   - Agregar soporte para JSON
+
   - Agregar soporte para "OR JOINs" 
 
   https://laravel.com/docs/8.x/queries#advanced-join-clauses
   https://stackoverflow.com/questions/11702294/mysql-inner-join-with-or-condition
+
+
+- Implementar features y dar cierta compatibiidad con CodeIgniter
+
+https://codeigniter.com/user_guide/models/model.html
+https://codeigniter.com/user_guide/models/entities.html
+https://codeigniter.com/user_guide/database/index.html
 
 
 - Aplicar buenas prácticas
