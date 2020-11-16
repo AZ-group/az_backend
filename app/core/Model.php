@@ -905,7 +905,7 @@ class Model {
 
 			if (!empty($where)){
 				$where = rtrim($where);
-				$where = "($where) AND ". $implode. ' ';
+				$where = "($where) AND ". $implode. ' '; // <-------------
 			}else{
 				$where = "$implode ";
 			}
@@ -1506,6 +1506,11 @@ class Model {
 
 	function orWhere($conditions, $conjunction = 'AND'){
 		$this->_where($conditions, 'OR', $conjunction);
+		return $this;
+	}
+
+	function whereOr($conditions){
+		$this->_where($conditions, 'AND', 'OR');
 		return $this;
 	}
 

@@ -777,24 +777,14 @@ class DumbController extends Controller
         ->get());
     }
 
-    // SELECT  name, cost, id FROM products WHERE belongs_to = '90' AND (name IN ('CocaCola', 'PesiLoca')  OR cost >= 550 OR cost < 100) AND description IS NOT NULL
-    function where_or(){
-        dd(DB::table('products')->showDeleted()
-        ->select(['name', 'cost', 'id'])
-        ->where(['belongs_to', 90])
-        ->where([ 
-            ['name', ['CocaCola', 'PesiLoca']], 
-            ['cost', 550, '>='],
-            ['cost', 100, '<']
-        ], 'OR')
-        ->whereNotNull('description')
-        ->get());
-    }
     
     /* 
-        A OR (B AND C)
+        A OR B OR (C AND D)
 
-        SELECT  name, cost, id FROM products WHERE (1 = 1)  AND belongs_to = ?  OR name IN ('CocaCola', 'PesiLoca') OR (cost <= ? AND cost >= ?)
+       SELECT name, cost, id FROM products WHERE 
+       belongs_to = 90 OR 
+       name IN (\'CocaCola\', \'PesiLoca\') OR 
+       (cost <= 550 AND cost >= 100)
     */
     function or_where(){
         $q = DB::table('products')->showDeleted()
@@ -824,12 +814,59 @@ class DumbController extends Controller
         dd($q->dd());
     }
 
+
+     /*
+        SELECT  name, cost, id FROM products WHERE 
+        belongs_to = '90' AND 
+        (
+            name IN ('CocaCola', 'PesiLoca') OR 
+            cost >= 550 OR 
+            cost < 100
+        ) AND 
+        description IS NOT NULL
+    */
+    function where_or(){
+        $q = DB::table('products')->showDeleted()
+        ->select(['name', 'cost', 'id'])
+        ->where(['belongs_to', 90])
+        ->where([                           // <--- whereOr() === where([], 'OR')
+            ['name', ['CocaCola', 'PesiLoca']], 
+            ['cost', 550, '>='],
+            ['cost', 100, '<']
+        ], 'OR')
+        ->whereNotNull('description');
+
+        dd($q->get());
+        dd($q->dd());
+    }
+
+     /*
+        SELECT  name, cost, id FROM products WHERE 
+        belongs_to = '90' AND 
+        (
+            name IN ('CocaCola', 'PesiLoca') OR 
+            cost >= 550 OR 
+            cost < 100
+        ) AND 
+        description IS NOT NULL
+    */
+    function where_or1(){
+        $q = DB::table('products')->showDeleted()
+        ->select(['name', 'cost', 'id'])
+        ->where(['belongs_to', 90])
+        ->whereOr([ 
+            ['name', ['CocaCola', 'PesiLoca']], 
+            ['cost', 550, '>='],
+            ['cost', 100, '<']
+        ])
+        ->whereNotNull('description');
+
+        dd($q->get());
+        dd($q->dd());
+    }
         
     /*
-        Showing also deleted records
-
         SELECT  name, cost, id FROM products WHERE (belongs_to = '90' AND (name IN ('CocaCola', 'PesiLoca')  OR cost >= 550 OR cost < 100) AND description IS NOT NULL) AND deleted_at IS NULL OR  (cost >= 100 AND cost < 500)
-
     */
     function where_or2(){
         dd(DB::table('products')
@@ -1047,7 +1084,7 @@ class DumbController extends Controller
 
             if (!empty($where)){
 				$where = rtrim($where);
-				$where = "($where) AND ". $implode. ' ';
+				$where = "($where) AND ". $implode. ' ';  // <----------
 			}else{
 				$where = "$implode ";
 			}
@@ -1074,6 +1111,35 @@ class DumbController extends Controller
         dd($m->dd());
     }
 
+    /*
+        Bug: el whereRegEx(), una función derivada de whereRaw() interfiere con el or() que le sucede.
+
+        El problema se genera aprox por la línea 908 de Model en whereFormedQuery() con el 'AND' impuesto:
+
+            if (!empty($where)){
+				$where = rtrim($where);
+				$where = "($where) AND ". $implode. ' ';  // <----------
+			}else{
+				$where = "$implode ";
+			}
+
+        Una "solución" es cambiar el órden
+    */
+    function or_bug(){
+        $m = DB::table('products')
+    
+        ->whereRegEx('name', 'a$')
+        ->or(function($q){
+            $q->where([
+                ['cost', 100, '<='],
+                ['description', NULL, 'IS NOT']
+            ]);
+        })             
+        ->dontExec();
+
+        //dd($m->get());
+        dd($m->dd());
+    }
 
     /*
         Funciona OK dado que el whereRegEx() es quien está dentro del or()
