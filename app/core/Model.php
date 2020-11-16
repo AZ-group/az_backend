@@ -1342,12 +1342,8 @@ class Model {
 		return $this->where_raw_vals;
 	}
 
-	function whereRawQuery(){
-		return $this->where_raw_q;
-	}
-
 	// crea un grupo dentro del where
-	function group(callable $closure, bool $negate = false) 
+	function group(callable $closure, string $conjunction = 'AND', bool $negate = false) 
 	{	
 		$not = $negate ? ' NOT ' : '';
 
@@ -1358,21 +1354,36 @@ class Model {
 		$w_vars   = $m->getWhereVars();
 		$w_vals   = $m->getWhereVals();
 
-		// sin uso aún
-		$w_raw_q    = $m->whereRawQuery();	
 		$w_raw_vals = $m->getWhereRawVals();
 
 		$this->where[] = "$not($w_formed)";	
 		$this->w_vars  = array_merge($this->w_vars, $w_vars);
-		$this->w_vals  = array_merge($this->w_vals, $w_vals);
+		$this->w_vals  = array_merge($this->w_vals, $w_raw_vals, $w_vals); // *
 		
-		$this->where_group_op[] = 'AND';
+		$this->where_group_op[] = $conjunction;
 
 		return $this;
 	}
 
+	function and(callable $closure){
+		return $this->group($closure, 'AND', false);
+	}
+
+	function or(callable $closure){
+		return $this->group($closure, 'OR', false);
+	}
+
+	function andNot(callable $closure){
+		return $this->group($closure, 'AND', true);
+	}
+
+	// alias
 	function not(callable $closure){
-		return $this->group($closure, true);
+		return $this->andNot($closure);
+	}
+
+	function orNot(callable $closure){
+		return $this->group($closure, 'OR', true);
 	}
 
 

@@ -902,21 +902,33 @@ class DumbController extends Controller
     */
 
     /*
-     SELECT id, cost, size, description, belongs_to FROM products WHERE ((cost > 100 AND size = '1L') OR (cost <= 100 AND description IS NOT NULL)) AND belongs_to > 150;
+        SSELECT id, cost, size, description, belongs_to FROM products WHERE 
+        
+        (name LIKE '%a') AND 
+        (cost > 100 AND id < 50) AND 
+        (
+            active = 1 OR 
+            (cost <= 100 AND description IS NOT NULL)
+        ) 
+        AND belongs_to > 150;
     */
     function where_adv()
     {
         $m = (new Model())
         ->table('products')
 
-        ->group(function($q){  // <-- group *
-           $q->where([
-                ['cost', 100, '>'],
-                ['id', 50, '<']
-            ]) 
+        ->where([
+            ['cost', 100, '>'], // AND
+            ['id', 50, '<']
+        ]) 
+        // AND
+        ->whereRaw('name LIKE ?', ['%a'])
+        // AND
+        ->group(function($q){  
+            $q->where(['active', 1])
             // OR
-            ->orWhere([
-                ['cost', 100, '<='],
+              ->orWhere([
+                ['cost', 100, '<='], 
                 ['description', NULL, 'IS NOT']
             ]);  
         })
@@ -930,7 +942,58 @@ class DumbController extends Controller
     }
 
     /*
+        SELECT id, cost, size, description, belongs_to FROM products WHERE 
+        
+            (cost > 100 AND id < 50) OR <--- Ok
+            (
+                (name LIKE '%a') AND 
+                (cost <= 100 AND description IS NOT NULL)
+            ) AND 
+            belongs_to > 150;
+    */
+    function where_adv2()
+    {
+        $m = (new Model())
+        ->table('products')
+
+        ->where([
+            ['cost', 100, '>'], // AND
+            ['id', 50, '<']
+        ]) 
+        // OR
+        ->or(function($q){  
+            $q->whereRaw('name LIKE ?', ['%a'])
+              // AND  
+              ->where([
+                ['cost', 100, '<='], 
+                ['description', NULL, 'IS NOT']
+            ]);  
+        })
+        // AND
+        ->where(['belongs_to', 150, '>'])
+        
+        ->select(['id', 'cost', 'size', 'description', 'belongs_to']);
+
+       //dd($m->get()); 
+	   var_dump($m->dd());
+    }
+
+    /*
         Negador de wheres
+
+        SELECT id, cost, size, description, belongs_to FROM products WHERE 
+
+        (
+            NOT 
+            (
+                (cost > 100 AND id < 50) OR 
+                (cost <= 100 AND description IS NOT NULL) 
+
+            ) AND belongs_to > 150
+
+        ) AND 
+
+        deleted_at IS NULL;
     */
     function not(){
         $m = DB::table('products')
@@ -955,22 +1018,86 @@ class DumbController extends Controller
         var_dump($m->dd());
     }
 
-    /*
-        Negador de wheres
-
-        no funciona con whereRaw ni derivados?
-    */
-    function not2(){
+    // ok
+    function notor(){
         $m = DB::table('products')
 
         ->where(['belongs_to', 150, '>'])
         ->not(function($q) {
-            $q->whereRegEx('name', 'a$');
-        });
-        
+            $q->where(['name', 'a$'])
+            ->or(function($q){
+                $q->where([
+                    ['cost', 100, '<='],
+                    ['description', NULL, 'IS NOT']
+                ]);
+            });             
+        })
+        ->dontExec()
+        ->where(['size', '1L', '>=']);
+
         //dd($m->get());
         dd($m->dd());
     }
+
+
+    /*
+        Bug: el whereRegEx(), una función derivada de whereRaw() interfiere con el or() que le sucede.
+
+        El problema se genera aprox por la línea 908 de Model en whereFormedQuery() con el 'AND' impuesto:
+
+            if (!empty($where)){
+				$where = rtrim($where);
+				$where = "($where) AND ". $implode. ' ';
+			}else{
+				$where = "$implode ";
+			}
+
+        Una "solución" es cambiar el órden
+    */
+    function notor_whereraw(){
+        $m = DB::table('products')
+
+        ->where(['belongs_to', 150, '>'])
+        ->not(function($q) {
+            $q->whereRegEx('name', 'a$')
+            ->or(function($q){
+                $q->where([
+                    ['cost', 100, '<='],
+                    ['description', NULL, 'IS NOT']
+                ]);
+            });             
+        })
+        ->dontExec()
+        ->where(['size', '1L', '>=']);
+
+        //dd($m->get());
+        dd($m->dd());
+    }
+
+
+    /*
+        Funciona OK dado que el whereRegEx() es quien está dentro del or()
+    */
+    function notor_whereraw2(){
+        $m = DB::table('products')
+
+        ->where(['belongs_to', 150, '>'])
+        ->not(function($q) {
+            $q->where([
+                ['cost', 100, '<='],
+                ['description', NULL, 'IS NOT']
+            ])
+            ->or(function($q){
+                $q->whereRegEx('name', 'a$');
+            });             
+        })
+        ->dontExec()
+        ->where(['size', '1L', '>=']);
+
+        //dd($m->get());
+        dd($m->dd());
+    }   
+
 
 
     function when(){
