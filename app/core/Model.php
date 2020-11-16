@@ -798,6 +798,21 @@ class Model {
 		// WHERE
 		$where_section = $this->whereFormedQuery();
 		if (!empty($where_section)){
+
+			// patch
+			$where_section = str_replace(
+							[
+								'AND OR', 
+								'(AND ',
+								'(OR '
+							], 
+							[	'OR ',
+								'( ',
+								'( '
+							], $where_section);
+
+			$where_section = str_replace('(  NOT ', '(NOT ', $where_section);	
+
 			$q  .= ' WHERE ' . $where_section;
 		}
 						
@@ -1355,11 +1370,11 @@ class Model {
 
 		$w_raw_vals = $m->getWhereRawVals();
 
-		$this->where[] = "$not($w_formed)";	
+		$this->where[] = "$conjunction $not($w_formed)";	
 		$this->w_vars  = array_merge($this->w_vars, $w_vars);
 		$this->w_vals  = array_merge($this->w_vals, $w_raw_vals, $w_vals); // *
 		
-		$this->where_group_op[] = $conjunction;
+		$this->where_group_op[] = '';
 
 		return $this;
 	}

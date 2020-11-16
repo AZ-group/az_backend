@@ -1078,27 +1078,12 @@ class DumbController extends Controller
 
 
     /*
-        Bug: el whereRegEx(), una función derivada de whereRaw() interfiere con el or() que le sucede.
-
-        El problema se genera aprox por la línea 908 de Model en whereFormedQuery() con el 'AND' impuesto:
-
-            if (!empty($where)){
-				$where = rtrim($where);
-				$where = "($where) AND ". $implode. ' ';  // <----------
-			}else{
-				$where = "$implode ";
-			}
-
-        Una "solución" es cambiar el órden
-        Otra "solución" es meter el whereRegEx() dentro de un group()]
-
-
         SELECT * FROM products WHERE 
         
         (
             belongs_to > 150 AND 
             NOT (
-                    (name REGEXP 'a$') AND  <--------- *
+                    (name REGEXP 'a$') OR
                     ((cost <= 100 AND 
                         description IS NOT NULL
                     ))
@@ -1114,7 +1099,7 @@ class DumbController extends Controller
         ->where(['belongs_to', 150, '>'])
         ->not(function($q) {
             $q->whereRegEx('name', 'a$')
-            ->or(function($q){  // <-------  por falla de diseno está metiendo un 'AND'
+            ->or(function($q){ 
                 $q->where([
                     ['cost', 100, '<='],
                     ['description', NULL, 'IS NOT']
@@ -1128,21 +1113,8 @@ class DumbController extends Controller
         dd($m->dd());
     }
 
-    /*
-        Bug: el whereRegEx(), una función derivada de whereRaw() interfiere con el or() que le sucede.
-
-        El problema se genera aprox por la línea 908 de Model en whereFormedQuery() con el 'AND' impuesto:
-
-            if (!empty($where)){
-				$where = rtrim($where);
-				$where = "($where) AND ". $implode. ' ';  // <----------
-			}else{
-				$where = "$implode ";
-            }
-
-        Una "solución" es cambiar el órden
-    */
-    function or_bug(){
+    // ok
+    function or_problematico(){
         $m = DB::table('products')
     
         ->whereRegEx('name', 'a$')
@@ -1156,7 +1128,8 @@ class DumbController extends Controller
         dd($m->dd());
     }
 
-    function or_bug_b(){
+    // ok
+    function or__problematico_b(){
         $m = DB::table('products')
     
         ->whereRegEx('name', 'a$')
@@ -1186,7 +1159,7 @@ class DumbController extends Controller
         dd($m->dd());
     }
 
-    function or_otro_bug_parche(){
+    function or_otro(){
         $m = DB::table('products')    
 
         ->group(function($q){
@@ -1202,7 +1175,7 @@ class DumbController extends Controller
         dd($m->dd());
     }
 
-    function or_bug2(){
+    function or_otro2(){
         $m = DB::table('products')
     
         ->group(function($q){
@@ -1239,10 +1212,6 @@ class DumbController extends Controller
         dd($m->dd());
     }
 
-
-    /*
-        Funciona OK dado que el whereRegEx() es quien está dentro del or()
-    */
     function notor_whereraw2(){
         $m = DB::table('products')
 

@@ -944,6 +944,39 @@ class ModelTest extends TestCase
 
     $this->assertEquals(DB::getLog(), 'SELECT * FROM products WHERE (belongs_to > 150 AND NOT ((cost <= 100 AND description IS NOT NULL) OR (name REGEXP \'a$\')) AND size >= \'1L\') AND deleted_at IS NULL;');
 
+
+    DB::table('products')
+
+    ->where(['belongs_to', 150, '>'])
+    ->not(function($q) {
+        $q->whereRegEx('name', 'a$')
+        ->or(function($q){  // <-------  metería un 'AND' sino fuera por un parche
+            $q->where([
+                ['cost', 100, '<='],
+                ['description', NULL, 'IS NOT']
+            ]);
+        });             
+    })
+    ->where(['size', '1L', '>='])
+    ->dontExec()->get();
+
+    $this->assertEquals(DB::getLog(), 'SELECT * FROM products WHERE (belongs_to > 150 AND NOT ((name REGEXP \'a$\') OR ((cost <= 100 AND description IS NOT NULL))) AND size >= \'1L\') AND deleted_at IS NULL;');
+
+
+    $m = DB::table('products')
+    
+    ->whereRegEx('name', 'a$')
+    ->or(function($q){  // <-------  metería un 'AND' sino fuera por un parche
+        $q->where(['cost', 100, '<=']);
+    })     
+    ->showDeleted()        
+    ->dontExec();
+
+    $this->assertEquals($m->dd(), 'SELECT * FROM products WHERE (name REGEXP \'a$\') OR (cost <= 100);');
+
+
   }
+
+
 
 }
