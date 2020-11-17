@@ -640,6 +640,54 @@ class ModelTest extends TestCase
         $this->assertEquals($m->dd(), "SELECT * FROM other_permissions as op INNER JOIN folders ON op.folder_id=folders.id INNER JOIN users ON folders.belongs_to=users.id INNER JOIN user_roles ON users.id=user_roles.user_id WHERE (guest = 1 AND table = 'products' AND r = 1) ORDER BY users.id DESC;");
     }
 
+    function test_leftjoin(){
+        $users = DB::table('users')->select([
+            "users.id",
+            "users.name",
+            "users.email",
+            "countries.name as country_name"
+        ])
+        ->leftJoin("countries", "countries.id", "=", "users.country_id")
+        ->dontExec()
+        ->get();
+
+        $this->assertEquals(DB::getLog(), 'SELECT users.id, users.name, users.email, countries.name as country_name FROM users LEFT JOIN countries ON countries.id=users.country_id WHERE deleted_at IS NULL;');
+    }
+
+    function test_crossjoin(){
+         DB::table('users')
+        ->crossJoin('products')
+        ->where(['users.id', 90])
+        ->unhideAll()
+        ->showDeleted()
+        ->dontExec()->get();
+
+        $this->assertEquals(DB::getLog(), 'SELECT * FROM users CROSS JOIN products WHERE users.id = 90;');
+
+        DB::table('users')->crossJoin('products')->crossJoin('roles')
+        ->unhideAll()
+        ->showDeleted()
+        ->dontExec()->count();
+
+        $this->assertEquals(DB::getLog(), 'SELECT COUNT(*) FROM users CROSS JOIN products CROSS JOIN roles;');
+
+         DB::table('users')->crossJoin('products')->crossJoin('roles')
+        ->where(['users.id', 90])
+        ->unhideAll()
+        ->showDeleted()
+        ->dontExec()->get();
+
+        $this->assertEquals(DB::getLog(), 'SELECT * FROM users CROSS JOIN products CROSS JOIN roles WHERE users.id = 90;');
+
+        DB::table('users')->crossJoin('products')->crossJoin('roles')
+        ->join('user_sp_permissions', 'users.id', '=', 'user_sp_permissions.user_id')
+        ->unhideAll()
+        ->showDeleted()
+        ->dontExec()->count();
+
+        $this->assertEquals(DB::getLog(), 'SELECT COUNT(*) FROM users CROSS JOIN products CROSS JOIN roles INNER JOIN user_sp_permissions ON users.id=user_sp_permissions.user_id;');
+    }
+
 
   function test_or_whereraw(){
       $m = DB::table('products')

@@ -455,19 +455,24 @@ class Model {
 		return $this;
 	}
 
-	// INNER JOIN
-	function join($table, $on1, $op, $on2) {
-		$this->joins[] = [$table, $on1, $op, $on2, ' INNER JOIN'];
+	// INNER | LEFT | RIGTH JOIN
+	function join($table, $on1, $op, $on2, string $type = 'INNER JOIN') {
+		$this->joins[] = [$table, $on1, $op, $on2, $type];
 		return $this;
 	}
 
 	function leftJoin($table, $on1, $op, $on2) {
-		$this->joins[] = [$table, $on1, $op, $on2, ' LEFT JOIN'];
+		$this->joins[] = [$table, $on1, $op, $on2, 'LEFT JOIN'];
 		return $this;
 	}
 
 	function rightJoin($table, $on1, $op, $on2) {
-		$this->joins[] = [$table, $on1, $op, $on2, ' RIGHT JOIN'];
+		$this->joins[] = [$table, $on1, $op, $on2, 'RIGHT JOIN'];
+		return $this;
+	}
+
+	function crossJoin($table) {
+		$this->joins[] = [$table, null, null, null, 'CROSS JOIN'];
 		return $this;
 	}
 	
@@ -571,14 +576,6 @@ class Model {
 		return $this;
 	}
 
-	function orWhereRaw(string $q, array $vals = null){
-		$this->or(function($x) use ($q, $vals){
-			$x->whereRaw($q, $vals);
-		});
-
-		return $this;
-	}
-
 	function whereExists(string $q, array $vals = null){
 		$this->whereRaw("EXISTS $q", $vals);
 		return $this;
@@ -614,15 +611,6 @@ class Model {
 		if ($vals != null)
 			$this->having_raw_vals = $vals;
 			
-		return $this;
-	}
-
-	// sin probar	
-	function orHavingRaw(string $q, array $vals = null){
-		$this->or(function($x) use ($q, $vals){
-			$x->HavingRaw($q, $vals);
-		});
-
 		return $this;
 	}
 
@@ -806,7 +794,11 @@ class Model {
 		// JOINS
 		$joins = '';
 		foreach ($this->joins as $j){
-			$joins .= "$j[4] $j[0] ON $j[1]$j[2]$j[3] ";
+			if ($j[4] == 'CROSS JOIN'){
+				$joins .= " $j[4] $j[0] ";
+			} else {
+				$joins .= " $j[4] $j[0] ON $j[1]$j[2]$j[3] ";
+			}
 		}
 
 		$q  .= $joins;
@@ -1429,7 +1421,7 @@ class Model {
 			
 			$this->where_group_op[] = '';
 		}
-		
+
 
 		$h_formed 	= $m->havingFormedQuery();
 
@@ -1600,6 +1592,22 @@ class Model {
 	// ok
 	function orHaving($conditions, $conjunction = 'AND'){
 		$this->_having($conditions, 'OR', $conjunction);
+		return $this;
+	}
+
+	function orWhereRaw(string $q, array $vals = null){
+		$this->or(function($x) use ($q, $vals){
+			$x->whereRaw($q, $vals);
+		});
+
+		return $this;
+	}
+
+	function orHavingRaw(string $q, array $vals = null){
+		$this->or(function($x) use ($q, $vals){
+			$x->HavingRaw($q, $vals);
+		});
+
 		return $this;
 	}
 

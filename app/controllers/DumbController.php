@@ -1697,22 +1697,123 @@ class DumbController extends Controller
             ->get());
     }
 
-    function joins(){
-        $o = DB::table('other_permissions', 'op');
-        $rows =   $o->join('folders', 'op.folder_id', '=',  'folders.id')
-                    ->join('users', 'folders.belongs_to', '=', 'users.id')
-                    ->join('user_roles', 'users.id', '=', 'user_roles.user_id')
-                    ->where([
-                        ['guest', 1],
-                        ['table', 'products'],
-                        ['r', 1]
-                    ])
-                    ->orderByRaw('users.id DESC')
-                    ->get();  
+    /*
+        SELECT * FROM other_permissions as op 
         
-        dd($rows);
+        INNER JOIN folders ON op.folder_id=folders.id 
+        INNER JOIN users ON folders.belongs_to=users.id 
+        INNER JOIN user_roles ON users.id=user_roles.user_id 
+        
+        WHERE (guest = 1 AND table = \'products\' AND r = 1) 
+        ORDER BY users.id DESC;
+    */
+    function joins(){
+        $m = (new Model())->table('other_permissions', 'op')
+        ->join('folders', 'op.folder_id', '=',  'folders.id')
+        ->join('users', 'folders.belongs_to', '=', 'users.id')
+        ->join('user_roles', 'users.id', '=', 'user_roles.user_id')
+        ->where([
+            ['guest', 1],
+            ['table', 'products'],
+            ['r', 1]
+        ])
+        ->orderByRaw('users.id DESC')
+        ->dontExec();  
+        
+        dd($m->dd()); 
+    }
+
+    // 'SELECT users.id, users.name, users.email, countries.name as country_name FROM users LEFT JOIN countries ON countries.id=users.country_id WHERE deleted_at IS NULL;'
+    function leftjoin(){
+        $users = DB::table('users')->select([
+            "users.id",
+            "users.name",
+            "users.email",
+            "countries.name as country_name"
+        ])
+        ->leftJoin("countries", "countries.id", "=", "users.country_id")
+        ->dontExec()
+        ->get();
+
+        //dd($users);
+        dd(DB::getLog());    
+    }
+
+    /*
+        Se generan ambiguedades sino especifican las tablas tanto en las cláuslas SELECT como el WHERE
+    */
+    function crossjoin(){
+        DB::table('users')
+        ->crossJoin('products')
+        ->where(['users.id', 90])
+        ->unhideAll()
+        ->showDeleted()
+        ->dontExec()->get();
+        
+        dd(DB::getLog());    
     }
  
+    // SELECT COUNT(*) from users CROSS JOIN products CROSS JOIN roles;
+    function crossjoin2(){
+        DB::table('users')->crossJoin('products')->crossJoin('roles')
+        ->unhideAll()
+        ->showDeleted()
+        ->dontExec()->get();
+        
+        dd(DB::getLog());    
+    }
+
+    // SELECT * FROM users CROSS JOIN products CROSS JOIN roles WHERE users.id = 90;'
+    function crossjoin2b(){
+        DB::table('users')->crossJoin('products')->crossJoin('roles')
+        ->where(['users.id', 90])
+        ->unhideAll()
+        ->showDeleted()
+        ->dontExec()->get();
+        
+        dd(DB::getLog());    
+    }
+
+
+    // SELECT COUNT(*) from users CROSS JOIN products CROSS JOIN roles INNER JOIN user_sp_permissions ON users.id = user_sp_permissions.user_id;
+    function crossjoin3(){
+        DB::table('users')->crossJoin('products')->crossJoin('roles')
+        ->join('user_sp_permissions', 'users.id', '=', 'user_sp_permissions.user_id')
+        ->unhideAll()
+        ->showDeleted()
+        ->dontExec()->get();
+        
+        dd(DB::getLog());    
+    }
+
+    /*
+
+        SELECT ot.*, ld.distance FROM other_table AS ot 
+        INNER JOIN location_distance ld ON (ld.fromLocid = ot.fromLocid OR ld.fromLocid = ot.toLocid) AND 
+        (ld.toLocid = ot.fromLocid OR ld.toLocid = ot.fromLocid)
+
+    */
+
+    /*
+        INNER JOIN location_distance ld1 ON ld1.fromLocid = ot.fromLocid AND ld1.toLocid = ot.toLocid
+    */
+
+    /*
+        select ot.id,
+        ot.fromlocid,
+        ot.tolocid,
+        ot.otherdata,
+        coalesce(ld1.distance, ld2.distance) distance
+        from other_table ot
+        left join location_distance ld1
+        on ld1.fromLocid = ot.toLocid
+        and ld1.toLocid = ot.fromLocid 
+        left join location_distance ld2
+        on ld2.toLocid = ot.toLocid
+        and ld2.fromLocid = ot.fromLocid 
+    */
+    
+
     function get_nulls(){    
         // Get products where workspace IS NULL
         dd(DB::table('products')->where(['workspace', null])->get());   
