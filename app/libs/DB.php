@@ -14,11 +14,15 @@ class DB
 
 	protected function __construct() { }
 	
+	public static function getCurrentConnectionId(){
+		return static::$current_id_conn;
+	}
+
 	public static function setConnection($id){
 		static::$current_id_conn = $id;
 	}
 
-    public static function getConnection(string $conn_id = null, $options = null) {
+    public static function getConnection(string $conn_id = null) {
 		$config = Factory::config();
 		
 		$cc = count($config['db_connections']);
@@ -54,14 +58,10 @@ class DB
         $db_name = $config['db_connections'][static::$current_id_conn]['db_name'];
 		$user    = $config['db_connections'][static::$current_id_conn]['user'] ?? 'root';
 		$pass    = $config['db_connections'][static::$current_id_conn]['pass'] ?? '';
+		$pdo_options = $config['db_connections'][static::$current_id_conn]['pdo_options'] ?? NULL;
 		
 		try {
-			if (empty($options)){
-				$options[\PDO::ATTR_ERRMODE] = \PDO::ERRMODE_EXCEPTION;
-				//$options[\PDO::ATTR_EMULATE_PREPARES] = false;  /* es posible desactivar ? */
-			}
-				
-			self::$connections[static::$current_id_conn] = new \PDO("$driver:host=" . $host . ";dbname=" . $db_name, $user, $pass, $options);
+			self::$connections[static::$current_id_conn] = new \PDO("$driver:host=" . $host . ";dbname=" . $db_name, $user, $pass, $pdo_options);
             self::$connections[static::$current_id_conn]->exec("set names utf8");
 		} catch (\PDOException $e) {
 			throw new \PDOException($e->getMessage());

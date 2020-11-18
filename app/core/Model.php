@@ -475,6 +475,11 @@ class Model {
 		$this->joins[] = [$table, null, null, null, 'CROSS JOIN'];
 		return $this;
 	}
+
+	function naturalJoin($table) {
+		$this->joins[] = [$table, null, null, null, 'NATURAL JOIN'];
+		return $this;
+	}
 	
 	function orderBy(array $o){
 		$this->order = array_merge($this->order, $o);
@@ -794,7 +799,7 @@ class Model {
 		// JOINS
 		$joins = '';
 		foreach ($this->joins as $j){
-			if ($j[4] == 'CROSS JOIN'){
+			if ($j[4] == 'CROSS JOIN' || $j[4] == 'NATURAL JOIN'){
 				$joins .= " $j[4] $j[0] ";
 			} else {
 				$joins .= " $j[4] $j[0] ON $j[1]$j[2]$j[3] ";
@@ -998,16 +1003,20 @@ class Model {
 		return $this;
 	}
 
+	/*
+		 https://www.php.net/manual/en/pdo.constants.php
+
+	*/
 	protected function bind(string $q)
 	{
 		if ($this->conn == null){
 			$this->connect();
 		}
 
-		$st = $this->conn->prepare($q);		
-
-		foreach($this->select_raw_vals as $ix => $val){
-				
+		$st = $this->conn->prepare($q);			
+	
+		foreach($this->select_raw_vals as $ix => $val)
+		{				
 			if(is_null($val)){
 				$type = \PDO::PARAM_NULL;
 			}elseif(is_int($val))
@@ -1061,16 +1070,16 @@ class Model {
 		foreach($this->w_vals as $ix => $val)
 		{				
 			if(is_null($val)){
-				$type = \PDO::PARAM_NULL;
+				$type = \PDO::PARAM_NULL; // 0
 			}elseif(isset($this->w_vars[$ix]) && isset($this->schema['attr_types'][$this->w_vars[$ix]])){
 				$const = $this->schema['attr_types'][$this->w_vars[$ix]];
 				$type = constant("PDO::PARAM_{$const}");
 			}elseif(is_int($val))
-				$type = \PDO::PARAM_INT;
+				$type = \PDO::PARAM_INT;  // 1
 			elseif(is_bool($val))
-				$type = \PDO::PARAM_BOOL;
+				$type = \PDO::PARAM_BOOL; // 5
 			elseif(is_string($val))
-				$type = \PDO::PARAM_STR;
+				$type = \PDO::PARAM_STR;  // 3
 			elseif(is_array($val)){
 				throw new \Exception("where value can not be an array!");				
 			}	

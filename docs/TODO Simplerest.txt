@@ -1884,6 +1884,9 @@ https://culttt.com/2015/10/12/sending-template-emails-through-mandrill-in-larave
     php artisan migrate
 
 
+- Implementar API de Mailchimp como Servicio o Library
+
+
 - Probar var_dumper de Symfony
 
 https://symfony.com/doc/current/components/var_dumper.html
@@ -1897,10 +1900,22 @@ https://symfony.com/doc/current/components/var_dumper.html
 
   - Agregar soporte para JSON
 
+  - Soporte para "subquery Joins" mediante joinSub, leftJoinSub, and rightJoinSub
+
+  https://laravel.com/docs/8.x/queries#subquery-joins
+
   - Agregar soporte para "OR JOINs" 
 
   https://laravel.com/docs/8.x/queries#advanced-join-clauses
   https://stackoverflow.com/questions/11702294/mysql-inner-join-with-or-condition
+
+  - Seguir el estandar SQL-92 o SQL-89 para garantizar compatibiidad entre distintos motores. Cuál me conviene usar?
+
+  https://en.wikipedia.org/wiki/SQL-92
+
+  - Leer
+
+  https://en.wikipedia.org/wiki/Join_(SQL)    
 
 
 - Implementar features y dar cierta compatibiidad con CodeIgniter

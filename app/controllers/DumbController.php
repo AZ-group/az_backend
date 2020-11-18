@@ -651,14 +651,17 @@ class DumbController extends Controller
     }
     
     function filter_products2(){
-        dd(DB::table('products')
+        $m = DB::table('products')
         ->where([ 
             ['name', ['Vodka', 'Wisky', 'Tekila','CocaCola']], // IN 
             ['locked', 0],
             ['belongs_to', 90]
         ])
-        ->whereNotNull('description')
-        ->get());
+        ->whereNotNull('description');
+
+        dd($m->get());
+        var_dump(DB::getLog());
+        //var_dump($m->dd());
     }
 
     // SELECT * FROM products WHERE name IN ('CocaCola', 'PesiLoca') OR cost IN (100, 200)  OR cost >= 550 AND deleted_at IS NULL
@@ -1752,6 +1755,16 @@ class DumbController extends Controller
         
         dd(DB::getLog());    
     }
+
+    function naturaljoin(){
+        $m = (new Model())->table('employee')
+        ->naturalJoin('department')
+        ->unhideAll()
+        ->showDeleted()
+        ->dontExec();
+        
+        dd($m->dd());    
+    }
  
     // SELECT COUNT(*) from users CROSS JOIN products CROSS JOIN roles;
     function crossjoin2(){
@@ -1811,8 +1824,10 @@ class DumbController extends Controller
         left join location_distance ld2
         on ld2.toLocid = ot.toLocid
         and ld2.fromLocid = ot.fromLocid 
+
+        https://stackoverflow.com/questions/11702294/mysql-inner-join-with-or-condition#14824595
     */
-    
+
 
     function get_nulls(){    
         // Get products where workspace IS NULL
@@ -2642,6 +2657,50 @@ class DumbController extends Controller
         }
     }
 
+
+    /*
+        Genera excepción con 
+        
+        PDO::ATTR_EMULATE_PREPARES] = false
+
+    */
+    function test000002(){
+        $m = DB::table('products')
+        ->where([ 
+            ['name', ['Vodka', 'Wisky', 'Tekila','CocaCola']], // IN 
+            ['locked', 0],
+            ['belongs_to', 90]
+        ])
+        ->whereNotNull('description');
+
+        dd($m->get());
+        var_dump(DB::getLog());
+        //var_dump($m->dd());
+    }
+
+    /*
+        Genera excepción con 
+        
+        PDO::ATTR_EMULATE_PREPARES] = false
+
+    */
+    function test000003(){
+        $m = DB::table('products')
+        /*
+        ->where([ 
+            ['name', ['Vodka', 'Wisky', 'Tekila','CocaCola']], // IN 
+            ['locked', 0],
+            ['belongs_to', 90]
+        ])
+        */
+        ->showDeleted()
+        //->whereNotNull('description');
+        ->where(['description', NULL]);
+
+        dd($m->first());
+        var_dump(DB::getLog());
+        //var_dump($m->dd());
+    }
 
     /*
 
