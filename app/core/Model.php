@@ -1013,144 +1013,68 @@ class Model {
 			$this->connect();
 		}
 
+		$vals = array_merge($this->select_raw_vals, 
+							$this->from_raw_vals, 
+							$this->where_raw_vals,
+							$this->w_vals,
+							$this->having_raw_vals,
+							$this->h_vals,
+							$this->union_vals);
+
+		///////////////[ BUG FIX ]/////////////////
+
+		$_vals = [];
+		$reps  = 0;
+		foreach($vals as $ix => $val)
+		{				
+			if($val == NULL){
+				$q = Strings::replaceNth('?', 'NULL', $q, $ix+1-$reps);
+				$reps++;
+			} else {
+				$_vals[] = $val;
+			}
+		}
+
+		$vals = $_vals;
+
+		///////////////////////////////////////////
+
 		$st = $this->conn->prepare($q);			
 	
-		foreach($this->select_raw_vals as $ix => $val)
-		{				
-			if(is_null($val)){
-				$type = \PDO::PARAM_NULL;
-			}elseif(is_int($val))
-				$type = \PDO::PARAM_INT;
-			elseif(is_bool($val))
-				$type = \PDO::PARAM_BOOL;
-			else 
-				$type = \PDO::PARAM_STR;	
-
-			$st->bindValue($ix +1, $val, $type);
-			//echo "Bind: ".($ix+1)." - $val ($type)\n";
-		}
-		
-		$sh1 = count($this->select_raw_vals);	
-
-		foreach($this->from_raw_vals as $ix => $val){
-				
-			if(is_null($val)){
-				$type = \PDO::PARAM_NULL;
-			}elseif(is_int($val))
-				$type = \PDO::PARAM_INT;
-			elseif(is_bool($val))
-				$type = \PDO::PARAM_BOOL;
-			else 
-				$type = \PDO::PARAM_STR;	
-
-			$st->bindValue($ix +1 + $sh1, $val, $type);
-			//echo "Bind: ".($ix+1+$sh1)." - $val ($type) <br/>\n";
-		}
-		
-		$sh2 = count($this->from_raw_vals);	
-
-		foreach($this->where_raw_vals as $ix => $val){
-				
-			if(is_null($val)){
-				$type = \PDO::PARAM_NULL;
-			}elseif(is_int($val))
-				$type = \PDO::PARAM_INT;
-			elseif(is_bool($val))
-				$type = \PDO::PARAM_BOOL;
-			else 
-				$type = \PDO::PARAM_STR;	
-
-			$st->bindValue($ix +1 + $sh1 + $sh2, $val, $type);
-			//echo "Bind: ".($ix+1)." - $val ($type)\n";
-		}
-		
-		$sh3 = count($this->where_raw_vals);	
-
-
-		foreach($this->w_vals as $ix => $val)
+		foreach($vals as $ix => $val)
 		{				
 			if(is_null($val)){
 				$type = \PDO::PARAM_NULL; // 0
-			}elseif(isset($this->w_vars[$ix]) && isset($this->schema['attr_types'][$this->w_vars[$ix]])){
-				$const = $this->schema['attr_types'][$this->w_vars[$ix]];
-				$type = constant("PDO::PARAM_{$const}");
 			}elseif(is_int($val))
 				$type = \PDO::PARAM_INT;  // 1
 			elseif(is_bool($val))
 				$type = \PDO::PARAM_BOOL; // 5
-			elseif(is_string($val))
-				$type = \PDO::PARAM_STR;  // 3
+			elseif(is_string($val)){
+				if(mb_strlen($val) < 4000){
+					$type = \PDO::PARAM_STR;  // 2
+				} else {
+					$type = \PDO::PARAM_LOB;  // 3
+				}
+			}elseif(is_float($val))
+				$type = \PDO::PARAM_STR;  // 2
+			elseif(is_resource($val))	
+				$type = \PDO::PARAM_LOB;  // 3
 			elseif(is_array($val)){
 				throw new \Exception("where value can not be an array!");				
+			}else {
+				var_dump($val);
+				throw new \Exception("Unsupported type");
 			}	
 
-			$st->bindValue($ix +1 + $sh1 + $sh2 + $sh3, $val, $type);
+			$st->bindValue($ix +1 , $val, $type);
 			//echo "Bind: ".($ix+1)." - $val ($type)\n";
 		}
 
-		$sh4 = count($this->w_vals);
-
-
-		foreach($this->having_raw_vals as $ix => $val){
-				
-			if(is_null($val)){
-				$type = \PDO::PARAM_NULL;
-			}elseif(is_int($val))
-				$type = \PDO::PARAM_INT;
-			elseif(is_bool($val))
-				$type = \PDO::PARAM_BOOL;
-			else 
-				$type = \PDO::PARAM_STR;	
-
-			$st->bindValue($ix +1 + $sh1 + $sh2 + $sh3 + $sh4, $val, $type);
-			//echo "Bind: ".($ix+1)." - $val ($type)\n";
-		}
-
-		$sh5 = count($this->having_raw_vals);
-
-
-		foreach($this->h_vals as $ix => $val){
-				
-			if(is_null($val)){
-				$type = \PDO::PARAM_NULL;
-			}elseif(isset($this->h_vars[$ix]) && isset($this->schema['attr_types'][$this->h_vars[$ix]])){
-				$const = $this->schema['attr_types'][$this->h_vars[$ix]];
-				$type = constant("PDO::PARAM_{$const}");
-			}elseif(is_int($val))
-				$type = \PDO::PARAM_INT;
-			elseif(is_bool($val))
-				$type = \PDO::PARAM_BOOL;
-			elseif(is_string($val))
-				$type = \PDO::PARAM_STR;	
-
-			$st->bindValue($ix +1 + $sh1 + $sh2 + $sh3 + $sh4 +$sh5, $val, $type);
-			//echo "Bind: ".($ix+1)." - $val ($type)\n";
-		}
-
-		$sh6 = count($this->h_vals);
-	
-
-		foreach($this->union_vals as $ix => $val){
-				
-			if(is_null($val)){
-				$type = \PDO::PARAM_NULL;
-			}elseif(is_int($val))
-				$type = \PDO::PARAM_INT;
-			elseif(is_bool($val))
-				$type = \PDO::PARAM_BOOL;
-			else 
-				$type = \PDO::PARAM_STR;	
-
-			$st->bindValue($ix +1 + $sh1 + $sh2 + $sh3 + $sh4 + $sh5 +$sh6, $val, $type);
-			//echo "Bind: ".($ix+1)." - $val ($type)\n";
-		}
-
-		$sh7 = count($this->union_vals);
-
+		$sh = count($vals);
 
 		$bindings = $this->pag_vals;
 		foreach($bindings as $ix => $binding){
-			$st->bindValue($ix +1 +$sh1 +$sh2 +$sh3 +$sh4 +$sh5 +$sh6 +$sh7, $binding[1], $binding[2]);
+			$st->bindValue($ix +1 +$sh, $binding[1], $binding[2]);
 		}		
 		
 		return $st;	

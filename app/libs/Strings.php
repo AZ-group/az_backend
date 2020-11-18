@@ -4,11 +4,8 @@ namespace simplerest\libs;
 
 use simplerest\libs\Debug;
 
-class Strings {
-	static function replaceMultipleSpaces($str){
-		return preg_replace('!\s+!', ' ', $str);
-	}
-
+class Strings 
+{
 	static function match(string $str, $pattern, callable $fn = NULL){
 		if (preg_match($pattern, $str, $matches)){
 			if ($fn != NULL)
@@ -127,11 +124,32 @@ class Strings {
 		$subject = str_replace($search,$replace,$subject);
 		
 		if (strpos($subject,$search)!==false)
-			recursiveReplace($search,$replace,$subject);
+			self::recursiveReplace($search,$replace,$subject);
 		
 		return $subject;	
 	}
 	
+	/**
+	* String replace nth occurrence
+	* 
+	* @param	type $search  		Search string
+	* @param	type $replace	 	Replace string
+	* @param	type $subject	 	Source string
+	* @param	type $occurrence 	Nth occurrence
+	* @return	type 				Replaced string
+	* @author	filipkappa
+	*/
+	static function replaceNth($search, $replace, $subject, $occurrence)
+	{
+		$search = preg_quote($search);
+		return preg_replace("/^((?:(?:.*?$search){".--$occurrence."}.*?))$search/", "$1$replace", $subject);
+	}
+   
+	static function replaceMultipleSpaces($str){
+		return preg_replace('!\s+!', ' ', $str);
+	}
+
+
 	/*
 		Atomiza string (divivirlo en caracteres constituyentes)
 		Source: php.net

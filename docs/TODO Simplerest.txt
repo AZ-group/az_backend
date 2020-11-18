@@ -1939,3 +1939,8 @@ https://github.com/phpbench/
 - Métricas con telegraf, influxdb y grafana
 
 https://aleson-itc.com/en/free-monitoring-using-influxdb-telegraf-and-grafana/
+
+
+- Prevenir correctamente SQL injections
+
+https://paragonie.com/blog/2015/05/preventing-sql-injection-in-php-applications-easy-and-definitive-guide

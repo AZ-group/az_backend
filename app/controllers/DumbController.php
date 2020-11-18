@@ -334,14 +334,12 @@ class DumbController extends Controller
 
     function limit(){
         dd(DB::table('products')
-        ->offset(20)
+        ->where(['cost', 200])
         ->select(['id', 'name', 'cost'])
         ->limit(10)
+        ->offset(20)
         ->get());
         
-        dd(DB::getLog());
-
-        dd(DB::table('products')->limit(10)->get());
         dd(DB::getLog());
     }
 
@@ -552,6 +550,7 @@ class DumbController extends Controller
         ->sum('cost', 'suma');
 
         dd($res);
+        dd(DB::getLog());
     }
 
     function min(){
@@ -578,7 +577,12 @@ class DumbController extends Controller
         select and addSelect
     */
     function select() {
-        dd(DB::table('products')->random()->select(['id', 'name'])->addSelect('cost')->first());
+        dd(DB::table('products')
+        ->random()
+        ->select(['id', 'name'])
+        ->addSelect('active')
+        ->where(['active', true])
+        ->first());
     }
 
     /*
@@ -944,7 +948,7 @@ class DumbController extends Controller
     /*
         SSELECT id, cost, size, description, belongs_to FROM products WHERE 
         
-        (name LIKE '%a') AND 
+        (name LIKE '%a%') AND 
         (cost > 100 AND id < 50) AND 
         (
             active = 1 OR 
@@ -962,7 +966,7 @@ class DumbController extends Controller
             ['id', 50, '<']
         ]) 
         // AND
-        ->whereRaw('name LIKE ?', ['%a'])
+        ->whereRaw('name LIKE ?', ['%a%'])
         // AND
         ->group(function($q){  
             $q->where(['active', 1])
@@ -974,10 +978,10 @@ class DumbController extends Controller
         })
         // AND
         ->where(['belongs_to', 150, '>'])
-        ->dontExec()
+        //->dontExec()
         ->select(['id', 'cost', 'size', 'description', 'belongs_to']);
 
-       //dd($m->get());  
+       dd($m->get());  
 	   var_dump($m->dd());
     }
 

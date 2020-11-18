@@ -141,27 +141,31 @@ class ModelTest extends TestCase
     ->where([ ['cost', 100, '>='], ['size', '1L'], ['belongs_to', 90] ])
     ->limit(10)->offset(20)
     ->get(['cost']);
+
     $this->assertEquals(DB::getLog(), "SELECT cost FROM products WHERE (cost >= 100 AND size = '1L' AND belongs_to = 90) AND deleted_at IS NULL LIMIT 20, 10;");
 
     // 
     DB::table('products')->random()->select(['id', 'name'])->addSelect('cost')->first();
     $this->assertEquals(DB::getLog(), "SELECT id, name, cost FROM products WHERE deleted_at IS NULL ORDER BY RAND();");
 
-
+    //
     DB::table('products')->setFetchMode('COLUMN')
     ->selectRaw('cost * ? as cost_after_inc', [1.05])->get();
+
     $this->assertEquals(DB::getLog(), "SELECT cost * 1.05 as cost_after_inc FROM products WHERE deleted_at IS NULL;");
 
     // 
     DB::table('products')
     ->where([ ['cost', 100, '>='], ['size', '1L'], ['belongs_to', 90] ])
     ->selectRaw('cost * ? as cost_after_inc', [1.05])->get();
+
     $this->assertEquals(DB::getLog(), "SELECT cost * 1.05 as cost_after_inc FROM products WHERE (cost >= 100 AND size = '1L' AND belongs_to = 90) AND deleted_at IS NULL;");
 
     //  
     DB::table('products')
     ->where([ ['cost', 100, '>='], ['size', '1L'], ['belongs_to', 90] ])
     ->selectRaw('cost * ? as cost_after_inc', [1.05])->distinct()->get();
+
     $this->assertEquals(DB::getLog(), "SELECT DISTINCT cost * 1.05 as cost_after_inc, name, description, size, cost, created_by, updated_by, deleted_by, active, locked, workspace, belongs_to FROM products WHERE (cost >= 100 AND size = '1L' AND belongs_to = 90) AND deleted_at IS NULL;");
 
     // 
@@ -640,6 +644,14 @@ class ModelTest extends TestCase
         $this->assertEquals($m->dd(), "SELECT * FROM other_permissions as op INNER JOIN folders ON op.folder_id=folders.id INNER JOIN users ON folders.belongs_to=users.id INNER JOIN user_roles ON users.id=user_roles.user_id WHERE (guest = 1 AND table = 'products' AND r = 1) ORDER BY users.id DESC;");
     }
 
+    /* 
+        Con \PDO::ATTR_EMULATE_PREPARES => false, detecta si los campos son existen o no en la DB
+        durante el prepare()
+
+        PDOException: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'az.countries' doesn't exist
+
+    */
+    /*    
     function test_leftjoin(){
         $users = DB::table('users')->select([
             "users.id",
@@ -653,6 +665,7 @@ class ModelTest extends TestCase
 
         $this->assertEquals(DB::getLog(), 'SELECT users.id, users.name, users.email, countries.name as country_name FROM users LEFT JOIN countries ON countries.id=users.country_id WHERE deleted_at IS NULL;');
     }
+    */
 
     function test_crossjoin(){
          DB::table('users')
