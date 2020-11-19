@@ -5,7 +5,9 @@ namespace simplerest\core\api\v1;
 use simplerest\libs\Debug;
 use simplerest\core\Request;
 use simplerest\libs\Factory;
+use simplerest\libs\Permissions;
 use simplerest\core\Controller;
+use simplerest\libs\DB;
 use simplerest\core\api\v1\AuthController;
 use simplerest\models\FolderPermissionsModel;
 use simplerest\models\FolderOtherPermissionsModel;
@@ -40,16 +42,31 @@ abstract class ResourceController extends Controller
 
         $this->acl = Factory::acl();
 
-        if (!Factory::request()->hasAuth()){;
-            $this->roles = [$this->acl->getGuest()];
-            $this->permissions = [];
+        $api_key = Factory::request()->getApiKey();
+        if ($api_key !== NULL){
+            $uid = DB::table('api_keys')->where(['value', $api_key])->select(['user_id'])->first();
+
+            if ($uid == NULL){
+                Factory::response()->sendError('Invalid API Key', 401);
+            }
+
+            $this->uid          = $uid; 
+            $this->roles        = Permissions::fetchRoles($uid); 
+            $this->permissions  = Permissions::fetchPermissions($uid) ?? NULL;
         } else {
 
-            $this->auth = $auth != null ? $auth : (new AuthController())->check();
+            if (!Factory::request()->hasAuth()){;
+                $this->roles = [$this->acl->getGuest()];
+                $this->permissions = [];
+            } else {
 
-            $this->uid          = $this->auth['uid']; 
-            $this->roles        = $this->auth['roles'];
-            $this->permissions  = $this->auth['permissions'] ?? NULL;   
+                $this->auth = $auth != null ? $auth : (new AuthController())->check();
+
+                $this->uid          = $this->auth['uid']; 
+                $this->roles        = $this->auth['roles'];
+                $this->permissions  = $this->auth['permissions'] ?? NULL;   
+            }
+
         }
 
         //dd($this->uid, 'uid');

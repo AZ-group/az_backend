@@ -1956,7 +1956,7 @@ class DumbController extends Controller
    
       // ok
     function sender(){
-        dd(Utils::send_mail('boctulus@gmail.com', 'Pablo ZZ', 'Pruebita', 'Hola!<p/>Esto es una <b>prueba</b><p/>Chau'));     
+        dd(Utils::sendMail('boctulus@gmail.com', 'Pablo ZZ', 'Pruebita', 'Hola!<p/>Esto es una <b>prueba</b><p/>Chau'));     
     }
 
     function validation_test(){

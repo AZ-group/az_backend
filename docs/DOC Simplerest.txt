@@ -7,6 +7,7 @@ Algunas características:
 
 - Arquitectura MVC 
 - APIs funcionan out--of-the-box o sea sin escribir nada de código ***
+- Autenticación via web tokens al estilo OAuth 2 y API Keys
 - ACL centralizado con sistema de roles y de permisos personalizados que decoran los roles
 - Posibilidad de "compartir" recursos via "folders"
 - Impersonate
@@ -407,6 +408,29 @@ o
 
 	Factory::config()->set('xxx','zzz');
 	dd(Factory::config()['xxx']);  // 'zzz'   
+
+
+### Autenticación
+
+El framework soporta dos tipos de autenticación, una basada en web tokens y otra en API Keys para backend-to-backend 
+
+Para API KEYs, se deben generar las apis para los usuarios (una por usuario) e insertarlas en la tabla api_keys.
+
+Hay dos formas de pasar la API KEY
+
+1) Via url agregando el parámetro api_key
+
+Ej:
+
+	GET /api/v1/some_resource?api_key=8ZfTPJB3VeCAAkea HTTP/1.1
+
+2) Via header X-API-KEY 
+
+	GET /api/v1/some_resource HTTP/1.1
+	X-API-KEY: 8ZfTPJB3VeCAAkea
+
+Más
+https://swagger.io/docs/specification/authentication/api-keys/
 
 
 ### Controlador
@@ -1404,7 +1428,7 @@ Es posible utiliza una sintaxis mucho más amigable importando la librería Vali
 
 # ACL
 
-La implementación del ACL incluye "roles" y permisos individuales para cada usuario sobre cada tabla expuesta a través de la API.
+La implementación del ACL incluye "roles" y permisos individuales (llamados también "scopes") para cada usuario sobre cada tabla expuesta a través de la API.
 
 Se está implentando un ACL centralizado que se configurará en /config/acl.php y si bien es muy flexible una forma es la siguiente:
 
@@ -1480,26 +1504,26 @@ El Acl genera algo como:
 	["vendedor"]=>
 	array(3) {
 		["role_id"]=>
-		int(1)
+			int(1)
 		["sp_permissions"]=>
-		array(0) {
-		}
+			array(0) {
+			}
 		["tb_permissions"]=>
-		array(2) {
-		["products"]=>
-		array(2) {
-			[0]=>
-			string(4) "read"
-			[1]=>
-			string(5) "write"
-		}
-		["foo"]=>
-		array(2) {
-			[0]=>
-			string(6) "create"
-			[1]=>
-			string(4) "list"
-		}
+			array(2) {
+			["products"]=>
+			array(2) {
+				[0]=>
+				string(4) "read"
+				[1]=>
+				string(5) "write"
+			}
+			["foo"]=>
+			array(2) {
+				[0]=>
+				string(6) "create"
+				[1]=>
+				string(4) "list"
+			}
 		}
 	}
 	["admin"]=>
@@ -1550,7 +1574,6 @@ El Acl genera algo como:
 		}
 	}
 	}
-
 
 Existen dos tipos de permisos que se pueden asignar a los roles:  "resource permissions" y "special permissions".
 
@@ -1695,6 +1718,35 @@ Para otro usuario:
 
 	<-- estos permisos sobre-escriben los permisos propios de su rol o roles del usuario y tienen prioridad por sobre los permisos especiales.
 
+
+# Scopes
+
+En OAuth se habla de "scopes" como simil a permisos en un sentido más abstracto pero se puede hacer corresponder a los permisos individuales de la siguiente forma:
+	
+	["tb_permissions"]=> {
+		["products"]=> [
+			"read",
+			"write"
+		],
+		["foo"]=> [
+			"read"
+		]
+	}
+
+equivale a 
+
+	products.read
+	products.write
+	foo.read
+
+
+* Los permisos se presentan de forma simple con la notación recurso.operación
+
+* La granulidad de los permisos suele expresarse para operaciones genéricas como "read", "write" y pueden definirse "alias" para ciertas operaciones como "emails.send" para "emails.create"
+
+* El desarrollador no "ve" -puede listar- permisos especiales (lo que no significa que no existan) 
+
+https://www.freecodecamp.org/news/best-practices-for-building-api-keys-97c26eabfea9/
 
 
 ### Folders

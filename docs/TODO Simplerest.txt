@@ -1,28 +1,51 @@
 # TODO
 
+[ ACL ]
 
-Dudas:
+- Agregar los métodos addDescription() y disabled(), enabled() que hace un update sobre la tabla roles.
 
-  - Un Service Provider en Laravel puede reemplazarse por otro? serviría para cambiar el proveedor de correo (SMTP) ?
+  ->addRole('basic', 2)
+  ->addDescription('Acceso muy básico')
+  ->disabled()    <------------------------- queda des-habilitado el rol 
+  ->addInherit('registered')
+  ->addResourcePermissions('products', ['write'])
+  
 
-  - Qué tipos de Service Provider hay? una librería también se distribuye como SP?
+- De forma alternativa a addResourcePermissions() se debe poder usar addScope()
 
-  - JSON:API es compatible con HATEOAS ?
+  ->addRole('guest', -1)
+  ->addResourcePermissions('products', ['read_all'])
+  ->addResourcePermissions('baz', ['read'])
+  ->addResourcePermissions('bar', ['read', 'write'])
 
-  - JSON:API has agregative functions? parece ser que NO.
+podría ser también,...
+
+  //..
+  ->addScope('products.read_all')
+  ->addScope('emails.create')
 
 
---- Probar con NGINX
+- Permitir definir "alias" para los scopes:
+
+  //..
+  ->addScope('products.read_all')->alias('products.read.all')
+  ->addScope('emails.create')->alias('emails.send')
 
 
-- Debe haber orJoin() como orWhere() y orHaving() 
+[ ETC ]
 
-https://stackoverflow.com/a/36074909/980631
-https://laravel.com/docs/5.8/queries#where-exists-clauses
+- Hacer script de instalación
 
+- Investigar microservicios. Buscar un Hello World. Cómo es la communicación entre microservicios?
+
+
+[ MIGRATIONS ]
+
+- Usar la tabla `migrations`  !!!
+
+- En "make migrations from:db" usar la opción --agnostic para que la migración desde la db sea con métodos encadenados en vez de con SQL (CREATE TABLE...)
 
 - Migraciones *sin* el método down() <-- el estado anterior se obtiene del historial de migraciones.
-
 
 - Absorver la DB de Fabricio con:
 
@@ -138,6 +161,27 @@ Se propone en el Schema donde vaya a haber cambios agregar una transición:
 
 
 https://blog.staffjoy.com/dont-migrate-databases-automatically-5039ab061365
+
+
+- Dudas:
+
+  - Un Service Provider en Laravel puede reemplazarse por otro? serviría para cambiar el proveedor de correo (SMTP) ?
+
+  - Qué tipos de Service Provider hay? una librería también se distribuye como SP?
+
+  - JSON:API es compatible con HATEOAS ?
+
+  - JSON:API has agregative functions? parece ser que NO.
+
+
+--- Probar con NGINX
+
+
+- Debe haber orJoin() como orWhere() y orHaving() 
+
+https://stackoverflow.com/a/36074909/980631
+https://laravel.com/docs/5.8/queries#where-exists-clauses
+
 
 
 - Leer :
@@ -1339,6 +1383,7 @@ Ejemplo (API de Facebook)
 "next": "https://graph.facebook.com/me/albums?limit=25&after=MTAxNTExOTQ1MjAwNzI5NDE="
 }
 
+https://www.eversql.com/faster-pagination-in-mysql-why-order-by-with-limit-and-offset-is-slow/
 https://blog.octo.com/design-a-rest-api/  # -> Paging
 https://www.eversql.com/faster-pagination-in-mysql-why-order-by-with-limit-and-offset-is-slow/
 
@@ -1346,9 +1391,11 @@ https://www.eversql.com/faster-pagination-in-mysql-why-order-by-with-limit-and-o
 a nivel de API
 
 protected $hidden = [
-                      'password',
-                      'active' => ['guest', 'basic'] 
+    'password',
+    'active' => ['guest', 'basic'] 
 ]
+
+<-- seguramente puede hacerse con hooks sobre el modelo o con un transformer *
 
 - Restricción de valores 
 
@@ -1884,7 +1931,10 @@ https://culttt.com/2015/10/12/sending-template-emails-through-mandrill-in-larave
     php artisan migrate
 
 
-- Implementar API de Mailchimp como Servicio o Library
+- Implementar API de Mailchimp, Mailgun o MailTrap como Servicio o Library
+
+https://www.mailgun.com/
+https://mailtrap.io/signin
 
 
 - Probar var_dumper de Symfony
@@ -1944,3 +1994,180 @@ https://aleson-itc.com/en/free-monitoring-using-influxdb-telegraf-and-grafana/
 - Prevenir correctamente SQL injections
 
 https://paragonie.com/blog/2015/05/preventing-sql-injection-in-php-applications-easy-and-definitive-guide
+
+
+- Autorización "basica" (user y pass) vs API Key vs OAuth
+
+    Basic   is very easy to implement, but would you give your Google account password to someone? (You shouldn't!)
+
+    API Key is as easy to implement, both for the API provider and the developer, but have you ever tried to ask a non-techie to give you their API key?
+    
+    OAuth (especially OAuth2.0) is the best user experience. Your user clicks on a button and that's it. But for developers, implementing an OAuth dance can be tricky!
+
+
+  Using API keys is a way to authenticate an application accessing the API, without referencing an actual user. The app adds the key to each API request, and the API can use the key to identify the application and authorize the request. The key can then be used to perform things like rate limiting, statistics, and similar actions.
+
+  Google Cloud accepts the API key with a query parameter like this:
+
+  curl -X POST https://language.googleapis.com/v1/documents:analyzeEntities?key=API_KEY
+
+  Cloudflare requires the API key to be sent in a custom header:
+
+  curl https://api.cloudflare.com/client/v4/zones/cd7d0123e301230df9514d \
+      -H "Content-Type:application/json" \
+      -H "X-Auth-Key:1234567893feefc5f0q5000bfo0c38d90bbeb" \
+      -H "X-Auth-Email:example@example.com" 
+
+ The API key only identifies the application, not the user of the application. It’s often difficult to keep the key a secret. For server-to-server communication, it’s possible to hide the key using TLS and restrict the access to only be used in backend scenarios.      
+
+https://blog.bearer.sh/the-three-most-common-api-authentication-methods/  
+https://nordicapis.com/the-difference-between-http-auth-api-keys-and-oauth/  
+
+
+- Cuando usar OAuth !
+
+You need OAuth only when you want to enable a user of your service to allow a third-party client application to access his/her data hosted in your service without revealing his/her credentials (ID & password) to the application.
+
+
+- Cursores
+
+https://www.geeksforgeeks.org/what-is-cursor-in-sql/
+https://docs.microsoft.com/en-us/sql/ado/guide/data/understanding-cursors-and-locks?view=sql-server-ver15
+https://www.sqlshack.com/understanding-cursors-replacing-joins-sql-server/
+https://www.sqlshack.com/using-sql-server-cursors-advantages-and-disadvantages/
+https://dev.mysql.com/doc/refman/8.0/en/cursors.html
+https://www.brainbell.com/tutorials/MySQL/Working_With_Cursors.htm
+
+- Paginación con cursores
+
+https://stackoverflow.com/questions/55744926/offset-pagination-vs-cursor-pagination
+https://dev.to/jackmarchant/offset-and-cursor-pagination-explained-b89
+https://dev.to/rahul_ramfort/understanding-offset-vs-cursor-based-pagination-1582
+
+
+- Calling stored procedures in PHP (PDO)
+
+https://www.ibm.com/support/knowledgecenter/SSEPGG_11.5.0/com.ibm.swg.im.dbclient.php.doc/doc/t0023502.html
+
+
+- Para generar las "secret keys" del config hacer algo como WordPress que ofrece una url (que podría ser local) donde se generan.
+
+/**#@+
+ * Authentication Unique Keys and Salts.
+ *
+ * Change these to different unique phrases!
+ * You can generate these using the {@link https://api.wordpress.org/secret-key/1.1/salt/ WordPress.org secret-key service}
+ * You can change these at any point in time to invalidate all existing cookies. This will force all users to have to log in again.
+ *
+ * @since 2.6.0
+ */
+define( 'AUTH_KEY',         'put your unique phrase here' );
+define( 'SECURE_AUTH_KEY',  'put your unique phrase here' );
+define( 'LOGGED_IN_KEY',    'put your unique phrase here' );
+define( 'NONCE_KEY',        'put your unique phrase here' );
+define( 'AUTH_SALT',        'put your unique phrase here' );
+define( 'SECURE_AUTH_SALT', 'put your unique phrase here' );
+define( 'LOGGED_IN_SALT',   'put your unique phrase here' );
+define( 'NONCE_SALT',       'put your unique phrase here' );
+
+
+- Laravel, leer:
+
+https://pineco.de/route-bind-contracts-in-laravel/
+
+
+[ API KEY autentication ]
+
+API Key Generation
+
+Since the API key itself is an identity by which to identify the application or the user, it needs to be unique, random and non-guessable. API keys that are generated must also use Alphanumeric and special characters. An example of such an API key is zaCELgL.0imfnc8mVLWwsAawjYr4Rx-Af50DDqtlx.
+
+We don’t need to know the raw API key, but just need to validate that the key is correct. So instead of storing the key in plain text (bad) or encrypting it, we should *store it as a hashed value* within our database. *******
+
+Since we don’t store the original API key, we can show it only once to the user, at the time of creation. *
+
+Another problem is how users identify the right API key in your console if they need to edit or revoke it. This can be solved by adding a prefix to the API key. Notice in the picture above the first 7 characters (that’s our prefix), separated by the dot.
+
+Adjuntar un prefijo para poder identificar distintas API keys para distintas aplicaciones o con distintos scopes:
+
+	API key {prefix}.{hash_of_whole_api_key}.
+	
+Don’t give the API Key all the power
+
+One common mistake that API key providers make is providing one key to access everything, since it’s easy to manage. Don’t do that. Assume that a user just needs to read an email, and generates an API key. But that key now has full access to other services, including deleting records in the database.
+
+The right approach is to allow the end users to properly restrict API Key access and choose specific actions that an API key can carry out. This can be done by providing scopes, where each scope represents a specific permission.
+
+For example,
+
+    if you need an API key to just send emails, you can generate an API key with the scope as “email.send”
+	
+https://www.freecodecamp.org/news/best-practices-for-building-api-keys-97c26eabfea9/	
+	
+
+- Observación: 
+  
+  En la tabla `users` se tomó la desición de hacer que el `password` sea nullable para poder permitir registro a través de la API de Google / Facebook *pero* entonces al hacer un registro "normal" el campo email debe ser obligatorio (estar presente en el schema y no ser nullable) o se podría dar el caso de crear un usuario y sin password y no poder recuperarlo:
+
+  {
+    "username": "vik455",
+    "email": NULL,  
+    "password": NULL
+    "roles": ["regular"]
+  }        
+
+OK:
+  username  valor
+  email     valor
+  password  valor 
+
+OK:
+  username  NULL
+  email     valor
+  password  valor  
+
+OK:
+  username  valor
+  email     NULL 
+  password  valor
+
+<-- el problema es que no es posible recuperar la cuenta sino es con contacto con el admin.
+
+NO!
+  username  valor
+  email     NULL 
+  password  NULL
+
+<-- no es posible loguearse ni "restablecer" un password cuando la cuenta esté pendiente de activación porque se requiere correo para recuperar cuenta (excepto sea via SMS)
+
+De mínima exigir que:  `username` y `email` no puedan ser nullables simultaneamente !
+En alguna parte del proceso de registro sugerir completar el email aunque sea nullable en la tabla
+
+
+- Mejorar enlaces generados en rememberme para hacerlos menos verbosos usando el router
+
+  http://az.lan/api/v1/auth/change_pass_by_link/eyJ0eXAiOiJKV1QiLC.....
+
+podría ser
+
+  http://az.lan/change-pass/eyJ0eXAiOiJKV1QiLC....
+
+
+- Al llamar intentar cambiar el password siguiendo el enlance /api/v1/auth/change_pass_by_link debe darse por verificado el correo. Si el correo se verifica y es estado del usuario es NULL debe pasar a "activo"
+
+    http://az.lan/api/v1/auth/change_pass_by_link/eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImlhdCI6MTYwNTc5NTgyOSwiZXhwIjoxNjA2NDAwNjI5LCJpcCI6IjEyNy4wLjAuMSIsInVpZCI6NDczfQ.ni-DzwD0XF86jGwt9LtexGqiHnISiM61nWtYrWWvcm8/1606400629
+
+
+- Por qué el resultado de funciones agregativas no está casteado?
+
+    php com dumb avg
+
+    array (
+      'prom' => '218.3333',   <-- debe ser 218.3333 (float)
+    )
+
+
+<-- parece ser que es porque PDO maneja float como String
+
+
+- Actualmente (corregir) el ApiController solo está tomando en cuenta los "permisos especiales" del archivo acl.php y no toma en cuenta los especificados en user_sp_permissions

@@ -55,6 +55,9 @@ abstract class ApiController extends ResourceController
         
         $perms = $this->getPermissions($this->model_table);
         //dd($perms, 'perms'); /////
+        //dd($this->acl->getRolePermissions());
+        //dd($this->acl->hasSpecialPermission('read_all', $this->roles));
+        //exit; ///
 
         switch ($_SERVER['REQUEST_METHOD']) {
             case 'GET':
@@ -440,7 +443,7 @@ abstract class ApiController extends ResourceController
                     Factory::response()->send($rows[0]);
                     
                     // event hook
-                    $this->onGot($id, $total);
+                    //$this->onGot($id, $total);
                 }
             }else{    
                 // "list
@@ -1036,7 +1039,7 @@ abstract class ApiController extends ResourceController
 
             if (!empty($this->folder)) {
                 // event hook 
-                onPuttingFolderAfterCheck($id, $data, $this->folder);
+                $this->onPuttingFolderAfterCheck($id, $data, $this->folder);
             }
 
             // event hook

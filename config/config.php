@@ -87,9 +87,9 @@ return [
 			'from'	 => ['no_responder@simplerest.mapapulque.ro', 'No responder'],	
 			'object' => [
 				'Host' => 'smtp.easyname.com',
+				'Port' => 587,
 				'Username' => '162997mail6',
 				'Password' => 'Hvr0tf9Is#',
-				'Port' => 587,
 	            'SMTPAuth' => true,
 				'SMTPSecure' => 'ssl',
 				'SMTPDebug' => 4,

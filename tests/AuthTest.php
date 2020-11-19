@@ -144,6 +144,7 @@ class AuthTest extends TestCase
 
         $uid = $this->get_me($res['data']['access_token'])['id'];
 
+        /*
         $role_ids = DB::table('user_roles')->where(['user_id' => $uid])->pluck('role_id');
         $rm = new RolesModel();
 
@@ -152,6 +153,7 @@ class AuthTest extends TestCase
                 in_array($rm->get_role_name($role_id), $rt_payload->roles)
             );
         }
+        */
 
 	}
 

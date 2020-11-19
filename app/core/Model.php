@@ -1058,6 +1058,7 @@ class Model {
 			}elseif(is_float($val))
 				$type = \PDO::PARAM_STR;  // 2
 			elseif(is_resource($val))	
+				// https://stackoverflow.com/a/36724762/980631
 				$type = \PDO::PARAM_LOB;  // 3
 			elseif(is_array($val)){
 				throw new \Exception("where value can not be an array!");				

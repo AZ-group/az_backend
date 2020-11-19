@@ -35,6 +35,7 @@ if (!$acl_cache || is_file($acl_file) !== true) {
     ->addRole('basic', 2)
     ->addInherit('registered')
     ->addResourcePermissions('products', ['write'])
+    ->addResourcePermissions('files', ['list_all'])
  
 
     //->addRole('registeredO', 1)

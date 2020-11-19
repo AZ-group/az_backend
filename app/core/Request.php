@@ -15,27 +15,6 @@ class Request  implements \ArrayAccess, Arrayable
 
     protected function __construct() { }
 
-    // @author limalopex.eisfux.de
-    static function apache_request_headers() {
-        $arh = array();
-        $rx_http = '/\AHTTP_/';
-        foreach($_SERVER as $key => $val) {
-          if( preg_match($rx_http, $key) ) {
-            $arh_key = preg_replace($rx_http, '', $key);
-            $rx_matches = array();
-            // do some nasty string manipulations to restore the original letter case
-            // this should work in most cases
-            $rx_matches = explode('_', $arh_key);
-            if( count($rx_matches) > 0 and strlen($arh_key) > 2 ) {
-              foreach($rx_matches as $ak_key => $ak_val) $rx_matches[$ak_key] = ucfirst($ak_val);
-              $arh_key = implode('-', $rx_matches);
-            }
-            $arh[$arh_key] = $val;
-          }
-        }
-        return( $arh );
-    }
-
     static function getInstance(){
         if(static::$instance == NULL){
             if (php_sapi_name() != 'cli'){
@@ -44,11 +23,14 @@ class Request  implements \ArrayAccess, Arrayable
 				
                 static::$raw  = file_get_contents("php://input");
                 static::$body = json_decode(static::$raw, true);
+                static::$headers = apache_request_headers();
 
-                if (function_exists('apache_request_headers'))
-                    static::$headers = apache_request_headers();
-                else
-                    static::$headers = static::apache_request_headers();
+                $tmp = [];
+                foreach (static::$headers as $key => $val){
+                    $tmp[strtolower($key)] = $val;
+                }
+                static::$headers = $tmp;
+                
             }
             static::$instance = new static();
         }
@@ -64,16 +46,30 @@ class Request  implements \ArrayAccess, Arrayable
         return static::$headers;
     }
 
-    function header($key){
-        return static::$headers[$key] ?? NULL;
+    function header(string $key){
+        return static::$headers[strtolower($key)] ?? NULL;
     }
 
     function getAuth(){
-        return static::$headers['Authorization'] ?? static::$headers['authorization'] ?? NULL;
+        return static::$headers['authorization'] ?? NULL;
     }
 
     function hasAuth(){
-        return static::getAuth() != NULL; 
+        return $this->getAuth() != NULL; 
+    }
+
+    /*
+        Lo más eficiente sería convertir todos los array_keys en mayúsculas o minúsculas
+        y no tener que buscar de todas las formas posibles.
+    */
+    function getApiKey(){
+        return  $this->shiftQuery('api_key') ??
+                static::$headers['x-api-key'] ??                 
+                NULL;
+    }
+
+    function hasApiKey(){
+        return $this->getApiKey() != NULL; 
     }
 
     function gzip(){
