@@ -19,9 +19,9 @@ class TrashCan extends MyApiController
     
     function __construct()
     {
-        $entity  = Factory::request()
-        ->getRequestMethod() == 'GET'   ? Factory::request()->shiftQuery('entity') 
-                                        : Factory::request()->shiftBodyParam('entity');
+        $entity  =  Factory::request()->header('entity') ??        
+                    Factory::request()->shiftQuery('entity') ??
+                    Factory::request()->shiftBodyParam('entity');
                 
         if (empty($entity))
             Factory::response()->sendError('Entity is required', 400);
@@ -51,6 +51,7 @@ class TrashCan extends MyApiController
             Factory::response()->sendError('Not implemented', 501, "Trashcan not implemented for $entity");
         }
             
+        $this->ask_for_deleted = true; 
         
         //var_dump(Factory::request()->getBody());
         //dd($this->model_name);
@@ -58,6 +59,10 @@ class TrashCan extends MyApiController
         parent::__construct();
 
     }
+
+    function get($id = null) {
+        parent::get($id);
+    }  
 
     protected function onGettingAfterCheck($id){
         $this->instance

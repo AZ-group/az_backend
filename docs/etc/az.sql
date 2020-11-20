@@ -849,10 +849,12 @@ INSERT INTO `sp_permissions` (`id`, `name`) VALUES
 (7, 'lock'),
 (1, 'read_all'),
 (3, 'read_all_folders'),
+(5, 'read_all_trashcan'),
 (8, 'transfer'),
 (2, 'write_all'),
 (12, 'write_all_collections'),
-(4, 'write_all_folders');
+(4, 'write_all_folders'),
+(6, 'write_all_trashcan');
 
 -- --------------------------------------------------------
 

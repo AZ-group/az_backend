@@ -592,15 +592,7 @@ class AuthController extends Controller implements IAuth
             
     }
 
-    /* 
-    Authorization checkin
-    
-    @return mixed object | null
-    */
-    function check() {
-        // lo siguiente iría en un hook  !
-        //file_put_contents('CHECK.txt', 'HTTP VERB: ' .  $_SERVER['REQUEST_METHOD']."\n", FILE_APPEND);
-
+    private function jwtPayload(){
         $auth = Factory::request()->getAuth();
 
         if (empty($auth))
@@ -655,7 +647,43 @@ class AuthController extends Controller implements IAuth
             Factory::response()->sendError('Authorization jwt token not found',400);
         }
 
-        //return false;
+    }
+
+    /* 
+    Authorization checkin
+    
+        @return mixed array | null
+    */
+    function check() {
+        switch (Factory::request()->authMethod()){
+            case 'API_KEY': 
+                $api_key = Factory::request()->getApiKey();
+                $uid = DB::table('api_keys')->where(['value', $api_key])->value('user_id');
+
+                if ($uid == NULL){
+                    Factory::response()->sendError('Invalid API Key', 401);
+                }
+
+                $ret = [
+                    'uid' => $uid,
+                    'roles' => Permissions::fetchRoles($uid),
+                    'permissions' => Permissions::fetchPermissions($uid),
+                    'active' => true //
+                ];
+            break;
+            case 'JWT':
+                $ret = $this->jwtPayload();
+            break;
+            default:
+                $ret = [
+                    'uid' => null,
+                    'roles' => [Factory::acl()->getGuest()],
+                    'permissions' => [],
+                    'active' => null
+                ];
+        }
+
+        return $ret;
     }
 
     

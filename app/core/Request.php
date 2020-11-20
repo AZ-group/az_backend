@@ -72,7 +72,7 @@ class Request  implements \ArrayAccess, Arrayable
         if ($this->hasApiKey()){
             return 'API_KEY';
         }elseif ($this->hasAuth()){
-            return 'AUTH';
+            return 'JWT';
         }
     }
 

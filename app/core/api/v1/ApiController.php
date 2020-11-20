@@ -35,6 +35,8 @@ abstract class ApiController extends ResourceController
     protected $id;
     protected $folder;
 
+    protected $ask_for_deleted;
+
 
     function __construct($auth = null) 
     {  
@@ -296,6 +298,12 @@ abstract class ApiController extends ResourceController
             // event hook
             $this->onGettingAfterCheck($id);
 
+            if ($this->ask_for_deleted && !$this->acl->hasSpecialPermission('read_all_trashcan', $this->roles)){
+                if ($this->instance->inSchema(['belongs_to'])){
+                    $data['belongs_to'] = $this->uid;
+                }
+            } 
+
             $id_name = $this->instance->getIdName();
 
             if ($id == null) {            
@@ -406,7 +414,7 @@ abstract class ApiController extends ResourceController
             {
                 $_get = [
                     [$id_name, $id]
-                ];  
+                ];                 
 
                 if (empty($this->folder)){               
                     // root, by id          
@@ -419,9 +427,10 @@ abstract class ApiController extends ResourceController
                         } 
                                                 
                     } else {
-                        if ($owned && !$this->acl->hasSpecialPermission('read_all', $this->roles) && 
-                            !$this->acl->hasResourcePermission('show_all', $this->roles, $this->model_table))
+                        if ($owned && !$this->acl->hasSpecialPermission('read_all', $this->roles) && !$this->acl->hasResourcePermission('show_all', $this->roles, $this->model_table))
+                        {                              
                             $_get[] = ['belongs_to', $this->uid];
+                        }                            
                     }
                        
                     
@@ -1044,6 +1053,13 @@ abstract class ApiController extends ResourceController
 
             // event hook
             $this->onPuttingAfterCheck($id, $data);
+
+            if (!$owned && $this->show_deleted && !$this->acl->hasSpecialPermission('write_all_trashcan', $this->roles)){
+                if ($this->instance->inSchema(['belongs_to'])){
+                    $data['belongs_to'] = $this->uid;
+                } 
+            } 
+                        
 
             try {
                 $affected = $this->instance->where([$id_name => $id])->update($data);

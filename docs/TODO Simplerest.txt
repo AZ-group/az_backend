@@ -632,6 +632,7 @@ https://bezkoder.com/django-mongodb-crud-rest-framework/
 - Actualizar la documentación
 
 - Chequear phpFastCache
+
 https://www.phpfastcache.com/
 
 - Chequear que no sea posible el escalamiento de privilegios otorgando roles o permisos.
@@ -2169,3 +2170,16 @@ podría ser
 
 
 - Actualmente (corregir) el ApiController solo está tomando en cuenta los "permisos especiales" del archivo acl.php y no toma en cuenta los especificados en user_sp_permissions
+
+
+- Mediante "API reversa" y si se usa MySQL en el servidor y MySQL / SQLite localmente implementar algo similar a PouchDB / CouchDB.
+
+PouchDB (local)  -----------> [ API REST ] [ CouchDB (server) ]
+
+"CouchDB uses a REST API for interfacing with the database, which means we use HTTP methods like PUT, POST and DELETE to interact with the database."
+
+
+https://www.tutorialspoint.com/pouchdb/pouchdb_synchronization.htm
+https://www.joshmorony.com/offline-syncing-in-ionic-2-with-pouchdb-couchdb/
+
+Obviamente si el schema en el servidor cambia, debe cambiar localmente => ejecutar migraciones local.

@@ -1183,7 +1183,7 @@ class Model {
 
 		$count = null;
 		if ($this->exec && $st->execute()) {
-			$ret = $st->fetch(\PDO::FETCH_NUM)[0];
+			$ret = $st->fetch(\PDO::FETCH_NUM)[0] ?? false;
 			
 			$count = $st->rowCount();
 			$this->onRead($count);

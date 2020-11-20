@@ -432,7 +432,6 @@ Ej:
 Más
 https://swagger.io/docs/specification/authentication/api-keys/
 
-
 ### Controlador
 
 Para demostrar como ejecutar un controlador desde la linea de comandos ejemplificaremos con un simple controlador ubicado en la carpeta controllers:
@@ -1672,6 +1671,8 @@ Para un usuario:
 		write_all				[del]	
 		read_all_collections	[del]
 		write_all_collections	[del]
+		read_all_trashcan		[del]
+		write_all_trashcan		[del]
 		transfer				[del]
 		lock					[del]
 		impersonate				[del]
@@ -1715,12 +1716,6 @@ Para otro usuario:
 	[ ]	delete
 
 	<-- estos permisos sobre-escriben los permisos propios de su rol o roles del usuario y tienen prioridad por sobre los permisos especiales.
-
-
-Quedan "depredicados" los permisos especiales:
-
-	read_all_trashcan
-	write_all_trashcan
 
 
 # Scopes
@@ -1945,6 +1940,8 @@ Para hacer un "undelete" de un recurso se hace un PATCH o PUT sobre el trash_can
 		"trashed": false
 	}
 
+* por concistencia, se admite que 'entity' sea especificado en headers, en la query de la url o bien en el body en cualquier caso.
+
 Para eliminar *permanentemente* un recurso se realiza un DELETE sobre el elemento en la papelera:
 
 	DELETE /api/v1/trash_can/157
@@ -1962,24 +1959,24 @@ La papelera acepta los mismos filtros y los resultados se pueden ordenar igual q
 
 Para realizar acciones masivas se recomienda crear colecciones. Por ejemplo si quisiera afectar 3 registros:
 
-POST /api/v1/collections
+	POST /api/v1/collections
 
-{
-	"entity": "products",
-	"refs": [198,199,200]
-}
+	{
+		"entity": "products",
+		"refs": [198,199,200]
+	}
 
 Luego si por ejemplo quiero realizar una edición masiva de un campo "enabled" poniéndolo en 1 en toda la colección 
 
-PATCH /api/v1/collections/2
+	PATCH /api/v1/collections/2
 
-{
-    "cost": "99"
-}
+	{
+		"cost": "99"
+	}
 
 Para borrar masivamente
 
-DELETE /api/v1/collections/9
+	DELETE /api/v1/collections/9
 
 Cabe destacar que las operaciones PATCH y DELETE se efectuan sobre los registros contenidos en la colección de sus respectiva entidad o dicho de otro modo un DELETE sobre una colección no borra solo el registro de la colección sino los registros asociados + el registro de la colección.
 
@@ -1995,7 +1992,7 @@ Son seguras las colecciones?
 
 Filtrar colecciones
 
-GET /api/v1/collections?entity=documents
+	GET /api/v1/collections?entity=documents
 
 
 ### Convención de nombres 

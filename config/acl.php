@@ -19,7 +19,7 @@ if (!$acl_cache || is_file($acl_file) !== true) {
 
     $acl
     ->addRole('guest', -1)
-    ->addResourcePermissions('products', ['read_all'])
+    ->addResourcePermissions('products', ['read'])  //  ---- es importante el read_all_trashcah !!!
     ->addResourcePermissions('baz', ['read'])
     ->addResourcePermissions('bar', ['read', 'write'])
     //->setGuest('guest')
@@ -54,17 +54,13 @@ if (!$acl_cache || is_file($acl_file) !== true) {
 
     ->addRole('admin', 100)
     ->addInherit('registered')
-    ->addSpecialPermissions([   'read_all', 
-                                'write_all', 
-                                'read_all_folders', 
-                                'lock', 
-                                'fill_all', 
-                                'impersonate'
-                                ])
+    ->addSpecialPermissions(['read_all', 'write_all', 'read_all_folders', 'lock', 'fill_all', 'impersonate'])
  
     ->addRole('superadmin', 500)
     ->addInherit('admin')
     ->addSpecialPermissions([
+                             'read_all_trashcan',
+                             //'write_all_trashcan',
                              'write_all_folders', 
                              'write_all_collections',
                              'transfer',
