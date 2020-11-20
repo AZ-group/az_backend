@@ -18,40 +18,40 @@ class MySelf extends MyApiController
 
     function __construct() 
     { 
-        if (Factory::request()->hasAuth()){
-            $this->callable = ['get', 'put', 'patch', 'delete'];
+        parent::__construct();
 
-            $this->is_listable = true;
-            $this->is_retrievable = true;
+        if (Factory::request()->authMethod() != NULL){
+                $this->callable = ['get', 'put', 'patch', 'delete'];
+
+                $this->is_listable = true;
+                $this->is_retrievable = true;
         } else {
             Factory::response()->sendError("Forbidden", 403, "You need to be authenticated");
         }
-        
-        parent::__construct();
     }
 
     function get($id = null){
-        $id = $this->auth['uid'];
+        $id = $this->uid;
         parent::get($id);
     } 
 
     function put($id = NULL)
     { 
-        $id = $this->auth['uid'];
+        $id = $this->uid;
         parent::put($id);
     } //
 
     function patch($id = NULL)
     { 
-        $id = $this->auth['uid'];
+        $id = $this->uid;
         parent::patch($id);
     } //
         
     function delete($id = null){
-        $id = $this->auth['uid'];
+        $id = $this->uid;
 
         $ok = (bool) DB::table('users')->where([['id', $id], ['active', 1]])
-            ->fill(['active'])
+        ->fill(['active'])
         ->update(['active' => 0]);
 
         if ($ok) {

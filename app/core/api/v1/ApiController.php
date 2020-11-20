@@ -187,7 +187,7 @@ abstract class ApiController extends ResourceController
         $this->impersonated_by = $this->auth->impersonated_by ?? null;
 
     
-        //dd($this->auth['uid'] ?? NULL, 'uid');
+        //dd($this->uid ?? NULL, 'uid');
         //dd($perms, 'permissions');
         //dd($this->roles, 'roles');    
         //dd($this->is_listable, 'is_listable?');
@@ -1022,8 +1022,8 @@ abstract class ApiController extends ResourceController
                 }
 
                 if  ($owned && !$this->acl->hasSpecialPermission('write_all', $this->roles) && $rows[0]['belongs_to'] != $this->uid){
-                    Factory::response()->sendError('Forbidden', 403, 'You are not the owner');
-                }
+                    Factory::response()->sendError('Forbidden', 403, 'You are not the owner!');
+                } 
                     
             }        
 

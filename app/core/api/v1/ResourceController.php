@@ -42,32 +42,32 @@ abstract class ResourceController extends Controller
 
         $this->acl = Factory::acl();
 
-        $api_key = Factory::request()->getApiKey();
-        if ($api_key !== NULL){
-            $uid = DB::table('api_keys')->where(['value', $api_key])->select(['user_id'])->first();
 
-            if ($uid == NULL){
-                Factory::response()->sendError('Invalid API Key', 401);
-            }
+        switch (Factory::request()->authMethod()){
+            case 'API_KEY': 
+                $api_key = Factory::request()->getApiKey();
+                $uid = DB::table('api_keys')->where(['value', $api_key])->value('user_id');
 
-            $this->uid          = $uid; 
-            $this->roles        = Permissions::fetchRoles($uid); 
-            $this->permissions  = Permissions::fetchPermissions($uid) ?? NULL;
-        } else {
+                if ($uid == NULL){
+                    Factory::response()->sendError('Invalid API Key', 401);
+                }
 
-            if (!Factory::request()->hasAuth()){;
-                $this->roles = [$this->acl->getGuest()];
-                $this->permissions = [];
-            } else {
-
+                $this->uid          = $uid; 
+                $this->roles        = Permissions::fetchRoles($uid); 
+                $this->permissions  = Permissions::fetchPermissions($uid) ?? NULL;
+            break;
+            case 'AUTH':
                 $this->auth = $auth != null ? $auth : (new AuthController())->check();
 
                 $this->uid          = $this->auth['uid']; 
                 $this->roles        = $this->auth['roles'];
                 $this->permissions  = $this->auth['permissions'] ?? NULL;   
-            }
-
+            break;
+            default:
+                $this->roles = [$this->acl->getGuest()];
+                $this->permissions = [];
         }
+
 
         //dd($this->uid, 'uid');
         //dd($this->acl->getRoleName(), 'possible roles');  ///// 

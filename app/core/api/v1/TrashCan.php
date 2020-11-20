@@ -59,10 +59,6 @@ class TrashCan extends MyApiController
 
     }
 
-    function get($id = null) {
-        parent::get($id);
-    }  
-
     protected function onGettingAfterCheck($id){
         $this->instance
         ->showDeleted()

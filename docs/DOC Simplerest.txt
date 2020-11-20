@@ -1672,8 +1672,6 @@ Para un usuario:
 		write_all				[del]	
 		read_all_collections	[del]
 		write_all_collections	[del]
-		read_all_trashcan		[del]
-		write_all_trashcan		[del]
 		transfer				[del]
 		lock					[del]
 		impersonate				[del]
@@ -1717,6 +1715,12 @@ Para otro usuario:
 	[ ]	delete
 
 	<-- estos permisos sobre-escriben los permisos propios de su rol o roles del usuario y tienen prioridad por sobre los permisos especiales.
+
+
+Quedan "depredicados" los permisos especiales:
+
+	read_all_trashcan
+	write_all_trashcan
 
 
 # Scopes

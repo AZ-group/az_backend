@@ -58,10 +58,6 @@ class Request  implements \ArrayAccess, Arrayable
         return $this->getAuth() != NULL; 
     }
 
-    /*
-        Lo más eficiente sería convertir todos los array_keys en mayúsculas o minúsculas
-        y no tener que buscar de todas las formas posibles.
-    */
     function getApiKey(){
         return  $this->shiftQuery('api_key') ??
                 static::$headers['x-api-key'] ??                 
@@ -70,6 +66,14 @@ class Request  implements \ArrayAccess, Arrayable
 
     function hasApiKey(){
         return $this->getApiKey() != NULL; 
+    }
+
+    function authMethod(){
+        if ($this->hasApiKey()){
+            return 'API_KEY';
+        }elseif ($this->hasAuth()){
+            return 'AUTH';
+        }
     }
 
     function gzip(){

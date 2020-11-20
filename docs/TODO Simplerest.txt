@@ -403,8 +403,6 @@ https://mariadb.com/kb/en/myrocks/
 				"write_all",
 				"read_all_collections",
 				"write_all_collections",
-				"read_all_trashcan",
-				"write_all_trashcan",
 				"transfer",
 				"lock",
 				"impersonate"

@@ -32,11 +32,12 @@ if (!$acl_cache || is_file($acl_file) !== true) {
     ->addResourcePermissions('super_cool_table', ['read', 'write'])
        
 
-    ->addRole('basic', 2)
+    ->addRole('basic', 2) 
     ->addInherit('registered')
-    ->addResourcePermissions('products', ['write'])
-    ->addResourcePermissions('files', ['list_all'])
- 
+    ->addResourcePermissions('products', ['write'])    
+    //->addResourcePermissions('files', ['list_all'])
+    //->addSpecialPermissions(['read_all'])
+
 
     //->addRole('registeredO', 1)
     //->addRole('registered', 10)
@@ -53,13 +54,17 @@ if (!$acl_cache || is_file($acl_file) !== true) {
 
     ->addRole('admin', 100)
     ->addInherit('registered')
-    ->addSpecialPermissions(['read_all', 'write_all', 'read_all_folders', 'lock', 'fill_all', 'impersonate'])
+    ->addSpecialPermissions([   'read_all', 
+                                'write_all', 
+                                'read_all_folders', 
+                                'lock', 
+                                'fill_all', 
+                                'impersonate'
+                                ])
  
     ->addRole('superadmin', 500)
     ->addInherit('admin')
     ->addSpecialPermissions([
-                             'read_all_trashcan',
-                             'write_all_trashcan',
                              'write_all_folders', 
                              'write_all_collections',
                              'transfer',
