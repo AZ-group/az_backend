@@ -241,7 +241,7 @@ class AuthController extends Controller implements IAuth
                 $row = DB::table('users')->assoc()
                 ->where([ 'id' =>  $uid ] ) 
                 ->first();
-                
+
                 if (!$row)
                     throw new Exception("User to impersonate does not exist");
 

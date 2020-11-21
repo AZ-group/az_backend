@@ -231,9 +231,11 @@ Se devolverá un nuevo acccess token en un JSON como este:
 
 # Impersonate
 
-Es posible asumir la identidad de otro usuario o bien un rol en particular -solo uno a la vez-
+Es posible asumir la identidad de otro usuario o bien un rol en particular -solo uno a la vez-. 
 
-POST /api/v1/auth/impersonate que recibe un refresh_token de un Admin y en el body:
+Esta característica solo está disponible con autenticación via Web Tokens y no otras como API KEY ***
+
+POST /api/v1/auth/impersonate que recibe un *refresh_token* de un admin (usuario con permiso 'impersonate') y en el body:
 
 	{ 
 		"uid" : "90"  
@@ -2044,6 +2046,7 @@ Un usuario (sin ser Admin pero con los permisos correctos) podría crear otros u
 
 Otro endpoint adicional es /api/v1/trash_can que corresponde a una papelera de registros y se explica en la sección correspondiente. 
 
+
 # Funcionalidad out-the-box de la API
 
 ## GET <READ>
@@ -2259,7 +2262,7 @@ When a record is softly deleted then it can be seen at trash_can where is posibl
         "cost": "230"
     }
 
-# /me
+# El endpoint /me
 
 The simple way to perform CRUD operations on the current user is using /api/v1/me endpoint.
 
@@ -2279,6 +2282,18 @@ The simple way to perform CRUD operations on the current user is using /api/v1/m
         "error": "",
         "error_detail": ""
     }
+
+Si se hace un DELETE sobre /me el usuario sufre un borrado (lógico) pero si se quiere des-activar la cuenta puede usarse PATCH:
+
+Desactivar cuenta
+
+	PATCH /api/v1/me
+
+	{
+		"active": 0
+	}
+
+Ahora al intentar renovar el token o loguearse, se informará que la cuenta está "pendiente de activación".
 
 
 ### Las respuestas de la API

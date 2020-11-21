@@ -28,7 +28,6 @@ if (!$acl_cache || is_file($acl_file) !== true) {
     ->addInherit('guest')
     ->addResourcePermissions('roles', ['read'])
     ->addResourcePermissions('products', ['write'])
-    ->addResourcePermissions('products', ['write'])
     ->addResourcePermissions('super_cool_table', ['read', 'write'])
        
 
@@ -60,7 +59,7 @@ if (!$acl_cache || is_file($acl_file) !== true) {
     ->addInherit('admin')
     ->addSpecialPermissions([
                              'read_all_trashcan',
-                             //'write_all_trashcan',
+                             'write_all_trashcan',
                              'write_all_folders', 
                              'write_all_collections',
                              'transfer',

@@ -28,8 +28,13 @@ podría ser también,...
 - Permitir definir "alias" para los scopes:
 
   //..
-  ->addScope('products.read_all')->alias('products.read.all')
-  ->addScope('emails.create')->alias('emails.send')
+  ->addScope('products.read_all')->alias('products:read.all')
+  ->addScope('emails.create')->alias('emails:send')
+
+
+Ejemplo de scopes:
+
+https://developer.github.com/apps/building-oauth-apps/understanding-scopes-for-oauth-apps/
 
 
 [ ETC ]
@@ -1506,6 +1511,30 @@ https://developer.vimeo.com/guidelines/rate-limiting
 https://support.exactonline.com/community/s/knowledge-base#All-All-HNO-Simulation-gen-apilimits
 https://stackoverflow.com/a/49611482/980631
 
+
+Ejemplos:
+
+Name	                Limits
+------------------------------------------------
+Google Calendar API	  1,000,000 queries per day
+Google Docs API	      Free of charge
+Gmail API	            1,000,000,000 quota units per day
+Sheets API	          500 requests per 100 seconds per project, 100 requests per 100 seconds per user
+
+
+- Posibilidad de aplicar "restricciones" sobre una API
+
+Ej:
+    - None can be used for testing purposes only.
+    - HTTP referrers can be used for API clients which run on a web browser.
+    - IP addresses can be used to limit API key access to some particular IP addresses.
+    - Android apps is there for Android applications. 
+    - iOS apps can restrict API calls to specific iOS bundles. 
+
+
+https://cloud.google.com/docs/authentication/api-keys
+
+
 - Swagger for Documentation
 
 Swagger is a widely-used tool to document REST APIs that provides a way to explore the use of a specific API, therefore allowing developers to understand the underlying semantic behavior. It’s a declarative way of adding documentation using annotations which further generates a JSON describing APIs and their usage.
@@ -2181,5 +2210,6 @@ PouchDB (local)  -----------> [ API REST ] [ CouchDB (server) ]
 
 https://www.tutorialspoint.com/pouchdb/pouchdb_synchronization.htm
 https://www.joshmorony.com/offline-syncing-in-ionic-2-with-pouchdb-couchdb/
+https://www.ibm.com/developerworks/library/os-php-couchdb/index.html
 
 Obviamente si el schema en el servidor cambia, debe cambiar localmente => ejecutar migraciones local.

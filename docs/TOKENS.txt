@@ -113,3 +113,56 @@
     "error": "",
     "error_detail": ""
 }
+
+
+
+{
+    "data": {
+        "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImlhdCI6MTYwNTkxOTEyMywiZXhwIjoxNjE0OTE5MTIzLCJpcCI6IjEyNy4wLjAuMSIsInVpZCI6MTEyLCJyb2xlcyI6WyJyZWd1bGFyIl0sInBlcm1pc3Npb25zIjp7InRiIjpbXSwic3AiOltdfSwiaW1wZXJzb25hdGVkX2J5IjoiNDAwIiwiYWN0aXZlIjoxfQ.mfBU0Ch-gnFwgfIHV3kfvn6LweycuTw8GGcJxZyyBRs",
+        "refresh_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImlhdCI6MTYwNTkxOTEyMywiZXhwIjoxOTIxMjc5MTIzLCJpcCI6IjEyNy4wLjAuMSIsInVpZCI6MTEyLCJpbXBlcnNvbmF0ZWRfYnkiOiI0MDAifQ.6TY3l6K--cgTh59GLSU6EZvZmIyX8c1ZHbpioLsmu1E",
+        "token_type": "bearer",
+        "expires_in": 9000000,
+        "roles": [
+            "regular"
+        ],
+        "uid": 112,
+        "impersonated_by": "400"
+    },
+    "status_code": 200,
+    "error": "",
+    "error_detail": ""
+}
+
+{
+    "data": {
+        "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImlhdCI6MTYwNTkxOTE2MiwiZXhwIjoxNjE0OTE5MTYyLCJpcCI6IjEyNy4wLjAuMSIsInVpZCI6MTEzLCJyb2xlcyI6WyJyZWd1bGFyIl0sInBlcm1pc3Npb25zIjp7InRiIjpbXSwic3AiOltdfSwiaW1wZXJzb25hdGVkX2J5IjoiNDAwIiwiYWN0aXZlIjoxfQ.acTZs9VbSQcnIsdiiFS_Kd6hGppibYZG3-2kn5CGYJY",
+        "refresh_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImlhdCI6MTYwNTkxOTE2MiwiZXhwIjoxOTIxMjc5MTYyLCJpcCI6IjEyNy4wLjAuMSIsInVpZCI6MTEzLCJpbXBlcnNvbmF0ZWRfYnkiOiI0MDAifQ.dV5wW2kr9G0axVh0K_QW9KC33MkBs2_ARZpTqD4QXgU",
+        "token_type": "bearer",
+        "expires_in": 9000000,
+        "roles": [
+            "regular"
+        ],
+        "uid": 113,
+        "impersonated_by": "400"
+    },
+    "status_code": 200,
+    "error": "",
+    "error_detail": ""
+}
+
+
+{
+    "data": {
+        "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImlhdCI6MTYwNTkxOTUyMiwiZXhwIjoxNjE0OTE5NTIyLCJpcCI6IjEyNy4wLjAuMSIsInVpZCI6MzQsInJvbGVzIjpbImJhc2ljIl0sInBlcm1pc3Npb25zIjp7InRiIjpbXSwic3AiOltdfSwiYWN0aXZlIjoxfQ.dek-AbeSy8IMoBsg396D9K1YKkcqtcZh2-l1epCcEAs",
+        "token_type": "bearer",
+        "expires_in": 9000000,
+        "refresh_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImlhdCI6MTYwNTkxOTUyMiwiZXhwIjoxOTIxMjc5NTIyLCJpcCI6IjEyNy4wLjAuMSIsInVpZCI6MzR9.PMfSNH64l63k_oukxwhsqq6yN4NDtBdLp5xJ1e718GA",
+        "roles": [
+            "basic"
+        ],
+        "uid": 34
+    },
+    "status_code": 200,
+    "error": "",
+    "error_detail": ""
+}

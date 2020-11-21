@@ -47,6 +47,10 @@ class MySelf extends MyApiController
         parent::patch($id);
     } //
         
+    function onPuttingAfterCheck($id, &$data){
+        $this->instance->fill(['active']);
+    }
+
     function delete($id = null){
         $id = $this->uid;
 
