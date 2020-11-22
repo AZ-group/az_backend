@@ -28,7 +28,7 @@ abstract class ResourceController extends Controller
         'Content-Type' => 'application/json; charset=UTF-8'
     ];
 
-    function __construct($auth = null)
+    function __construct(object $auth = null)
     {   
         foreach ($this->headers as $key => $header){
             header("$key: $header");
@@ -40,7 +40,8 @@ abstract class ResourceController extends Controller
 
         $this->acl = Factory::acl();
         
-        $this->auth = (new AuthController())->check();
+        $auth = $auth ?? (new AuthController());
+        $this->auth = ($auth)->check();
         
         $this->uid          = $this->auth['uid']; 
         $this->roles        = $this->auth['roles'];

@@ -19,14 +19,15 @@ if (!$acl_cache || is_file($acl_file) !== true) {
 
     $acl
     ->addRole('guest', -1)
-    ->addResourcePermissions('products', ['read'])  //  ---- es importante el read_all_trashcah !!!
+    ->addResourcePermissions('roles', ['read_all'])
+    ->addResourcePermissions('products', ['read_all'])  //  ---- es importante el read_all_trashcah !!!
     ->addResourcePermissions('baz', ['read'])
     ->addResourcePermissions('bar', ['read', 'write'])
     //->setGuest('guest')
 
     ->addRole('registered', 1)
     ->addInherit('guest')
-    ->addResourcePermissions('roles', ['read'])
+    ->addResourcePermissions('user_roles', ['read'])
     ->addResourcePermissions('products', ['write'])
     ->addResourcePermissions('super_cool_table', ['read', 'write'])
        

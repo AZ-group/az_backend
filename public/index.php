@@ -4,7 +4,7 @@
     
     use simplerest\core\Route;
     use simplerest\core\FrontController;
-
+    
 
     if ($config['ROUTER']){        
         include __DIR__ . '../../config/routes.php';

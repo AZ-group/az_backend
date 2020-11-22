@@ -1850,12 +1850,7 @@ https://www.doctrine-project.org/projects/doctrine-migrations/en/3.0/reference/m
   ->abortIf()
   ->addColumn()
 
-- Eventos before / after en las migraciones  
-
-- Generar documentación de una tabla foo con Swagger API
-
-  https://www.youtube.com/watch?v=Kziad2G-dkE
-  https://docs.microsoft.com/en-us/dotnet/architecture/microservices/multi-container-microservice-net-applications/data-driven-crud-microservice
+- Eventos before / after en las migraciones 
 
 
 - Hacer "inserciones en Bulk" usando colecciones. 
@@ -2213,3 +2208,136 @@ https://www.joshmorony.com/offline-syncing-in-ionic-2-with-pouchdb-couchdb/
 https://www.ibm.com/developerworks/library/os-php-couchdb/index.html
 
 Obviamente si el schema en el servidor cambia, debe cambiar localmente => ejecutar migraciones local.
+
+
+- API Gateways
+
+https://www.youtube.com/watch?v=vHQqQBYJtLI
+
+
+[ MODELADO DE APIs y DOCUMANTADORES ]
+
+- Posiblemente generar documentación en lenguaje RAML (RESTful API Modeling Language)
+
+https://raml.org/developers/design-your-api
+https://www.youtube.com/watch?v=vaWvVilZtZw
+https://github.com/raml-org/raml-spec
+https://github.com/mulesoft/api-designer
+
+
+- Generar documentación de una tabla foo con Swagger API (OAS)
+
+  https://www.youtube.com/watch?v=Kziad2G-dkE
+  https://docs.microsoft.com/en-us/dotnet/architecture/microservices/multi-container-microservice-net-applications/data-driven-crud-microservice
+
+
+- Ver documentador de POSTMAN
+
+https://www.postman.com/api-documentation-tool/?
+
+
+- Implementar mecanismo para invalidar access tokens:
+
+  - Para invalidar (revocar) todos los tokens => cambiar la secret key correspondiente
+  - Para invalidar el token de un usuario => para ese user_id, denegar el acceso por el tiempo de duración de ese token. Ej: 15 min <-- obviamente cachearlo.
+
+  /api/auth/revoke <-- en el body pasar el access_token a revocar o el user_id correspondiente 
+
+
+- Implementar "token exechange": en vez de identificar a un usuario que proviene de la API de Facebook o Google por su email (que podría no ser compartido)... usar el refres_token obtenido de esas APIs como user_id :) 
+
+
+- Conceptos de microservicios
+
+		- Romper todas las FKs hacia `users`
+		- Implementar un "global delete" o su alternativa via WebHook para emular el DELETE ON CASCADE
+    - Se necesita un "orquestador" con funciones como:
+
+      - Router (hacia microservices) ***
+      - Balanceador de carga
+      - Cache
+      ...
+
+Duda: cada MS debe implementar REDIS?      
+
+
+[ REDIS ]
+
+- Performance de SQL (cached) vs No-SQL (cached) 
+
+	Si son pocas queries => da "igual"
+	Sino => No-SQL gana por "colas largas": no es posible cachear todas las consultas posibles y obviamente las más complejas sucederán con menor probabilidad individualmente con lo que inclusive podría no tener sentido cachearlas/
+
+- Optimización de consultas:
+
+	- Siempre es mejor cachear lo más upstream que se pueda: request > ORM / ODM > motor de DB
+
+	- Es buena idea invertirle algo de tiempo de procesamiento a ordenar las queries:
+
+		- ?A&B <>  ?B&A 
+		- WHERE A AND B <> WHERE B AND A
+
+		Se podría hacer un ordenamiento alfabético de queries y cuando halla un IN() hacer el ordenamiento también.	  
+
+- Podría implementar REDIS a varios niveles pero sin repetir:
+
+  Si cacheo una query ?A&B no tiene sentido cachear la misma a nivel de SQL: "WHERE A AND B". A nivel de SQL solo debería cachear aquello que pasó de largo por la caché de urls
+
+  Duda importante: para REDIS [A,B] == [B,A] ? porque de serlo... solo necesito enviar un explode() de los parámetros de la url.
+
+<-- RTA: usar un HASHMAP !
+
+Ej: 
+
+  products
+  ?cost[gt]=30
+  &groupBy=size
+  &fields=size
+  &props=avg(cost) as avg
+  &having=avg(cost)>=150
+
+podría ingresarse como
+
+  HSET apiUrl entity "products" filter "cost[gt]=30" groupBy "size" fields "size" props "avg(cost) as avg" having "avg(cost)>=150"
+
+<--- podrá filter se otro objeto ?
+
+Niveles posibles de cache con REDIS:
+
+  - Url tipo /api/v1/products?cost[gt]=30&oderBy[size]=ASC&page=2&pageSize=10
+    para nivel de permisos "compatible" (ACL)
+
+  - Query Builder
+
+    get ([[
+      'cost', 30, '>='
+    ]]), ['size', 'ASC'], 10, 20)
+
+  - SQL (sentencia preparada)
+
+    SELECT * FROM products WHERE cost >= ? ORDER BY ? ? LIMIT ?, ?;
+
+  - SQL compilado
+
+    SELECT * FROM products WHERE cost >= 30 ORDER BY size ASC LIMIT 10, 20;
+    
+
+- Cachear los parámetros de una función() es mucho más fácil que cachear una serie de métodos encadenados: particularmente importante para el Query Builder.
+
+  get(array $fields = null, array $order = null, int $limit = NULL, int $offset = null, $pristine = false)
+
+El tema es que habría que tener cuidado:
+
+  - de chequear que estén registrados los mismos mutators y transformers.
+  - de chequear estén aplicados los mismos joins, havings, etc
+  - de seguir ejecutando los event hooks.
+
+
+Instalación de REDIS:
+
+https://www.digitalocean.com/community/tutorials/how-to-install-and-secure-redis-on-ubuntu-18-04
+
+
+Actualizar a REDIS 6.06 o superior <-- ya está la 6.09
+
+https://askubuntu.com/questions/1244058/how-to-install-redis-server-6-0-1-in-ubuntu-20-04

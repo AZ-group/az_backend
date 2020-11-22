@@ -55,13 +55,14 @@ class DB
 		
 		$host    = $config['db_connections'][static::$current_id_conn]['host'] ?? 'localhost';
 		$driver  = $config['db_connections'][static::$current_id_conn]['driver'];	
+		$port    = $config['db_connections'][static::$current_id_conn]['port'];
         $db_name = $config['db_connections'][static::$current_id_conn]['db_name'];
 		$user    = $config['db_connections'][static::$current_id_conn]['user'] ?? 'root';
 		$pass    = $config['db_connections'][static::$current_id_conn]['pass'] ?? '';
 		$pdo_options = $config['db_connections'][static::$current_id_conn]['pdo_options'] ?? NULL;
 		
 		try {
-			self::$connections[static::$current_id_conn] = new \PDO("$driver:host=" . $host . ";dbname=" . $db_name, $user, $pass, $pdo_options);
+			self::$connections[static::$current_id_conn] = new \PDO("$driver:host=$host;dbname=$db_name;port=$port", $user, $pass, $pdo_options);
             self::$connections[static::$current_id_conn]->exec("set names utf8");
 		} catch (\PDOException $e) {
 			throw new \PDOException($e->getMessage());

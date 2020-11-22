@@ -443,6 +443,18 @@ abstract class ApiController extends ResourceController
                     $_get[] = ['belongs_to', $f_rows[0]['belongs_to']];
                 }
 
+
+                // avoid guests can see everything with just 'read' permission
+                if ($this->isGuest()){
+                    if ($owned){             
+                        if (!$this->acl->hasSpecialPermission('read_all', $this->roles) && 
+                            (!$this->acl->hasResourcePermission('show_all', $this->roles, $this->model_table))
+                        ){
+                            $_get[] = ['belongs_to', NULL, 'IS'];
+                        }
+                    }
+                }   
+
                 //var_export($_get);
 
                 $rows = $this->instance->where($_get)->get($fields); 
@@ -632,6 +644,18 @@ abstract class ApiController extends ResourceController
                         
                     }                         
                 }
+
+                // avoid guests can see everything with just 'read' permission
+                if ($this->isGuest()){
+                    if ($owned){             
+                        if (!$this->acl->hasSpecialPermission('read_all', $this->roles) && 
+                            (!$this->acl->hasResourcePermission('list_all', $this->roles, $this->model_table))
+                        ){
+                            $_get[] = ['belongs_to', NULL, 'IS'];
+                        }
+                    }
+                }   
+
                                 
                 // Si se pide algo que involucra un campo no está en el attr_types lanzar error
                 foreach ($_get as $arr){

@@ -4,7 +4,7 @@
 
     use simplerest\core\FrontController;
 
-
+       
     FrontController::resolve();
  	
 

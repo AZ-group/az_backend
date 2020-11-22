@@ -121,14 +121,24 @@ class Response
         }    
 
         if (static::$as_object || is_object($data) || is_array($data)) {
-            $arr = ['data' => $data, 
+            $arr = [];
+
+            if (static::$config['paginator']['position'] == 'TOP'){
+                if (static::$paginator != NULL)
+                    $arr['paginator'] = static::$paginator;
+            }
+
+            $arr = array_merge($arr,[
+                    'data' => $data, 
                     'status_code' => $http_code,
                     'error' => '', 
                     'error_detail' => '' 
-            ];
+            ]);
 
-            if (static::$paginator != NULL)
-                $arr['paginator'] = static::$paginator;
+            if (static::$config['paginator']['position'] == 'BOTTOM'){
+                if (static::$paginator != NULL)
+                    $arr['paginator'] = static::$paginator;
+            }
 
             $data = $this->encode($arr);
             header('Content-type:application/json;charset=utf-8');

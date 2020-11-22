@@ -29,7 +29,7 @@ class DumbAuthController extends ResourceController
     function test()
     {
         $permissions = $this->getPermissions();
-        foreach ($permissions as $tb => $perms){
+        foreach ((array) $permissions as $tb => $perms){
             echo "[$tb]\n";
             $perms = (int) $perms;
             printf("List All: %d, Show All: %d, List: %d, Show: %d, Create: %d, Update: %d, Delete: %d", 

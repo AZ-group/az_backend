@@ -10,6 +10,10 @@
 
     $config = include __DIR__ . '/../config/config.php';
 
+    $dotenv = Dotenv\Dotenv::createImmutable(ROOT_PATH);
+    $dotenv->load();
+
+
     foreach (new \DirectoryIterator(HELPERS_PATH) as $fileInfo) {
         if($fileInfo->isDot()) continue;
         

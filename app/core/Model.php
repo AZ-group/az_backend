@@ -419,7 +419,7 @@ class Model {
 	 *
 	 * @param  mixed $fields
 	 *
-	 * @return void
+	 * @return object
 	 */
 	function fill(array $fields){
 		foreach ($fields as $f)

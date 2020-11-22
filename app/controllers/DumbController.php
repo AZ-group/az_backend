@@ -85,6 +85,8 @@ class DumbController extends Controller
 
         // No hay Schema
         dd($m->getSchema());
+
+        dd($m->dd());
     }
 
     function get_bar0(){
@@ -2354,6 +2356,15 @@ class DumbController extends Controller
 
         Factory::response()->sendJson($id);
     }
+
+
+    function get_env(){
+        //dd($_ENV['APP_NAME']);
+
+        $config = Factory::config();
+        dd($config);
+    }
+
 
     function test_get(){
         dd(DB::table('products')->first(), 'FIRST'); 
