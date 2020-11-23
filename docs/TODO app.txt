@@ -4,6 +4,10 @@
 https://www.es.getmati.com/ <-- será confiable?
 
 
+- Envio de mensajes a WhatsApp via Twillo (requiere WhatsApp Business) o bien mediante mi script o.... el que tiene PK Pulketeo!
+
+https://www.twilio.com/whatsapp
+
 - Es buena idea -según corresponda- crear índices para: 
 
     created_at  <-- en especial con UUID

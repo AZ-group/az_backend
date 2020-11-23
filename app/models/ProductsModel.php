@@ -18,10 +18,9 @@ class ProductsModel extends Model
         parent::__construct($connect, new ProductsSchema());
 	}	
 
-	/*
+	
 	function onRead($count){
 		var_dump($this->dd());
 	}
-	*/
 }
 

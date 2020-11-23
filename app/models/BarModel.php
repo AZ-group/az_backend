@@ -18,5 +18,11 @@ class BarModel extends Model
     function __construct(bool $connect = false){
         parent::__construct($connect, new BarSchema());
 	}	
+
+	/*
+	function onRead($count){
+		var_dump($this->dd());
+	}
+	*/
 }
 

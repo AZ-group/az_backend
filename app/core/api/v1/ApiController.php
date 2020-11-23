@@ -427,6 +427,7 @@ abstract class ApiController extends ResourceController
                         } 
                                                 
                     } else {
+                        // avoid guests can see everything with just 'read' permission
                         if ($owned && !$this->acl->hasSpecialPermission('read_all', $this->roles) && !$this->acl->hasResourcePermission('show_all', $this->roles, $this->model_table))
                         {                              
                             $_get[] = ['belongs_to', $this->uid];

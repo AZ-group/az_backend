@@ -85,7 +85,7 @@ return [
 		'expires_in' => 7 * 24 * 3600,
 		'encryption' => 'HS256',
 		'mailer' =>  [	
-			'from'	 => [env('MAIL_DEFAULT_FROM'), 'No responder'],	
+			'from'	 => [env('MAIL_DEFAULT_FROM_ADDR'), env('MAIL_DEFAULT_FROM_NAME')],	
 			'object' => [
 				'Host'			=> env('MAIL_HOST'),
 				'Port'			=> env('MAIL_PORT'),
@@ -106,7 +106,7 @@ return [
 	'paginator' => [
 					'max_limit' => 50,
 					'default_limit' => 10,
-					'position' => 'TOP'
+					'position' => 'BOTTOM'
 	],
 
 	'google_auth'  => [

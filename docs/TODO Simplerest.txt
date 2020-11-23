@@ -179,7 +179,13 @@ https://blog.staffjoy.com/dont-migrate-databases-automatically-5039ab061365
   - JSON:API has agregative functions? parece ser que NO.
 
 
---- Probar con NGINX
+- NGINX
+
+  location / {
+      try_files $uri $uri/ /index.php?$query_string;
+  }
+
+https://laravel.com/docs/8.x/installation#nginx
 
 
 - Debe haber orJoin() como orWhere() y orHaving() 
@@ -353,6 +359,7 @@ https://www.sitepoint.com/apache-vs-nginx-performance-optimization-techniques/
 
 - Usar RTAPI para testear tiempos de latencia:
 
+
 https://www.nginx.com/blog/api-real-time-test-latency-responsiveness-nginx-rtapi-tool/
 
 - Usar con conexiones http persistentes, por cierto ya es persistente? Si !
@@ -436,6 +443,17 @@ Además de expresiones regulares aceptar constantes como:
   Float
   Boolean
   UUID
+
+- Router:
+
+Es necesario poder especificar el namespace del Controller porque podría no estar en la raiz del directorio app/controllers. Laravel provee varias formas:
+
+  Route::get('/user', 'App\Http\Controllers\UserController@index']); 
+  Route::get('/user', [App\Http\Controllers\UserController::class, 'index']);  
+
+https://laravel.com/docs/8.x/upgrade#routing
+https://medium.com/@litvinjuan/how-to-fix-target-class-does-not-exist-in-laravel-8-f9e28b79f8b4 
+
 
 - Serializar Route !!!!!!
 
@@ -1663,9 +1681,23 @@ https://aimeos.org/tips/graphql-vs-jsonapi-for-ecommerce/
 En az\docs\etc dejé unas capturas de pantalla pero se puede ver como funciona sobre el final de este vídeo:
 https://www.youtube.com/watch?v=w6u8amnFhSo
 
+
 - Sanitización a nivel de urls, FILTER_SANITIZE_URL
 
 https://www.w3schools.com/php/php_filter.asp
+
+Cómo carajos previene un XSS hacer lo siguiente?
+
+  /* prevent XSS. */
+  $_GET   = filter_input_array(INPUT_GET, FILTER_SANITIZE_STRING);
+  $_POST  = filter_input_array(INPUT_POST, FILTER_SANITIZE_STRING);
+
+https://stackoverflow.com/a/4861211
+
+Leer cuidadosamente:
+
+https://www.php.net/manual/en/function.filter-input-array.php
+
 
 - Sanitización a nivel de base de datos
 
@@ -2017,6 +2049,7 @@ https://aleson-itc.com/en/free-monitoring-using-influxdb-telegraf-and-grafana/
 - Prevenir correctamente SQL injections
 
 https://paragonie.com/blog/2015/05/preventing-sql-injection-in-php-applications-easy-and-definitive-guide
+https://www.paladion.net/blogs/are-stored-procedures-safe-against-sql-injection
 
 
 - Autorización "basica" (user y pass) vs API Key vs OAuth
@@ -2052,6 +2085,41 @@ https://nordicapis.com/the-difference-between-http-auth-api-keys-and-oauth/
 You need OAuth only when you want to enable a user of your service to allow a third-party client application to access his/her data hosted in your service without revealing his/her credentials (ID & password) to the application.
 
 
+[ MODELO ]
+
+- Hay un *bug importante* por el que un usuario "logueado" puede ver menos registros que un "guest".
+
+  GET /v1/products
+
+  eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImlhdCI6MTYwNTkxOTE2MiwiZXhwIjoxNjE0OTE5MTYyLCJpcCI6IjEyNy4wLjAuMSIsInVpZCI6MTEzLCJyb2xlcyI6WyJyZWd1bGFyIl0sInBlcm1pc3Npb25zIjp7InRiIjpbXSwic3AiOltdfSwiaW1wZXJzb25hdGVkX2J5IjoiNDAwIiwiYWN0aXZlIjoxfQ.acTZs9VbSQcnIsdiiFS_Kd6hGppibYZG3-2kn5CGYJY
+
+  SELECT * FROM products WHERE (belongs_to = 113) AND deleted_at IS NULL LIMIT 0, 10;
+
+  => 1 registro
+
+mientras que ...
+
+  GET /v1/products (guest)
+
+  SELECT * FROM products WHERE (belongs_to IS NULL) AND deleted_at IS NULL LIMIT 0, 10;
+
+  => 2 registros
+
+La razón  es que en el primer caso (para el usuario logueado) en el ApiController debió armarse la consulta así:
+
+  SELECT * FROM products WHERE (belongs_to = 113 OR belongs_to IS NULL) AND deleted_at IS NULL LIMIT 0, 10;
+
+  => 3 registros
+
+La incocistencia se presenta solo si belongs_to es nullable y hay registros con belongs_to NULL.
+
+
+PARCHE: no tener belongs_to como "nullable".
+
+SOLUCION: re-escribir ApiController de forma que genere una estructura de datos (cacheable) y luego aplicar todo al modelo. La estructura de datos podría ser un array asociativo o un "árbol" para evitar re-ordenamientos y poder re-usar prepared statements. Se deben incluir operadores, groupBy, having, etc. *NO* hacer nada hasta no tener pruebas unitarias actualizadas para el ApiController y hacerlo bajo otra versión de Api para poder comparar: /api/v1.1 
+
+
+
 - Cursores
 
 https://www.geeksforgeeks.org/what-is-cursor-in-sql/
@@ -2073,6 +2141,30 @@ https://dev.to/rahul_ramfort/understanding-offset-vs-cursor-based-pagination-158
 https://www.ibm.com/support/knowledgecenter/SSEPGG_11.5.0/com.ibm.swg.im.dbclient.php.doc/doc/t0023502.html
 
 
+- Implementar forma adecuada de hacer calls a Store Procedures:
+
+https://stackoverflow.com/questions/34497063/how-to-execute-stored-procedure-from-laravel
+https://medium.com/@smayzes/stored-procedures-in-laravel-60e7cb255fc9
+
+Requiere uso de cursores? hacer un binding con PARAM_el_que_sea | PARAM_LOB ?
+
+- Implementar un método en el modelo que conviera el Query Builder en un generador de Store Procedures.
+
+Básicamente se construiría un SP a partir de una consulta preparada !
+
+
+- Store Procedures => seguridad
+
+https://www.sqlbook.com/sql-server/why-use-stored-procedures/
+
+
+- Laravel, leer:
+
+https://pineco.de/route-bind-contracts-in-laravel/
+
+
+[ SEGURIDAD ]
+
 - Para generar las "secret keys" del config hacer algo como WordPress que ofrece una url (que podría ser local) donde se generan.
 
 /**#@+
@@ -2092,11 +2184,6 @@ define( 'AUTH_SALT',        'put your unique phrase here' );
 define( 'SECURE_AUTH_SALT', 'put your unique phrase here' );
 define( 'LOGGED_IN_SALT',   'put your unique phrase here' );
 define( 'NONCE_SALT',       'put your unique phrase here' );
-
-
-- Laravel, leer:
-
-https://pineco.de/route-bind-contracts-in-laravel/
 
 
 [ API KEY autentication ]
@@ -2320,7 +2407,7 @@ Niveles posibles de cache con REDIS:
   - SQL compilado
 
     SELECT * FROM products WHERE cost >= 30 ORDER BY size ASC LIMIT 10, 20;
-    
+
 
 - Cachear los parámetros de una función() es mucho más fácil que cachear una serie de métodos encadenados: particularmente importante para el Query Builder.
 
@@ -2341,3 +2428,10 @@ https://www.digitalocean.com/community/tutorials/how-to-install-and-secure-redis
 Actualizar a REDIS 6.06 o superior <-- ya está la 6.09
 
 https://askubuntu.com/questions/1244058/how-to-install-redis-server-6-0-1-in-ubuntu-20-04
+
+
+[ EMAILS]
+
+- Usar mock para probar los correos. Recomendación utilizar los famosos Mocking ya que con esta herramienta puedes emular el envío de correos entre muchas cosas como las colas (queue), simular la subida de un archivo al servidor
+
+https://medium.com/@vivekdhumal/how-to-test-mail-notifications-in-laravel-345528917494
