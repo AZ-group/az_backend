@@ -41,7 +41,14 @@ https://developer.github.com/apps/building-oauth-apps/understanding-scopes-for-o
 
 - Hacer script de instalación
 
+
+[ MICROSERVICIOS ]
+
 - Investigar microservicios. Buscar un Hello World. Cómo es la communicación entre microservicios?
+
+Ver tuto:
+
+https://www.youtube.com/watch?v=In6DBL0tq9c  !!!!!!!
 
 
 [ MIGRATIONS ]
@@ -453,6 +460,20 @@ Es necesario poder especificar el namespace del Controller porque podría no est
 
 https://laravel.com/docs/8.x/upgrade#routing
 https://medium.com/@litvinjuan/how-to-fix-target-class-does-not-exist-in-laravel-8-f9e28b79f8b4 
+
+- Evaluar generar rutas como
+
+/*
+	 habilita una rutas como
+
+	 /api/photos/{photo_id}/comments
+
+*/	 
+Route::resource('photos.comments', App\Http\Controllers\PhotoController::class);
+
+- Listado de rutas como en Laravel
+  
+  php artisan route:list
 
 
 - Serializar Route !!!!!!
@@ -940,11 +961,6 @@ https://medium.com/a-young-devoloper/understanding-laravel-facades-4802025899e6
 "email_confirmation_link": "http://simplerest.lan//auth/confirm_email/eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImlhdCI6MTU5OTg2NjQ5NSwiZXhwIjoxNjAwNDcxMjk1LCJpcCI6IjEyNy4wLjAuMSIsImVtYWlsIjoiemFyYUBnbWFpbC5jb20ifQ.mCZTE-36xnbmjC8gzLN-OWFbR5RwzB05-eJ_6rWsNSQ/1600471295"
 
 - Debe ser posible *volver* a solicitar un correo con el enlace de confirmación de correo (obviamente se exige que el usuario esté registrado y haya entregado un access token válido)
-
-- Redis con API Rest ? SI ! implementar serializacion del ACL y caché para todo incluidas las consultas 
-https://docs.phalcon.io/4.0/en/acl#serialization
-
-- Redis para el Validator ! si se repite la misma regla + dato o los arrays de datos o datos + reglas, entregar la misma respuesta. Igualmente el validador parece ser bastante eficiente. Usar versión compilada y cacheada de las reglas. 
 
 - Implementar  (colas) como en Laravel para tareas pesadas como enviar correos o procesar imágenes o elaborar reportes en cuyo caso debería devolver Accepted.
 
@@ -2148,6 +2164,11 @@ https://medium.com/@smayzes/stored-procedures-in-laravel-60e7cb255fc9
 
 Requiere uso de cursores? hacer un binding con PARAM_el_que_sea | PARAM_LOB ?
 
+"Stored procedures may return result sets, i.e., the results of a SELECT statement. Such result sets can be processed using cursors, by other stored procedures, by associating a result-set locator, or by applications. 
+
+Stored procedures may also contain declared variables for processing data and cursors that allow it to loop through multiple rows in a table."
+
+
 - Implementar un método en el modelo que conviera el Query Builder en un generador de Store Procedures.
 
 Básicamente se construiría un SP a partir de una consulta preparada !
@@ -2430,8 +2451,83 @@ Actualizar a REDIS 6.06 o superior <-- ya está la 6.09
 https://askubuntu.com/questions/1244058/how-to-install-redis-server-6-0-1-in-ubuntu-20-04
 
 
+- Redis con API Rest ? SI ! implementar serializacion del ACL y caché para todo incluidas las consultas 
+
+https://docs.phalcon.io/4.0/en/acl#serialization
+
+- Redis para el Validator ! si se repite la misma regla + dato o los arrays de datos o datos + reglas, entregar la misma respuesta. Igualmente el validador parece ser bastante eficiente. Usar versión compilada y cacheada de las reglas. 
+
+- Ver como Laravel interfacea con REDIS
+
+https://laravel.com/docs/8.x/redis
+
+
 [ EMAILS]
 
 - Usar mock para probar los correos. Recomendación utilizar los famosos Mocking ya que con esta herramienta puedes emular el envío de correos entre muchas cosas como las colas (queue), simular la subida de un archivo al servidor
 
 https://medium.com/@vivekdhumal/how-to-test-mail-notifications-in-laravel-345528917494
+
+
+- Revisa como funcionan los Resource Controllers en Laravel 8 !!!
+
+Parece ser que simplifica "armar" un HATEOAS
+
+
+[ PRUEBAS UNITARIAS ]
+
+- Actualizar y mantener actualizadas !
+
+- Pruebas unitarias sobre event hooks (modelos, api, etc)
+
+- Comparar resultados del impersonate (roles, permisos) con loguearse con token del usuario o api key.
+
+- Comparar resultados (no queries) de ejecución con el Query Builder de Laravel 
+
+
+[ Refactoring ]
+
+- TraitRegister
+
+- Response: simplificar la forma de generar códigos de error http (ver notas). Hay estandar? PSR?
+
+- Response: cambiar los campos para entregar m;as información incluyendo un código de error único que identifique la clase, método y la línea donde se produjo el error (ver notas)
+
+- Midlewares. Hay estadar? PSR?
+
+- Extender el router y simplificar el FrontController
+
+- Acl más eficiente (ver notas) y con otros métodos.
+
+- Simplificar el ApiController 
+  
+  _ Separar el método get() en show() y list()
+
+  _ Aplicar nuevas funciones del Acl
+
+  _ Implementar folders pero como "extensión" via api hooks en Traits
+
+  _ Solo dos hooks por método: before y after.
+
+  _ Implementar filter[] en las urls y simplificar la forma de manejar todo generando una estructura de datos que no rompa los hook.
+
+
+[ CORS ]
+
+- Verificar realmente esté OK
+
+
+[ SSL ]
+
+- Es posible tenerlo funcionando localmente? dockerizado?
+
+
+[ Redes sociales ]
+
+- Reparar logins
+
+
+[ Panel de control ]
+
+- Hacer un control panel para administrar usuarios y ajustar permisos
+

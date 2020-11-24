@@ -334,6 +334,17 @@ class DumbController extends Controller
     }
 
 
+    // 'SELECT id, name, cost FROM products WHERE (cost = 200) AND deleted_at IS NULL LIMIT 20, 10;'
+    function g(){
+        dd(DB::table('products')
+        ->where(['cost', 200])
+        ->limit(10)
+        ->offset(20)
+        ->get(['id', 'name', 'cost']));
+        
+        dd(DB::getLog());
+    }
+
     function limit(){
         dd(DB::table('products')
         ->where(['cost', 200])

@@ -20,7 +20,7 @@ class ProductsModel extends Model
 
 	
 	function onRead($count){
-		var_dump($this->dd());
+		//var_dump($this->dd());
 	}
 }
 

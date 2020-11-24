@@ -1,0 +1,27 @@
+HOSTINGS FREE
+
+heroku
+infinityfree.net
+000webhost.com
+Github pages
+Gitlab pages
+
+atspace.com
+awardspace.com
+freehostingnoads.net
+
+DOMINIO "free"
+
+freenom     
+
+DB
+
+remotemysql.com
+
+    Free 100MB database size.
+    phpMyAdmin
+    No query limits.
+    Unlimited bandwidth.
+    Suitable for testing/develoment use only.
+
+
