@@ -2756,6 +2756,58 @@ Si se puede:
 https://stackoverflow.com/a/5698396
 
 
+- Aceptar que created_at, deleted_at y updated_at (con el nombre que sea) pueda ser también TIMESTAMP
+
+- Implementar INSERTs "tipo-ORM" procesando arrays de arrays en transacción:
+
+  DB::table('users')
+  ->create([
+            'username' => $username
+            'email'=>$email, 
+            'password'=>$password, 
+            'firstname'=>$firstname, 
+            'lastname'=>$lastname,
+            'user_roles' => [
+                'role_id' => 3
+            ]
+  ]);
+
+ // INSERT INTO users (username, email, password, firstname, lastname) VALUES ('pepeeeeee', 'pepeee@gmail.com', '<hashed>', 'Pepe', 'Gonazalez');
+_
+ // INSERT INTO user_roles (role_id, user_id) VALUES (3, $user_id);
+
+
+También debería ser posible hacer:
+          
+DB::table('users')
+->join('roles')
+->create(['email'=>$email, 
+          'password'=>$password, 
+          'firstname'=>$firstname, 
+          'lastname'=>$lastname,
+          'user_roles' => [
+              'name' => 'regular'
+          ]
+]);
+
+
+ // INSERT INTO users (username, email, password, firstname, lastname) VALUES ('pepeeeeee', 'pepeee@gmail.com', '<hashed>', 'Pepe', 'Gonazalez');
+_
+ // INSERT INTO user_roles (role_id, user_id) 
+ // SELECT role_id, $user_id FROM roles INNER JOIN user_roles ON user_roles.role_id = roles.id WHERE name = 'regular';
+
+
+<-- revisar. NO está bien escrito
+
+INSERT INTO Table1 (Field1, Field2)
+SELECT a.Field1, b.Field2
+FROM TableA a 
+INNER JOIN TableB b ON a.ID = b.ID
+
+Más
+https://stackoverflow.com/questions/44469503/sql-insert-into-with-inner-join
+
+
 [ API ]
 
 - Agregar ?filter de JSON:API en principio manteniendo compatibilidad con su no-uso
@@ -2828,3 +2880,38 @@ https://jsonapi.org/format/#crud  !!!!!!!!!
 - Implementar withoutWrapping para poder quitar la key "data" como requerimiento en la respuesta y en los requests.
 
 https://laravel.su/docs/8.x/eloquent-resources  !
+
+- Chequear que es JSONP
+
+https://woocommerce.github.io/woocommerce-rest-api-docs/#requirements
+
+
+- El tenant-id permitir que se pueda especificar no solo desde la url y del header sino dentro del payload del access_token 
+
+  ?tenantid=<id>
+o
+  X-TENANT-ID (header)
+
+para JWT incluirlo en el payload
+
+  {
+    “sub”: “1234567890”,
+    “name”: “<user-name>”,
+    “iat”: 1516239022,
+    “userid”: “<user-id>”,
+    “tenantid”: “<tenant-id>”
+  }
+
+El tenantid identifica la conexión de base de datos a fin de poder seleccionarla.
+
+https://stackoverflow.com/questions/13761336/rest-api-with-multi-tenant-database-separated-by-client/13764490#13764490
+https://medium.com/@vivekmadurai/multi-tenancy-in-rest-api-a570d728620c
+https://dzone.com/articles/multi-tenancy-in-the-api-world-made-easy
+
+
+- Securitizar el tenant haciendo de mínima un hash sobre el id de conexión.
+
+
+
+
+

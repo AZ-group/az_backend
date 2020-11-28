@@ -68,6 +68,17 @@ class Request  implements \ArrayAccess, Arrayable
         return $this->getApiKey() != NULL; 
     }
 
+    function getTenantId(){
+        // faltaría en JWT
+        return  $this->shiftQuery('tenantid') ??
+                static::$headers['x-tenant-id'] ??                 
+                NULL;
+    }
+
+    function hasTenantId(){
+        return $this->getTenantId() != NULL; 
+    }
+
     function authMethod(){
         if ($this->hasApiKey()){
             return 'API_KEY';

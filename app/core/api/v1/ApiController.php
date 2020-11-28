@@ -31,6 +31,7 @@ abstract class ApiController extends ResourceController
     protected $model_name;
     protected $model_table;
     protected $instance; // main
+    protected $tenantid;
 
     protected $id;
     protected $folder;
@@ -41,6 +42,12 @@ abstract class ApiController extends ResourceController
     function __construct($auth = null) 
     {  
         parent::__construct($auth);
+
+        $this->tenantid = Factory::request()->getTenantId();
+
+        if ($this->tenantid !== null){
+            $this->conn = DB::getConnection($this->tenantid);
+        }
 
         if ($this->model_name != null){
             $this->model_table = Strings::fromCamelCase(Strings::removeRTrim('Model', $this->model_name));

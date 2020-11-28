@@ -15,7 +15,6 @@ use simplerest\models\UserRolesModel;
 use PHPMailer\PHPMailer\PHPMailer;
 use simplerest\libs\Utils;
 use simplerest\libs\Strings;
-use simplerest\libs\Arrays;
 use simplerest\libs\Validator;
 //use GuzzleHttp\Client;
 //use Guzzle\Http\Message\Request;
@@ -24,7 +23,6 @@ use simplerest\libs\Files;
 use simplerest\libs\Time;
 use simplerest\core\Schema;
 //use simplerest\models\CablesModel;
-use simplerest\core\Route;
 
 
 class DumbController extends Controller
@@ -70,11 +68,6 @@ class DumbController extends Controller
     }
     */    
 
-    function schema(){
-        $m = (new ProductsModel());
-        dd($m->getSchema());
-    }
-
     function use_model(){
         $m = (new Model(true))
             ->table('products')  // <---------------- 
@@ -85,8 +78,6 @@ class DumbController extends Controller
 
         // No hay Schema
         dd($m->getSchema());
-
-        dd($m->dd());
     }
 
     function get_bar0(){
@@ -334,25 +325,16 @@ class DumbController extends Controller
     }
 
 
-    // 'SELECT id, name, cost FROM products WHERE (cost = 200) AND deleted_at IS NULL LIMIT 20, 10;'
-    function g(){
-        dd(DB::table('products')
-        ->where(['cost', 200])
-        ->limit(10)
-        ->offset(20)
-        ->get(['id', 'name', 'cost']));
-        
-        dd(DB::getLog());
-    }
-
     function limit(){
         dd(DB::table('products')
-        ->where(['cost', 200])
+        ->offset(20)
         ->select(['id', 'name', 'cost'])
         ->limit(10)
-        ->offset(20)
         ->get());
         
+        dd(DB::getLog());
+
+        dd(DB::table('products')->limit(10)->get());
         dd(DB::getLog());
     }
 
@@ -421,7 +403,7 @@ class DumbController extends Controller
 
     function get_product($id){       
         // Include deleted items
-        dd(DB::table('products')->find($id)->showDeleted()->dd());
+        dd(DB::table('products')->where(['id' => $id])->showDeleted()->get());
     }
     
     function exists(){
@@ -563,7 +545,6 @@ class DumbController extends Controller
         ->sum('cost', 'suma');
 
         dd($res);
-        dd(DB::getLog());
     }
 
     function min(){
@@ -590,12 +571,7 @@ class DumbController extends Controller
         select and addSelect
     */
     function select() {
-        dd(DB::table('products')
-        ->random()
-        ->select(['id', 'name'])
-        ->addSelect('active')
-        ->where(['active', true])
-        ->first());
+        dd(DB::table('products')->random()->select(['id', 'name'])->addSelect('cost')->first());
     }
 
     /*
@@ -608,11 +584,8 @@ class DumbController extends Controller
         https://stackoverflow.com/a/40964361/980631
     */
     function select2() {
-        $m = DB::table('products')->setFetchMode('COLUMN')
-        ->selectRaw('cost * ? as cost_after_inc', [1.05]);
-
-        dd($m->get());
-        dd($m->dd());
+        dd(DB::table('products')->setFetchMode('COLUMN')
+        ->selectRaw('cost * ? as cost_after_inc', [1.05])->get());
     }
 
     function select3() {
@@ -668,17 +641,22 @@ class DumbController extends Controller
     }
     
     function filter_products2(){
-        $m = DB::table('products')
+        dd(DB::table('products')
         ->where([ 
             ['name', ['Vodka', 'Wisky', 'Tekila','CocaCola']], // IN 
             ['locked', 0],
             ['belongs_to', 90]
         ])
-        ->whereNotNull('description');
+        ->whereNotNull('description')
+        ->get());
+    }
 
-        dd($m->get());
-        var_dump(DB::getLog());
-        //var_dump($m->dd());
+    function testx(){
+        $rows = DB::table('products')
+        ->whereNotNull('name')
+        ->get();
+
+        dd($rows);
     }
 
     // SELECT * FROM products WHERE name IN ('CocaCola', 'PesiLoca') OR cost IN (100, 200)  OR cost >= 550 AND deleted_at IS NULL
@@ -797,96 +775,54 @@ class DumbController extends Controller
         ->get());
     }
 
+    // SELECT  name, cost, id FROM products WHERE belongs_to = '90' AND (name IN ('CocaCola', 'PesiLoca')  OR cost >= 550 OR cost < 100) AND description IS NOT NULL
+    function where_or(){
+        dd(DB::table('products')->showDeleted()
+        ->select(['name', 'cost', 'id'])
+        ->where(['belongs_to', 90])
+        ->where([ 
+            ['name', ['CocaCola', 'PesiLoca']], 
+            ['cost', 550, '>='],
+            ['cost', 100, '<']
+        ], 'OR')
+        ->whereNotNull('description')
+        ->get());
+    }
     
     /* 
-        A OR B OR (C AND D)
+        A OR (B AND C)
 
-       SELECT name, cost, id FROM products WHERE 
-       belongs_to = 90 OR 
-       name IN (\'CocaCola\', \'PesiLoca\') OR 
-       (cost <= 550 AND cost >= 100)
+        SELECT  name, cost, id FROM products WHERE (1 = 1)  AND belongs_to = ?  OR name IN ('CocaCola', 'PesiLoca') OR (cost <= ? AND cost >= ?)
     */
     function or_where(){
-        $q = DB::table('products')->showDeleted()
+        dd(DB::table('products')->showDeleted()
         ->select(['name', 'cost', 'id'])
         ->where(['belongs_to', 90])
         ->orWhere(['name', ['CocaCola', 'PesiLoca']])
         ->orWhere([
             ['cost', 550, '<='],
             ['cost', 100, '>=']
-        ]);
-
-        //dd($q->get());
-        dd($q->dd());
+        ])
+        ->get());
     }
     
     // A OR (B AND C)
     function or_where2(){
-        $q = DB::table('products')->showDeleted()
+        dd(DB::table('products')->showDeleted()
         ->select(['name', 'cost', 'id', 'description'])
         ->whereNotNull('description')
         ->orWhere([ 
                     ['cost', 100, '>='],
                     ['cost', 500, '<']
-        ]);
-
-        dd($q->get());
-        dd($q->dd());
+        ])        
+        ->get());
     }
 
-
-     /*
-        SELECT  name, cost, id FROM products WHERE 
-        belongs_to = '90' AND 
-        (
-            name IN ('CocaCola', 'PesiLoca') OR 
-            cost >= 550 OR 
-            cost < 100
-        ) AND 
-        description IS NOT NULL
-    */
-    function where_or(){
-        $q = DB::table('products')->showDeleted()
-        ->select(['name', 'cost', 'id'])
-        ->where(['belongs_to', 90])
-        ->where([                           // <--- whereOr() === where([], 'OR')
-            ['name', ['CocaCola', 'PesiLoca']], 
-            ['cost', 550, '>='],
-            ['cost', 100, '<']
-        ], 'OR')
-        ->whereNotNull('description');
-
-        dd($q->get());
-        dd($q->dd());
-    }
-
-     /*
-        SELECT  name, cost, id FROM products WHERE 
-        belongs_to = '90' AND 
-        (
-            name IN ('CocaCola', 'PesiLoca') OR 
-            cost >= 550 OR 
-            cost < 100
-        ) AND 
-        description IS NOT NULL
-    */
-    function where_or1(){
-        $q = DB::table('products')->showDeleted()
-        ->select(['name', 'cost', 'id'])
-        ->where(['belongs_to', 90])
-        ->whereOr([ 
-            ['name', ['CocaCola', 'PesiLoca']], 
-            ['cost', 550, '>='],
-            ['cost', 100, '<']
-        ])
-        ->whereNotNull('description');
-
-        dd($q->get());
-        dd($q->dd());
-    }
-        
     /*
+        Showing also deleted records
+
         SELECT  name, cost, id FROM products WHERE (belongs_to = '90' AND (name IN ('CocaCola', 'PesiLoca')  OR cost >= 550 OR cost < 100) AND description IS NOT NULL) AND deleted_at IS NULL OR  (cost >= 100 AND cost < 500)
+
     */
     function where_or2(){
         dd(DB::table('products')
@@ -931,508 +867,14 @@ class DumbController extends Controller
     }
 
 
-
-    /*
-    array (
-        'op' => 'and,
-        'q' => array (
-            array (
-                'op' => 'or',
-                'q' => array (
-                        array (
-                            0 => ' cost > ?',
-                            1 => ' id < ',
-                        ),        
-
-                        array (
-                            0 => ' cost <= ?',
-                            1 => ' description IS NOT ?',
-                        )
-                )
-            ),
-
-            array(
-                0 => 'id = ?'
-            )
-        )
-    )
-    */
-
-    /*
-        SSELECT id, cost, size, description, belongs_to FROM products WHERE 
-        
-        (name LIKE '%a%') AND 
-        (cost > 100 AND id < 50) AND 
-        (
-            active = 1 OR 
-            (cost <= 100 AND description IS NOT NULL)
-        ) 
-        AND belongs_to > 150;
-    */
-    function where_adv()
-    {
-        $m = (new Model())
-        ->table('products')
-
-        ->where([
-            ['cost', 100, '>'], // AND
-            ['id', 50, '<']
-        ]) 
-        // AND
-        ->whereRaw('name LIKE ?', ['%a%'])
-        // AND
-        ->group(function($q){  
-            $q->where(['active', 1])
-            // OR
-              ->orWhere([
-                ['cost', 100, '<='], 
-                ['description', NULL, 'IS NOT']
-            ]);  
-        })
-        // AND
-        ->where(['belongs_to', 150, '>'])
-        //->dontExec()
-        ->select(['id', 'cost', 'size', 'description', 'belongs_to']);
-
-       dd($m->get());  
-	   var_dump($m->dd());
-    }
-
-    /*
-        SELECT id, cost, size, description, belongs_to FROM products WHERE 
-        
-            (cost > 100 AND id < 50) OR <--- Ok
-            (
-                (name LIKE '%a') AND 
-                (cost <= 100 AND description IS NOT NULL)
-            ) AND 
-            belongs_to > 150;
-    */
-    function where_adv2()
-    {
-        $m = (new Model())
-        ->table('products')
-
-        ->where([
-            ['cost', 100, '>'], // AND
-            ['id', 50, '<']
-        ]) 
-        // OR
-        ->or(function($q){  
-            $q->whereRaw('name LIKE ?', ['%a'])
-              // AND  
-              ->where([
-                ['cost', 100, '<='], 
-                ['description', NULL, 'IS NOT']
-            ]);  
-        })
-        // AND
-        ->where(['belongs_to', 150, '>'])
-        
-        ->select(['id', 'cost', 'size', 'description', 'belongs_to']);
-
-       //dd($m->get()); 
-	   var_dump($m->dd());
-    }
-
-    /*
-        Negador de wheres
-
-        SELECT id, cost, size, description, belongs_to FROM products WHERE 
-
-        (
-            NOT 
-            (
-                (cost > 100 AND id < 50) OR 
-                (cost <= 100 AND description IS NOT NULL) 
-
-            ) AND belongs_to > 150
-
-        ) AND 
-
-        deleted_at IS NULL;
-    */
-    function not(){
-        $m = DB::table('products')
-
-        ->not(function($q){  // <-- group *
-            $q->where([
-                 ['cost', 100, '>'],
-                 ['id', 50, '<']
-             ]) 
-             // OR
-             ->orWhere([
-                 ['cost', 100, '<='],
-                 ['description', NULL, 'IS NOT']
-             ]);  
-         })
-         // AND
-         ->where(['belongs_to', 150, '>'])
-         
-         ->select(['id', 'cost', 'size', 'description', 'belongs_to']);
- 
-        dd($m->get()); 
-        var_dump($m->dd());
-    }
-
-    // ok
-    function notor(){
-        $m = DB::table('products')
-
-        ->where(['belongs_to', 150, '>'])
-        ->not(function($q) {
-            $q->where(['name', 'a$'])
-            ->or(function($q){
-                $q->where([
-                    ['cost', 100, '<='],
-                    ['description', NULL, 'IS NOT']
-                ]);
-            });             
-        })
-        ->dontExec()
-        ->where(['size', '1L', '>=']);
-
-        //dd($m->get());
-        dd($m->dd());
-    }
-
-
-    /*
-        SELECT * FROM products WHERE 
-        
-        (
-            belongs_to > 150 AND 
-            NOT (
-                    (name REGEXP 'a$') OR
-                    ((cost <= 100 AND 
-                        description IS NOT NULL
-                    ))
-                ) AND 
-            size >= \'1L\'
-        ) AND 
-        deleted_at IS NULL;
-
-    */
-    function notor_whereraw(){
-        $m = DB::table('products')
-
-        ->where(['belongs_to', 150, '>'])
-        ->not(function($q) {
-            $q->whereRegEx('name', 'a$')
-            ->or(function($q){ 
-                $q->where([
-                    ['cost', 100, '<='],
-                    ['description', NULL, 'IS NOT']
-                ]);
-            });             
-        })
-        ->dontExec()
-        ->where(['size', '1L', '>=']);
-
-        //dd($m->get());
-        dd($m->dd());
-    }
-
-    // ok
-    function or_problematico(){
-        $m = DB::table('products')
-    
-        ->whereRegEx('name', 'a$')
-        ->or(function($q){
-            $q->where(['cost', 100, '<=']);
-        })     
-        ->showDeleted()        
-        ->dontExec();
-
-        //dd($m->get());
-        dd($m->dd());
-    }
-
-    // ok
-    function or__problematico_b(){
-        $m = DB::table('products')
-    
-        ->whereRegEx('name', 'a$')
-        ->or(function($q){
-            $q->group(function($q){
-                $q->where(['cost', 100, '<='])
-                ->orWhere(['id', 90]);
-            });
-        })     
-        ->showDeleted()        
-        ->dontExec();
-
-        //dd($m->get());
-        dd($m->dd());
-    }
-
-    function or_otro_bug(){
-        $m = DB::table('products')    
-
-        ->whereRegEx('name', 'a$')  // <--- impone un 'AND' y no debería
-        ->orWhere(['description', NULL, 'IS NOT'])
-        
-        ->showDeleted()        
-        ->dontExec();
-
-        //dd($m->get());
-        dd($m->dd());
-    }
-
-    function or_otro(){
-        $m = DB::table('products')    
-
-        ->group(function($q){
-            $q->whereRegEx('name', 'a$');
-        })
-        
-        ->orWhere(['description', NULL, 'IS NOT'])
-        
-        ->showDeleted()        
-        ->dontExec();
-
-        //dd($m->get());
-        dd($m->dd());
-    }
-
-    function or_otro2(){
-        $m = DB::table('products')
-    
-        ->group(function($q){
-            $q->whereRegEx('name', 'a$');
-        })
-
-        ->or(function($q){
-            $q->where(['cost', 100, '<=']);
-        })   
-        
-        
-        ->showDeleted()        
-        ->dontExec();
-
-        //dd($m->get());
-        dd($m->dd());
-    }
-
-    function test000001(){
-        $m = DB::table('products')
-    
-        ->group(function($q){
-            $q->where(['description', NULL, 'IS NOT'])
-            ->where(['id', 90]);
-        })
-        
-        ->or(function($q){
-            $q->where(['cost', 100, '<=']);
-        })     
-        ->showDeleted()        
-        ->dontExec();
-
-        //dd($m->get());
-        dd($m->dd());
-    }
-
-    function notor_whereraw2(){
-        $m = DB::table('products')
-
-        ->where(['belongs_to', 150, '>'])
-        ->not(function($q) {
-            $q->where([
-                ['cost', 100, '<='],
-                ['description', NULL, 'IS NOT']
-            ])
-            ->or(function($q){
-                $q->whereRegEx('name', 'a$');
-            });             
-        })
-        ->dontExec()
-        ->where(['size', '1L', '>=']);
-
-        //dd($m->get());
-        dd($m->dd());
-    }   
-
-
-    /*
-        "SELECT id, name, cost, size, description, belongs_to FROM products WHERE
-        (cost > 50 AND id <= 190) AND 
-        (active = 1 OR (name LIKE '%a%')) AND 
-        belongs_to > 1;"
-    */
-    function or_whereraw()
-    {
-        $m = (new Model())
-        ->table('products')
-
-        ->where([
-            ['cost', 50, '>'], // AND
-            ['id', 190, '<=']
-        ]) 
-        // AND
-        ->group(function($q){  
-            $q->where(['active', 1])
-            // OR
-            ->orWhereRaw('name LIKE ?', ['%a%']);  
-        })
-        // AND
-        ->where(['belongs_to', 1, '>'])
-        
-        ->select(['id', 'name', 'cost', 'size', 'description', 'belongs_to']);
-
-       dd($m->get()); 
-	   var_dump($m->dd());
-    }
-
-    function when(){
-        $lastname = 'Bozzo';
-
-        $m = DB::table('users')
-        ->when($lastname, function ($q) use ($lastname) {
-            $q->where(['lastname', $lastname]);
-        });
-
-        dd($m->get());
-        dd($m->dd());
-    }
-
-    function when2(){
-        $sortBy = ['name' => 'ASC'];
-
-        $m = DB::table('products')
-        ->when($sortBy, function ($q) use ($sortBy) {
-            $q->orderBy($sortBy);
-        }, function ($q) {
-            $q->orderBy(['id' => 'DESC']);
-        });
-
-        dd($m->get());
-        dd($m->dd());
-    }
-    
-
-    function where_col(){
-        $m = (DB::table('users'))
-        ->whereColumn('firstname', 'lastname', '=');  
-
-        dd($m->get()); 
-	    var_dump($m->dd());
-    }
-   
-
     // SELECT * FROM products WHERE ((cost < IF(size = "1L", 300, 100) AND size = '1L' ) AND belongs_to = 90) AND deleted_at IS NULL ORDER BY cost ASC
     function where_raw(){
-        $m = DB::table('products')
+        dd(DB::table('products')
         ->where(['belongs_to' => 90])
         ->whereRaw('cost < IF(size = "1L", ?, 100) AND size = ?', [300, '1L'])
-        ->orderBy(['cost' => 'ASC']);
-
-        dd($m->get()); 
-	    var_dump($m->dd());
+        ->orderBy(['cost' => 'ASC'])
+        ->get());
     }
-
-    /*
-        SELECT * FROM products WHERE 
-
-        (
-            cost < IF(size = "1L", 300, 100) AND 
-            size = '1L'
-        ) AND 
-
-        belongs_to = 90 AND 
-
-        (
-            size = '1L' OR (cost <= 550 AND cost >= 100)
-        ) AND 
-
-        deleted_at IS NULL 
-
-
-        ORDER BY cost ASC;
-
-    */
-    function where_raw1(){
-        $m = DB::table('products')
-        
-        ->where(['belongs_to', 90])
-
-        ->group(function($q){
-        	$q->where(['size', '1L'])
-	          ->orWhere([
-	            ['cost', 550, '<='],
-	            ['cost', 100, '>=']
-	        ]);
-        })
-        
-        // AND WHERE(...)
-        ->whereRaw('cost < IF(size = "1L", ?, 100) AND size = ?', [300, '1L'])
-        
-        ->orderBy(['cost' => 'ASC']);
-
-        dd($m->get()); 
-	    var_dump($m->dd());
-    }
-
-    function where_raw1b()
-    {
-        $m = (new Model())
-        ->table('products')
-
-        ->group(function($q){  // <-- group *
-           $q->where([
-                ['cost', 100, '>'],
-                ['id', 50, '<']
-            ]) 
-            // OR
-            ->orWhere([
-                ['cost', 100, '<='],
-                ['description', NULL, 'IS NOT']
-            ]);  
-        })
-        
-        // AND
-        ->where(['belongs_to', 150, '>'])
-
-        // AND WHERE (...)
-        ->whereRaw('cost < IF(size = "1L", ?, 100) AND size = ?', [300, '1L'])
-        
-        ->select(['id', 'cost', 'size', 'description', 'belongs_to']);
-
-       dd($m->get()); 
-	   var_dump($m->dd());
-    }
-
-    /*
-        Dentro de un group() no funciona whereRaw()
-
-        Tampoco funciona whereIn() dentro de grupos.
-
-        Invalid parameter number: number of bound variables does not match number of tokens in /home/www/az/app/core/Model.php:xxxx
-
-    */
-    function where_raw1c()
-    {
-        $m = (new Model())
-        ->table('products')
-
-        ->group(function($q){  // <-- group *
-           $q->whereRaw('cost < IF(size = "1L", ?, 100) AND size = ?', [300, '1L']) // falla
-            // OR
-             ->orWhere([
-                ['cost', 100, '<='],
-                ['description', NULL, 'IS NOT']
-            ]);  
-        })
-        
-        // AND
-        ->where(['belongs_to', 150, '>'])        
-        
-        ->select(['id', 'cost', 'size', 'description', 'belongs_to']);
-
-       dd($m->get()); 
-	   var_dump($m->dd());
-    }
-
-
    
     /*
         SELECT * FROM products WHERE EXISTS (SELECT 1 FROM users WHERE products.belongs_to = users.id AND users.lastname IS NOT NULL);
@@ -1443,22 +885,6 @@ class DumbController extends Controller
         ->get());
     }
 
-    function regex(){
-        $m = DB::table('products')
-        ->whereRegEx('name', 'a$');
-
-        dd($m->get());
-        dd($m->dd());
-    }
-
-    function regex2(){
-        $m = DB::table('products')
-        ->whereNotRegEx('name', 'a$');
-
-        dd($m->get());
-        dd($m->dd());
-    }
-
 
     /*
         WHERE EXISTS
@@ -1466,11 +892,9 @@ class DumbController extends Controller
         SELECT * FROM products WHERE EXISTS (SELECT 1 FROM users WHERE products.belongs_to = users.id AND users.lastname IS NOT NULL);
     */
     function where_exists(){
-        $m = DB::table('products')->showDeleted()
-        ->whereExists('(SELECT 1 FROM users WHERE products.belongs_to = users.id AND users.lastname = ?)', ['AB']);
-
-        dd($m->get());
-        dd($m->dd());
+        dd(DB::table('products')->showDeleted()
+        ->whereExists('(SELECT 1 FROM users WHERE products.belongs_to = users.id AND users.lastname = ?)', ['AB'])
+        ->get());
     }
 
     /*
@@ -1507,7 +931,6 @@ class DumbController extends Controller
         //->offset(5)
         ->avg('cost'));
     }
-
 
     function where(){        
 
@@ -1717,208 +1140,22 @@ class DumbController extends Controller
             ->get());
     }
 
-    /*
-        SELECT * FROM other_permissions as op 
-        
-        INNER JOIN folders ON op.folder_id=folders.id 
-        INNER JOIN users ON folders.belongs_to=users.id 
-        INNER JOIN user_roles ON users.id=user_roles.user_id 
-        
-        WHERE (guest = 1 AND table = \'products\' AND r = 1) 
-        ORDER BY users.id DESC;
-    */
     function joins(){
-        $m = (new Model())->table('other_permissions', 'op')
-        ->join('folders', 'op.folder_id', '=',  'folders.id')
-        ->join('users', 'folders.belongs_to', '=', 'users.id')
-        ->join('user_roles', 'users.id', '=', 'user_roles.user_id')
-        ->where([
-            ['guest', 1],
-            ['table', 'products'],
-            ['r', 1]
-        ])
-        ->orderByRaw('users.id DESC')
-        ->dontExec();  
+        $o = DB::table('other_permissions', 'op');
+        $rows =   $o->join('folders', 'op.folder_id', '=',  'folders.id')
+                    ->join('users', 'folders.belongs_to', '=', 'users.id')
+                    ->join('user_roles', 'users.id', '=', 'user_roles.user_id')
+                    ->where([
+                        ['guest', 1],
+                        ['table', 'products'],
+                        ['r', 1]
+                    ])
+                    ->orderByRaw('users.id DESC')
+                    ->get();  
         
-        dd($m->dd()); 
-    }
-
-    
-    function j(){
-        $m = DB::table('products')
-        ->join('products_product_categories', 'products.id', '=',  'products_product_categories.product_id')
-        ->join('product_comments', 'products.id', '=', 'product_comments.product_id');
-
-        dd($m->get()); 
-        dd($m->dd()); 
-    }    
-
-    function j_auto(){
-        $m = DB::table('products')
-        ->join('products_product_categories')
-        ->join('product_comments');
-
-        dd($m->get()); 
-        dd($m->dd()); 
-    }
-
-    function j1(){
-        $m = DB::table('books')
-        ->join('book_reviews', 'book_reviews.book_id', '=',  'books.id')
-        ->join('users as authors', 'authors.id', '=', 'books.author_id')
-        ->join('users as editors', 'editors.id', '=', 'books.editor_id');
-
-        dd($m->get()); 
-        dd($m->dd()); 
-    }    
-
-   
-    function j1_auto(){
-
-        $m = DB::table('books')
-        ->join('book_reviews')
-        ->join('users as authors')
-        ->join('users as editors');
-
-        dd($m->get()); 
-        dd($m->dd()); 
-          
-        /*
-            SELECT * FROM books 
-            INNER JOIN book_reviews     ON book_reviews.book_id=books.id 
-            INNER JOIN users as authors ON authors.id=books.author_id 
-            INNER JOIN users as editors ON editors.id=books.editor_id;
-        */
-
-    }    
-
-
-
-    function j2(){
-        $m = DB::table('users')
-        ->join('user_sp_permissions', 'users.id', '=',  'user_sp_permissions.user_id')
-        ->join('sp_permissions', 'sp_permissions.id', '=', 'user_sp_permissions.id')
-
-        ->select(['sp_permissions.name as perm', 'username', 'active']);
-
-        //dd($m->get()); 
-        dd($m->dd()); 
-    }
-
-    function j2_auto(){
-        $m = DB::table('users')
-        ->join('user_sp_permissions')
-        ->join('sp_permissions')
-
-        ->select(['sp_permissions.name as perm', 'username', 'active']);
-
-        //dd($m->get()); 
-        dd($m->dd()); 
-    }
-
-    // 'SELECT users.id, users.name, users.email, countries.name as country_name FROM users LEFT JOIN countries ON countries.id=users.country_id WHERE deleted_at IS NULL;'
-    function leftjoin(){
-        $users = DB::table('users')->select([
-            "users.id",
-            "users.name",
-            "users.email",
-            "countries.name as country_name"
-        ])
-        ->leftJoin("countries", "countries.id", "=", "users.country_id")
-        ->dontExec()
-        ->get();
-
-        //dd($users);
-        dd(DB::getLog());    
-    }
-
-    /*
-        Se generan ambiguedades sino especifican las tablas tanto en las cláuslas SELECT como el WHERE
-    */
-    function crossjoin(){
-        DB::table('users')
-        ->crossJoin('products')
-        ->where(['users.id', 90])
-        ->unhideAll()
-        ->showDeleted()
-        ->dontExec()->get();
-        
-        dd(DB::getLog());    
-    }
-
-    function naturaljoin(){
-        $m = (new Model())->table('employee')
-        ->naturalJoin('department')
-        ->unhideAll()
-        ->showDeleted()
-        ->dontExec();
-        
-        dd($m->dd());    
+        dd($rows);
     }
  
-    // SELECT COUNT(*) from users CROSS JOIN products CROSS JOIN roles;
-    function crossjoin2(){
-        DB::table('users')->crossJoin('products')->crossJoin('roles')
-        ->unhideAll()
-        ->showDeleted()
-        ->dontExec()->get();
-        
-        dd(DB::getLog());    
-    }
-
-    // SELECT * FROM users CROSS JOIN products CROSS JOIN roles WHERE users.id = 90;'
-    function crossjoin2b(){
-        DB::table('users')->crossJoin('products')->crossJoin('roles')
-        ->where(['users.id', 90])
-        ->unhideAll()
-        ->showDeleted()
-        ->dontExec()->get();
-        
-        dd(DB::getLog());    
-    }
-
-
-    // SELECT COUNT(*) from users CROSS JOIN products CROSS JOIN roles INNER JOIN user_sp_permissions ON users.id = user_sp_permissions.user_id;
-    function crossjoin3(){
-        DB::table('users')->crossJoin('products')->crossJoin('roles')
-        ->join('user_sp_permissions', 'users.id', '=', 'user_sp_permissions.user_id')
-        ->unhideAll()
-        ->showDeleted()
-        ->dontExec()->get();
-        
-        dd(DB::getLog());    
-    }
-
-    /*
-
-        SELECT ot.*, ld.distance FROM other_table AS ot 
-        INNER JOIN location_distance ld ON (ld.fromLocid = ot.fromLocid OR ld.fromLocid = ot.toLocid) AND 
-        (ld.toLocid = ot.fromLocid OR ld.toLocid = ot.fromLocid)
-
-    */
-
-    /*
-        INNER JOIN location_distance ld1 ON ld1.fromLocid = ot.fromLocid AND ld1.toLocid = ot.toLocid
-    */
-
-    /*
-        select ot.id,
-        ot.fromlocid,
-        ot.tolocid,
-        ot.otherdata,
-        coalesce(ld1.distance, ld2.distance) distance
-        from other_table ot
-        left join location_distance ld1
-        on ld1.fromLocid = ot.toLocid
-        and ld1.toLocid = ot.fromLocid 
-        left join location_distance ld2
-        on ld2.toLocid = ot.toLocid
-        and ld2.fromLocid = ot.fromLocid 
-
-        https://stackoverflow.com/questions/11702294/mysql-inner-join-with-or-condition#14824595
-    */
-
-
     function get_nulls(){    
         // Get products where workspace IS NULL
         dd(DB::table('products')->where(['workspace', null])->get());   
@@ -1930,7 +1167,7 @@ class DumbController extends Controller
     /*
         Debug without exec the query
     */
-    function dontExec(){
+    function dontexec(){
         DB::table('products')
         ->dontExec() 
         ->where([ 
@@ -1956,11 +1193,9 @@ class DumbController extends Controller
     function get_user($id){
         $u = DB::table('users');
         $u->unhide(['password']);
-        $u->hide(['id', 'username', 'confirmed_email', 'firstname','lastname', 'deleted_at', 'belongs_to']);
-        $u->where(['id'=>$id]);
-
-        dd($u->get());
-        dd($u->dd2());
+        $u->hide(['username', 'confirmed_email', 'firstname','lastname', 'deleted_at', 'belongs_to']);
+        
+        dd($u->where(['id'=>$id])->get());
     }
 
     function del_user($id){
@@ -2005,18 +1240,17 @@ class DumbController extends Controller
         dd($count);
     }
 
-    function create_user($username, $email, $password, $firstname, $lastname)
+    function create_user($email, $password, $firstname, $lastname)
      {        
         for ($i=0;$i<20;$i++)
             $email = chr(rand(97,122)) . $email;
         
         $u = DB::table('users');
-        $u->fill(['email']);
+        //$u->fill(['email']);
         //$u->unfill(['password']);
-        $id = $u->create(['username' => $username, 'email'=>$email, 'password'=>$password, 'firstname'=>$firstname, 'lastname'=>$lastname]);
+        $id = $u->create(['email'=>$email, 'password'=>$password, 'firstname'=>$firstname, 'lastname'=>$lastname]);
         
         dd($id);
-        dd(DB::getLog());
     }
 
     function fillables(){
@@ -2140,8 +1374,6 @@ class DumbController extends Controller
 
     /*
         Subconsultas en el WHERE --ok
-
-        SELECT id, name, size, cost, belongs_to FROM products WHERE (belongs_to IN (SELECT id FROM users WHERE (confirmed_email = 1) AND password < 100)) AND size = \'1L\';
     */
     function sub3(){
         $sub = DB::table('users')->showDeleted()
@@ -2156,8 +1388,8 @@ class DumbController extends Controller
         ->whereRaw("belongs_to IN ({$sub->toSql()})")
         ->get();
 
-        dd($res);  
-        dd(DB::getLog());  
+        dd(DB::getLog());
+        dd($res);    
     }
 
     /*
@@ -2179,9 +1411,9 @@ class DumbController extends Controller
         ->whereRaw("belongs_to IN ({$sub->toSql()})")
         ->orderBy(['id' => 'desc'])
         ->get();
-  
-        dd($res);  
+
         dd(DB::getLog());  
+        dd($res);    
     }
 
     function sub3c(){
@@ -2199,8 +1431,7 @@ class DumbController extends Controller
         ->groupBy(['size'])
         ->avg('cost');
 
-        dd($res);   
-        dd(DB::getLog()); 
+        dd($res);    
     }
 
 
@@ -2211,16 +1442,14 @@ class DumbController extends Controller
 
     function sub4(){
         // SELECT COUNT(*) FROM (SELECT  name, size FROM products  GROUP BY size ) as sub 
-        //
-        // <-- en SQL no tiene sentido.
-
+        
         try {
             $sub = DB::table('products')
             ->select(['name', 'size'])
             ->groupBy(['size']);
 
             $m = new Model(true);
-            $res = $m->fromRaw("({$sub->toSql()}) as sub")->dontExec()
+            $res = $m->fromRaw("({$sub->toSql()}) as sub")
             ->count();
 
             dd($sub->toSql(), 'toSql()');
@@ -2234,7 +1463,6 @@ class DumbController extends Controller
         }
     }
 
-    // SELECT  COUNT(*) FROM (SELECT  id, name, size FROM products  WHERE (cost >= ?) AND deleted_at IS NULL) as sub
     function sub4a(){
         try {
             $sub = DB::table('products')
@@ -2376,10 +1604,10 @@ class DumbController extends Controller
         ->where(['cost', 200, '>='])
         ->unionAll($uno)
         ->orderBy(['id' => 'ASC'])
-        ->limit(5);
+        ->limit(5)
+        ->get();
 
-        dd($dos->get());
-        dd($dos->dd());
+        dd($dos);
     }
        
     function insert_messages() {
@@ -2443,13 +1671,6 @@ class DumbController extends Controller
 
         Factory::response()->sendJson($id);
     }
-
-
-    function get_env(){
-        dd($_ENV['APP_NAME']);
-        dd($_ENV['APP_URL']);
-    }
-
 
     function test_get(){
         dd(DB::table('products')->first(), 'FIRST'); 
@@ -2759,50 +1980,6 @@ class DumbController extends Controller
 
 
     /*
-        Genera excepción con 
-        
-        PDO::ATTR_EMULATE_PREPARES] = false
-
-    */
-    function test000002(){
-        $m = DB::table('products')
-        ->where([ 
-            ['name', ['Vodka', 'Wisky', 'Tekila','CocaCola']], // IN 
-            ['locked', 0],
-            ['belongs_to', 90]
-        ])
-        ->whereNotNull('description');
-
-        dd($m->get());
-        var_dump(DB::getLog());
-        //var_dump($m->dd());
-    }
-
-    /*
-        Genera excepción con 
-        
-        PDO::ATTR_EMULATE_PREPARES] = false
-
-    */
-    function test000003(){
-        $m = DB::table('products')
-        /*
-        ->where([ 
-            ['name', ['Vodka', 'Wisky', 'Tekila','CocaCola']], // IN 
-            ['locked', 0],
-            ['belongs_to', 90]
-        ])
-        */
-        ->showDeleted()
-        //->whereNotNull('description');
-        ->where(['description', NULL]);
-
-        dd($m->first());
-        var_dump(DB::getLog());
-        //var_dump($m->dd());
-    }
-
-    /*
 
         https://www.w3resource.com/mysql/mysql-data-types.php
         https://manuales.guebs.com/mysql-5.0/spatial-extensions.html
@@ -2811,17 +1988,17 @@ class DumbController extends Controller
     function create_table()
     {       
         //Factory::config()['db_connection_default'] = 'db2';
-        $sc = (new Schema('facturas'))
+        $sc = (new Schema('facturas3'))
 
         ->setEngine('InnoDB')
         ->setCharset('utf8')
         ->setCollation('utf8_general_ci')
 
-        ->integer('id')->auto()->unsigned()->pri()
+        ->integer('id')->auto()->unsigned()
         ->int('edad')->unsigned()
         ->varchar('firstname')
         ->varchar('lastname')->nullable()->charset('utf8')->collation('utf8_unicode_ci')
-        ->varchar('username')->unique()
+        ->varchar('username')
         ->varchar('password', 128)
         ->char('password_char')->nullable()
         ->varbinary('texto_vb', 300)
@@ -2851,7 +2028,7 @@ class DumbController extends Controller
         ->double('doble_p')
         ->real('num_real')
 
-        ->bit('some_bits', 3)->index()
+        ->bit('some_bits', 3)
         ->boolean('active')->default(1)
         ->boolean('paused')->default(true)
 
@@ -2873,13 +2050,20 @@ class DumbController extends Controller
         ->softDeletes() // agrega DATETIME deleted_at 
         ->datetimes()  // agrega DATETIME(s) no-nullables created_at y deleted_at
 
-        ->varchar('correo')->unique()
+        ->varchar('correo')
+        ->int('user_id');
 
-        ->int('user_id')->index()
-        ->foreign('user_id')->references('id')->on('users')->onDelete('cascade')
-        //->foreign('user_id')->references('id')->on('users')->constraint('fk_uid')->onDelete('cascade')->onUpdate('restrict')
-        
-        ;
+        // INDICES
+        $sc->pri(['id']);
+        //$sc->index(['some_bits']);
+        $sc->index(['firstname', 'lastname']);
+        $sc->unique(['username']);        
+        $sc->unique(['correo']);
+        $sc->unique(['active', 'paused']);
+        //
+
+        // FKs
+        //$sc->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
 
         //dd($sc->getSchema(), 'SCHEMA');
         /////exit;
@@ -2897,21 +2081,16 @@ class DumbController extends Controller
         //var_dump($sc->columnExists('correo'));
        
         $res = $sc
-
-        
         //->timestamp('vencimiento')
         //->varchar('lastname', 50)->collate('utf8_esperanto_ci')
         //->varchar('username', 50)
         //->column('ts')->nullable()
         //->field('deleted_at')->nullable()
-        //->column('correo')->unique()
-        // ->field('correo')->default(false)->nullable(true)
+        //->field('correo')->unique()
         
-
-        //->renameColumn('karma', 'carma')
-        //->field('id')->index()
-        //->renameIndex('id', 'idx')
-        ->dropColumn('saldo')
+        //->renameColumn('binario', 'codigo')
+        //->renameIndex('id', 'user_id')
+        //->dropColumn('paused')
         //->dropIndex('correo')
         //->dropPrimary('id')
         //->renameTable('boletas')
@@ -2920,10 +2099,8 @@ class DumbController extends Controller
         //->field('password_char')->default(false)->nullable(false)
         
 
-        /*
-         creo campos nuevos
-        */
-        
+        // creo campos nuevos
+        //
         //->varchar('nuevo_campito', 50)->nullable()->after('ts')
         //->text('aaa')->first()->nullable()
 
@@ -2936,7 +2113,7 @@ class DumbController extends Controller
         ->change();
 
         Schema::FKcheck(true);
-        dd($sc->dd());
+        //dd($sc->dd());
     }
 
     function has_table(){
@@ -2971,10 +2148,10 @@ class DumbController extends Controller
     }
 
     function xxxz(){
-        $str = 'CONSTRAINT `facturas_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE';
+        $str = 'CONSTRAINT `facturas_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION';
         dd($str, 'STR');
 
-        $constraint = Strings::slice($str, '/CONSTRAINT `([a-zA-Z0-9_]+)` /', function($s){
+        $constraint = Strings::slice($str, 'c([a-zA-Z0-9_]+)` /', function($s){
             //var_dump($s);
                 return ($s == null) ? 'DEFAULT' : $s;
             }); 
@@ -3004,11 +2181,17 @@ class DumbController extends Controller
 
         */
         $fk     = Strings::slice($str, '/FOREIGN KEY \(`([a-zA-Z0-9_]+)`\)/');
-        $fk_ref = Strings::slice($str, '/REFERENCES `([a-zA-Z0-9_]+)`/');
+        $fk_ref = Strings::sliceAll($str, '/REFERENCES `([a-zA-Z0-9_]+)` \(`([a-zA-Z0-9_]+)`\)/');
+        dd($str, 'STR (before ON UPDATE)');	
+        $fk_on_update  = Strings::slice($str, '/ ON UPDATE (RESTRICT|NO ACTION|CASCADE|SET NULL)/');
+        dd($str, 'STR (before ON DELETE)');	
+        $fk_on_delete  = Strings::slice($str, '/ ON DELETE (RESTRICT|NO ACTION|CASCADE|SET NULL)/');
 
-        dd($str, 'STR');	
+        dd($str, 'STR (final)');	 
         dd($fk, 'FK');
-        dd($fk, 'REFERENCES');
+        dd($fk_ref, 'REFERENCES');
+        dd($fk_on_update, 'ON UPDATE');
+        dd($fk_on_delete, 'ON DELETE');    
 
         /*
         IDEM
@@ -3027,7 +2210,7 @@ class DumbController extends Controller
         dd(DB::select('SELECT * FROM users'));
     }
 
-    function test_conn2(){
+    function test(){
         Factory::config()['db_connection_default'] = 'db2';
 
         $sc = new Schema('cables');
@@ -3039,56 +2222,5 @@ class DumbController extends Controller
 
         ->create();
     }
-
-    function test_route(){
-        /*
-        Route::get('dumbo/kalc', function(){
-            echo 'Hello from Kalc!';
-        })->name('dumbo.kalc');
-        
-        
-        Route::get('has_table', 'DumbController@has_table')
-        ->name('dumbo.has_table');
-        */
-    
-        //dd(route('dumbo.has_table'), 'URL');
-        //dd(route('dumbo.kalc'), 'URL');
-    }
-
-    function curl(){
-        define('HOST', $this->config['APP_URL']);
-        define('BASE_URL', HOST .'/');
-
-        $url = BASE_URL . "api/v1/auth/login";
-
-        $credentials = [
-            'email' => "tester3@g.c",
-            'password' => "gogogo8"
-        ];
-
-        if ($credentials == []){
-            throw new \Exception("Empty credentials");
-        }
-
-		$data = json_encode($credentials);
-
-        $com = <<<HDOC
-        curl -s --location --request POST '$url' \
-        --header 'Content-Type: text/plain' \
-        --data-raw '$data' /tmp/output.html
-        HDOC;
-
-        $response = json_decode(exec($com), true);
-
-        $data      = $response['data'] ?? [];
-        $http_code = $response['status_code'];
-        $error_msg = $response['error'];
-
-       dd($data, 'data');
-       dd($http_code, 'http code');
-       dd($error_msg, 'error');
-
-
-    }       
 
 }

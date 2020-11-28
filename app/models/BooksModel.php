@@ -8,9 +8,6 @@ use simplerest\models\schemas\BooksSchema;
 
 class BooksModel extends Model
 { 
-	
-	
-
 	protected $hidden   = [];
 	protected $not_fillable = [];
 
