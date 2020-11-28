@@ -2,20 +2,18 @@
 
 namespace simplerest\tests;
 
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-
 require_once __DIR__ . '../../vendor/autoload.php';
+require_once __DIR__ . '../../public/app.php';
 
 use PHPUnit\Framework\TestCase;
-use simplerest\models\UsersModel;
 use simplerest\libs\DB;
 use simplerest\libs\Factory;
 use simplerest\libs\Debug;
 
-define('HOST', 'simplerest.lan');
-define('BASE_URL', 'http://'. HOST .'/');
+$config = include __DIR__ . '../../config/config.php';
+
+define('HOST', $config['APP_URL']);
+define('BASE_URL', HOST .'/');
 
 // API UNIT TEST
 class ApiTest extends TestCase
@@ -615,7 +613,7 @@ class ApiTest extends TestCase
         ->where(['belongs_to' => $this->uid, $field => $vals[0]])->assoc()->limit($this->config['paginator']['default_limit'])->get();
 
         if ($model_arr != $res['data']){
-            dd(DB::getQueryLog());
+            dd(DB::getLog());
             dd($model_arr, 'MODELO:');
             dd(BASE_URL . "api/v1/products?{$field}[eq]=". urlencode($vals[0]));
             dd($res['data'], 'API response:');

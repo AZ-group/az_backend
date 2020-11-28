@@ -421,7 +421,7 @@ class DumbController extends Controller
 
     function get_product($id){       
         // Include deleted items
-        dd(DB::table('products')->where(['id' => $id])->showDeleted()->get());
+        dd(DB::table('products')->find($id)->showDeleted()->dd());
     }
     
     function exists(){
@@ -1743,6 +1743,79 @@ class DumbController extends Controller
         dd($m->dd()); 
     }
 
+    
+    function j(){
+        $m = DB::table('products')
+        ->join('products_product_categories', 'products.id', '=',  'products_product_categories.product_id')
+        ->join('product_comments', 'products.id', '=', 'product_comments.product_id');
+
+        dd($m->get()); 
+        dd($m->dd()); 
+    }    
+
+    function j_auto(){
+        $m = DB::table('products')
+        ->join('products_product_categories')
+        ->join('product_comments');
+
+        dd($m->get()); 
+        dd($m->dd()); 
+    }
+
+    function j1(){
+        $m = DB::table('books')
+        ->join('book_reviews', 'book_reviews.book_id', '=',  'books.id')
+        ->join('users as authors', 'authors.id', '=', 'books.author_id')
+        ->join('users as editors', 'editors.id', '=', 'books.editor_id');
+
+        dd($m->get()); 
+        dd($m->dd()); 
+    }    
+
+   
+    function j1_auto(){
+
+        $m = DB::table('books')
+        ->join('book_reviews')
+        ->join('users as authors')
+        ->join('users as editors');
+
+        dd($m->get()); 
+        dd($m->dd()); 
+          
+        /*
+            SELECT * FROM books 
+            INNER JOIN book_reviews     ON book_reviews.book_id=books.id 
+            INNER JOIN users as authors ON authors.id=books.author_id 
+            INNER JOIN users as editors ON editors.id=books.editor_id;
+        */
+
+    }    
+
+
+
+    function j2(){
+        $m = DB::table('users')
+        ->join('user_sp_permissions', 'users.id', '=',  'user_sp_permissions.user_id')
+        ->join('sp_permissions', 'sp_permissions.id', '=', 'user_sp_permissions.id')
+
+        ->select(['sp_permissions.name as perm', 'username', 'active']);
+
+        //dd($m->get()); 
+        dd($m->dd()); 
+    }
+
+    function j2_auto(){
+        $m = DB::table('users')
+        ->join('user_sp_permissions')
+        ->join('sp_permissions')
+
+        ->select(['sp_permissions.name as perm', 'username', 'active']);
+
+        //dd($m->get()); 
+        dd($m->dd()); 
+    }
+
     // 'SELECT users.id, users.name, users.email, countries.name as country_name FROM users LEFT JOIN countries ON countries.id=users.country_id WHERE deleted_at IS NULL;'
     function leftjoin(){
         $users = DB::table('users')->select([
@@ -1883,9 +1956,11 @@ class DumbController extends Controller
     function get_user($id){
         $u = DB::table('users');
         $u->unhide(['password']);
-        $u->hide(['username', 'confirmed_email', 'firstname','lastname', 'deleted_at', 'belongs_to']);
-        
-        dd($u->where(['id'=>$id])->get());
+        $u->hide(['id', 'username', 'confirmed_email', 'firstname','lastname', 'deleted_at', 'belongs_to']);
+        $u->where(['id'=>$id]);
+
+        dd($u->get());
+        dd($u->dd2());
     }
 
     function del_user($id){
@@ -1936,8 +2011,8 @@ class DumbController extends Controller
             $email = chr(rand(97,122)) . $email;
         
         $u = DB::table('users');
-        //$u->fill(['email']);
-        //$u->unfill(['password']);
+        $u->fill(['email']);
+        $u->unfill(['password']);
         $id = $u->create(['email'=>$email, 'password'=>$password, 'firstname'=>$firstname, 'lastname'=>$lastname]);
         
         dd($id);
@@ -2370,10 +2445,8 @@ class DumbController extends Controller
 
 
     function get_env(){
-        //dd($_ENV['APP_NAME']);
-
-        $config = Factory::config();
-        dd($config);
+        dd($_ENV['APP_NAME']);
+        dd($_ENV['APP_URL']);
     }
 
 
@@ -2980,5 +3053,41 @@ class DumbController extends Controller
         //dd(route('dumbo.has_table'), 'URL');
         //dd(route('dumbo.kalc'), 'URL');
     }
+
+    function curl(){
+        define('HOST', $this->config['APP_URL']);
+        define('BASE_URL', HOST .'/');
+
+        $url = BASE_URL . "api/v1/auth/login";
+
+        $credentials = [
+            'email' => "tester3@g.c",
+            'password' => "gogogo8"
+        ];
+
+        if ($credentials == []){
+            throw new \Exception("Empty credentials");
+        }
+
+		$data = json_encode($credentials);
+
+        $com = <<<HDOC
+        curl -s --location --request POST '$url' \
+        --header 'Content-Type: text/plain' \
+        --data-raw '$data' /tmp/output.html
+        HDOC;
+
+        $response = json_decode(exec($com), true);
+
+        $data      = $response['data'] ?? [];
+        $http_code = $response['status_code'];
+        $error_msg = $response['error'];
+
+       dd($data, 'data');
+       dd($http_code, 'http code');
+       dd($error_msg, 'error');
+
+
+    }       
 
 }

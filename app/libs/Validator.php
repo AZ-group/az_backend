@@ -52,6 +52,9 @@ class Validator implements IValidator
 			'str' => function($dato) {
 				return is_string($dato);
 			},
+			'string' => function($dato) {
+				return is_string($dato);
+			},
 			'alpha' => function($dato) {                                   
 				return (preg_match('/^[a-z]+$/i',$dato) == 1); 
 			},	
@@ -79,7 +82,7 @@ class Validator implements IValidator
 			'alpha_spaces_utf8' => function($dato) {                                   
 				return (preg_match('/^[\pL\pM\p{Zs}]+$/u',$dato) == 1); 		
 			},
-			'not_num' => function($dato) {
+			'notnum' => function($dato) {
 				return preg_match('/[0-9]+/',$dato) == 0;
 			},
 			'email' => function($dato) {

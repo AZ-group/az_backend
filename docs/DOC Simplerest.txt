@@ -546,21 +546,6 @@ Cada modelo es definido en una clase en /app/models que extiende a Model y donde
 
 Un modelo extendiende a la clase Model que les provee toda la funcionalidad y acepta un schema. Tanto modelos como schemas pueden ser generados por el comando "make".
 
-Los campos que pueden ser rellenados al hacer un INSERT o un UPDATE pueden especificarse dentro del array $fillable. 
-
-Un campo que no sea "fillable" aún puede rellenarse si desde el controlador se incluye el campo en un array de exceptuados usando la función fill()
-
-Ej:
-
-Supongamos que el campo confirmed_email no es fillable, entonces para hacerlo fillable desde un controlador:
-
-	$u = DB::table('users')
-	->fill(['confirmed_email'])
-	// ...
-	->where(['email', $payload->email])
-	->update(['confirmed_email' => 1]);
-
-
 Hay básicamente 3 formas de usar un Model:
 
 a) Instanciando directamente Model en cuyo caso *no* dispondríamos de un schema a menos que se lo inyectemos:
@@ -614,17 +599,183 @@ c) Usando la clase DB para obtener la instancia
 	- Obtiene una conexión a la base de datos aún antes de hacer cualquier tipo de validación.
 
 
-Inserción de registros
+# Inserción de registros
 
-	$m = DB::table('super_cool_table');
+El método create() acepta un array asociativo de campos con sus valores y hace el INSERT
 
-	// No hay schema ?
-	dd($m->getSchema());
-	
-	dd($m->create([
+	$m = DB::table('super_cool_table'
+	->create([
 		'name' => 'SUPER',
 		'age' => 22,
-	]));
+	]);
+
+
+# Obtención de registros
+
+	$rows = DB::table('products')
+	->get();
+
+Para filtrar usar where()
+
+	$rows = DB::table('products')
+	->where(['size' => '2L']);
+
+
+# Ocultar y des-ocultar campos
+
+Si existe el modelo y el schema correspondiente para una tabla se pueden suprimir campos:
+
+	class UsersModel extends Model
+	 { 	
+		protected $hidden   = [	'password' ];
+
+		// ...
+
+En este caso password será por defecto suprimido cuando no haya un SELECT o sea cuando sea un SELECT *
+
+Es posible ocultar o desocultar campos programáticamente siempre que se utilice select() o selectRaw() en la consulta:
+
+	$u = DB::table('users');
+    $u->unhide(['password']);
+    $u->hide(['confirmed_email']);
+    $u->where(['id'=>$id]);
+
+    dd($u->get());
+
+
+Si se desea des-ocultar cualquier campo oculto se dispone del método unhideAll()
+
+	$rows = DB::table('users')
+    ->crossJoin('products')
+    ->where(['users.id', 90])
+    ->unhideAll()
+    ->get();
+
+
+# Campos no rellenables 
+
+Del mismo modo que como ocurre con los campos ocultos hay campos que son no-fillables:
+
+	class UsersModel extends Model
+	 { 	
+		protected $hidden   = [	'password' ];
+		protected $not_fillable = ['confirmed_email', 'active'];
+
+		// ...
+
+
+Igualmente hay métodos para programáticamente hacer rellenables o no-rellenables ciertos campos:
+
+	$u = DB::table('users');
+    $u->fill(['email']);
+    $u->unfill(['password']);
+    $id = $u->create([
+    				'email'=>$email, 
+    				'password'=>$password, 
+    				'firstname'=>$firstname, 
+    				'lastname'=>$lastname
+    ]);
+    
+
+
+Borrado "suave"
+
+Si una tabla y su schema dispone de un campo "deleted_at" de tipo DATETIME, al hacer un delete() el registro no es borrado fisicamente sino solo se oculta de los resultados:
+
+	DB::table('products')
+	->where(['id' => $id])
+	->get());
+
+	// SELECT * FROM products WHERE id = $id AND deleted_at IS NULL
+
+En caso de querer des-ocultar registros borrados para que sean visualizados en una consulta usar showDeleted()
+
+	DB::table('products')
+	->where(['id' => $id])
+	->showDeleted()
+	->get());
+
+	// SELECT * FROM products WHERE id = $id 
+
+Si se desea que al momento de borrar el campo se elimine de forma definitiva user ->setSoftDelete(false)
+
+	$u = DB::table('users')
+	->find($id)
+	->setSoftDelete(false)
+	->delete();  
+
+
+Joins
+
+Un INNER JOIN se hace de la siguiente manera:
+
+	$instance->join('table2', 'table2.id', '=',  'table1._id');
+
+El operador puede ser =, >, <, >= o <=
+
+Ej:
+
+	$m = DB::table('products')
+    ->join('products_product_categories', 'products.id', '=',  'products_product_categories.product_id')
+    ->join('product_comments', 'products.id', '=', 'product_comments.product_id');
+
+    dd($m->get());  
+     
+
+Los joins pueden simplificarse como auto-joins de haber un schema para el modelo:
+
+	$m = DB::table('products')
+    ->join('products_product_categories')
+    ->join('product_comments');
+
+    dd($m->get()); 
+
+En el caso de que se desee unir a una tabla con otra mediante más de una FK se haría así:
+
+	$m = DB::table('books')
+	->join('book_reviews', 'book_reviews.book_id', '=',  'books.id')
+	->join('users as authors', 'authors.id', '=', 'books.author_id')
+	->join('users as editors', 'editors.id', '=', 'books.editor_id');
+
+
+Y escrito como auto-joins:
+
+	$m = DB::table('books')
+    ->join('book_reviews')
+    ->join('users as authors')
+    ->join('users as editors');
+
+    dd($m->get()); 
+
+
+Left y Right joins
+
+Ej:
+
+	$users = DB::table('users')->select([
+	    "users.id",
+	    "users.name",
+	    "users.email",
+	    "countries.name as country_name"
+	])
+	->leftJoin("countries", "countries.id", "=", "users.country_id")
+	->get();
+
+Cross y natural joins
+
+	$rows = DB::table('users')
+    ->crossJoin('products')
+    ->where(['users.id', 90])
+    ->unhideAll()
+    ->showDeleted()
+    ->get();
+
+	$rows = (new Model())->table('employee')
+    ->naturalJoin('department')
+    ->unhideAll()
+    ->showDeleted()
+    ->get();
+
 
 Comparar dos campos en el WHERE
 
@@ -904,7 +1055,7 @@ Resultado:
 
 El problema del método dd() es que no funciona si en su lugar hay una función get() parametrizada -en vez de usar select()- o bien una función agregativa comon min(), max(), count(), sum() y avg() 
 
-Otra función de debug más general es DB::getQueryLog()
+Otra función de debug más general es DB::getLog()
 
 Ejemplo:
 
@@ -912,7 +1063,7 @@ Ejemplo:
 		->where([ 'belongs_to'=> 90] )
 		->count('*', 'count');
 
-	dd(DB::getQueryLog());
+	dd(DB::getLog());
 
 Otra función de debug que puede utilizarse es getLastPrecompiledQuery() y devuelve el último query antes de ser bindeado con los parámetros.
 
@@ -945,7 +1096,7 @@ Ejemplo:
 		->selectRaw('AVG(cost)')
 		->get();
 		
-	dd(DB::getQueryLog()); 
+	dd(DB::getLog()); 
 	
 Como si fueran pocas funciones de debug existe el método getLog()
 

@@ -6,6 +6,8 @@ require_once 'constants.php';
 // setlocale(LC_ALL, 'es_AR.UTF-8');
 
 return [
+	'APP_URL' => env('APP_URL'),
+
 	#
 	# For a sub-foder in /var/www/html just set as
 	# BASE_URL' => /folder/'

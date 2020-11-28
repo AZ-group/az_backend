@@ -195,7 +195,7 @@ https://blog.staffjoy.com/dont-migrate-databases-automatically-5039ab061365
 https://laravel.com/docs/8.x/installation#nginx
 
 
-- Debe haber orJoin() como orWhere() y orHaving() 
+- Debe haber orJoin() 
 
 https://stackoverflow.com/a/36074909/980631
 https://laravel.com/docs/5.8/queries#where-exists-clauses
@@ -668,7 +668,6 @@ https://www.sisense.com/blog/rest-api-testing-strategy-what-exactly-should-you-t
 
 https://bezkoder.com/django-mongodb-crud-rest-framework/
 
-- CORS debe no ser por defecto sino habilitarse via Midleware
 
 https://bezkoder.com/django-mongodb-crud-rest-framework/
 
@@ -992,7 +991,10 @@ https://www.php.net/manual/en/pdostatement.fetch.php
 https://farazdagi.com/2014/rest-and-long-running-jobs/
 https://stackoverflow.com/a/5044619/980631
 
-- Digamos que definimos estas operaciones:  <-- relacionado con HATEOAS
+
+[ HATEOAS ]
+
+- Digamos que definimos estas operaciones:  
 
     GET /cursos
     GET /cursos/{codigo}/unidades-didacticas
@@ -1050,6 +1052,11 @@ prev, next no tienen aparentemente nada que ver con la paginación (?)
 https://netflix.github.io/genie/docs/3.0.0/rest/  
 
 
+- Cómo se paginan los sub-recursos anidados en HATEOAS ? 
+
+  Muestro los primeros N? últimos N? por qué criterio los ordeno? (order by)
+
+
 - Implementar búsquedas complejas como en Magento (sino estuvieran cubiertas por HATEOAS)
 
 https://devdocs.magento.com/guides/v2.3/rest/performing-searches.html
@@ -1066,6 +1073,46 @@ https://fideloper.com/laravel-raw-queries
 Convertir a minúsculas como hace NodeJs.
 
 https://stackoverflow.com/questions/5258977/are-http-headers-case-sensitive
+
+
+- Leer sobre Eager Loading y el "n+1 problem" 
+
+  Lazy-Loading -> lento
+  Eager Loading -> rápido
+
+Es posible hacer uso de "Eager Loading" con un QueryBuilder ?
+
+"Eager loading is the process whereby a query for one type of entity also loads related entities as part of the query. Eager loading is achieved by the use of the Include method."
+
+As I mentioned, ORMs “lazy” load associations. If you intend to use the associated model data you can trim that 101 query total to `2` queries using eager loading. You just need to tell the model what you need it to load eagerly.
+
+
+  SELECT {campos} WHERE id IN(...) como segunda consulta 
+
+Otra Posibilidad es hacer un LEFT OUTER JOIN
+
+Ej:
+
+  SELECT membership.id AS membership_id, membership.user_id AS membership_user_id, membership.company_id AS membership_company_id, membership.role AS membership_role, company_1.id AS company_1_id, company_1.name AS company_1_name, company_1.website AS company_1_website, company_1.address AS company_1_address
+
+  FROM membership 
+  LEFT OUTER JOIN company AS company_1 ON company_1.id = membership.company_id
+  LIMIT %(param_1)
+
+<-- el problema de usar LEFT OUTER JOIN es hay que procesar la salida.......
+
+
+Here’s an example from the Rails Active Record guide on using eager loading. As you can see, the concept is quite similar to Laravel’s eager loading concept.
+
+# Rails
+posts = Post.includes(:author).limit(100)
+
+# Laravel
+$posts = Post::with('author')->limit(100)->get();
+
+
+Más
+https://laravel-news.com/eloquent-eager-loading
 
 
 - Incluir sub-Resources, ej:
@@ -1385,29 +1432,6 @@ https://docs.aws.amazon.com/es_es/redshift/latest/dg/r_Subquery_examples.html
 https://www.mundoracle.com/subconsultas.html?Pg=sql_plsql_6.htm
   
 
-- Usar archivos .env 
-
-  'mysql' => [
-      'driver'    => 'mysql',
-      'host'      => env('DB_HOST', 'localhost'),
-      'database'  => env('DB_DATABASE', 'forge'),
-      'username'  => env('DB_USERNAME', 'forge'),
-      'password'  => env('DB_PASSWORD', ''),
-      'charset'   => 'utf8',
-      'collation' => 'utf8_unicode_ci',
-      'prefix'    => '',
-      'strict'    => false,
-  ],
-
-Más
-https://scotch.io/tutorials/understanding-laravel-environment-variables
-https://medium.com/@hfally/how-to-create-an-environment-variable-file-like-laravel-symphonys-env-37c20fc23e72
-https://laravel.com/docs/5.7/configuration
-https://medium.com/@sagarmaheshwary31/laravel-5-8-from-scratch-config-env-migrations-and-todos-crud-7c771bcac802
-https://github.com/vlucas/phpdotenv
-
-
-
 - Considerar usar 'seek method' en vez de OFFSET como método de optimización de queries
 
 Ejemplo (API de Facebook)
@@ -1589,26 +1613,6 @@ equivalente a...
 
 GET /employees?state=internal&title=senior
 GET /employees?id=1,2
-
-- En vez de devolver solo un mensaje de error y un status, ofrecer tambien un código de error
-
-// 400 Bad Request
-{
-  "errors": [
-    {
-      "status": 400,
-      "detail": "Invalid state. Valid values are 'internal' or 'external'",
-      "code": 352,
-      "links": {
-        "about": "http://www.domain.com/rest/errorcode/352"
-      }
-    }
-  ]
-}
-
-Más 
-https://jsonapi.org/format/#error-objects
-https://phauer.com/2015/restful-api-design-best-practices/
 
 
 - JSON:API resuelve elegantemente el tema de los objetos anidados:
@@ -2013,7 +2017,7 @@ https://mailtrap.io/signin
 https://symfony.com/doc/current/components/var_dumper.html
 
 
-- Modelo: 
+[ MODELO ] 
 
   - Agregar updateOrInsert()
 
@@ -2485,9 +2489,7 @@ Parece ser que simplifica "armar" un HATEOAS
 - Comparar resultados (no queries) de ejecución con el Query Builder de Laravel 
 
 
-[ Refactoring ]
-
-- TraitRegister
+[ REFACTORING ]
 
 - Response: simplificar la forma de generar códigos de error http (ver notas). Hay estandar? PSR?
 
@@ -2516,6 +2518,8 @@ Parece ser que simplifica "armar" un HATEOAS
 
 - Verificar realmente esté OK
 
+- CORS debe no ser por defecto sino habilitarse via Midleware
+
 
 [ SSL ]
 
@@ -2531,3 +2535,296 @@ Parece ser que simplifica "armar" un HATEOAS
 
 - Hacer un control panel para administrar usuarios y ajustar permisos
 
+--
+
+- En vez de devolver solo un mensaje de error y un status, ofrecer tambien un código de error
+
+// 400 Bad Request
+{
+  "errors": [
+    {
+      "status": 400,
+      "detail": "Invalid state. Valid values are 'internal' or 'external'",
+      "code": 352,
+      "links": {
+        "about": "http://www.domain.com/rest/errorcode/352"
+      }
+    }
+  ]
+}
+
+Más 
+https://jsonapi.org/format/#error-objects
+https://phauer.com/2015/restful-api-design-best-practices/
+
+
+- Investigar API de Claro que tiene hasta relaciones polimorficas mostradas como "atributos"
+https://csapi.dev.claroshop.com/app/v1/product?page_size=5
+
+Sino encuentra el ApiController:
+
+{
+    "errors": [
+        {
+            "message": "An error occurred during execution; please try again later.",
+            "error": "error-controller-not-found",
+            "exception": []
+        }
+    ]
+}
+
+Ante un fallo regresa información de la excepción:
+
+{
+    "errors": [
+        {
+            "message": "An error occurred during execution; please try again later.",
+            "error": "error-exception",
+            "exception": {
+                "class": "Zend\\View\\Exception\\RuntimeException",
+                "file": "/var/www/sites/app-api.dev.claroshop-services.io/vendor/zendframework/zend-view/src/Renderer/PhpRenderer.php",
+                "line": 498,
+                "message": "Zend\\View\\Renderer\\PhpRenderer::render: Unable to render template \"api-manager/v1/product/update\"; resolver could not resolve to a file"... Zend\\Mvc\\Application->run()\n#10 {main}"
+            }
+        }
+    ]
+}
+
+
+En caso de éxito:
+
+{
+    "metadata": {
+        "is_error": false,
+        "http_status": "OK",
+        "http_status_phrase": 200,
+        "time": 1601043305,
+        "message": "Products found"
+    },
+    "data": [
+        {
+            "id": 8308292,
+            "title": "Crema Dental Complete 4 en 1 Crest",
+            "store": {
+                "id": 3496,
+                "name": "Sanborns",
+                "logo": "http://medios.plazavip.com/publicidad/5c3cd792844b8_sanbornssjpeg.jpg"
+            },
+            "images": [
+                {
+                    "order": 1,
+                    "url": "https://www.claroshop.com/imagenes-sanborns-ii/1200/7506195100233.jpg",
+                    "thumbnail": "https://www.claroshop.com/imagenes-sanborns-ii/1200/7506195100233.jpg"
+                }
+            ],
+            "isfree": false,
+            ...
+            ...
+        },          
+        {
+            "id": 8308291,
+            ...
+        }
+    ],
+    "pagination": {
+        "total_items": 791695,
+        "total_pages": 395848,
+        "current_page": 1,
+        "items_per_page": 2
+    }
+}
+
+Algo interesante es que cuando se piden más registros por página del límite utiliza los campos is_error y message para indicar que no hubo error pero que no se pudo cumplir con el requisito de paginación mostrando solo lo una cantidad pre-determinada. 
+
+{
+    "metadata": {
+        "is_error": false,
+        "http_status": "OK",
+        "http_status_phrase": 200,
+        "time": 1601043488,
+        "message": "Can't get more than 500 items!. I return only one :)"
+    },
+    "data": [
+    ...
+    ],
+    "pagination": {
+        "total_items": ....,
+        "total_pages": ....,
+        "current_page": 1,
+        "items_per_page": 1
+    }
+}
+
+
+- Corregir JSON en /v1/files
+
+"failures": [
+            "",
+            ""
+]
+
+<-- no está vacio ! debería incluir nombre_archivo : error  
+
+
+- Adotar (sin forzar) convención para tablas pivote
+
+https://stackoverflow.com/questions/2208186/proper-table-naming-convention-for-a-many-to-many-intersect-table
+
+
+[ COMPATIBILIDAD ]
+
+- Asegurar compatibilidad con:
+
+  - Compatibilidad ante distinto diseno de tablas (convenciones):
+
+    - Tablas sin PK
+    - Tablas con PK múltiple
+    - Distintos campos para:
+
+      created_at
+      created_by
+      ...
+      active 
+      lock
+      users.id
+      users.email
+      users.username
+      users.password
+
+    - Tabla `users` podría tener otro nombre.
+
+    - Tabla `users` (con el nombre que sea) podría estar en una DB distinta al resto de las tablas.
+
+  - MariaDB / MySQL
+
+  - Nginx / Apache
+
+  - PHP versiones 5.6, 7.0, 7.1, 7.2, 7.3 (branches)
+
+- Preparar contenedor docker con Nginx. Desventaja: requiere Docker. 
+
+
+[ VERSIONADO ]
+
+  {major_ver}.{minor_ver}.{patch}
+
+  - Bump the value of X when breaking the existing API.
+  - Bump the value of Y when implementing new features in a backward-compatible way.
+  - Bump the value of Z when fixing bugs.
+
+  Incluir release date:
+
+  Ej: 2.4.1 - release date 20200926
+
+  Incluir Changelog
+
+    2.4.1  
+
+    Release Date - 26 November 2020
+
+    - Fixed....
+    - Updated ....
+
+       
+
+Más 
+https://semver.org/
+https://www.geeksforgeeks.org/introduction-semantic-versioning/
+https://www.elegantthemes.com/blog/wordpress/semantic-versioning
+https://en.wikipedia.org/wiki/Software_release_life_cycle
+
+
+[ MODELO ]
+
+- Terminar auto-joins generando schemas
+
+- Hacer auto-joins a tablas distantes usando mapa
+
+  A-F     A-B-C-D-E-F
+  A-R     A-S-R
+  etc
+  <incluir todas las posibilidades y ordenarlas>
+
+
+- JOINs a base de datos disntintas? JOIN db2.products ?
+
+Si se puede:
+
+  SELECT <...>
+  FROM A.table1 t1 JOIN B.table2 t2 ON t2.column2 = t1.column1;
+
+https://stackoverflow.com/a/5698396
+
+
+[ API ]
+
+- Agregar ?filter de JSON:API en principio manteniendo compatibilidad con su no-uso
+
+  GET /comments?filter[post]=1 HTTP/1.1
+
+Multiple filter values can be combined in a comma-separated list. For example:
+
+  GET /comments?filter[post]=1,2 HTTP/1.1
+
+Furthermore, multiple filters can be applied to a single request:
+
+  GET /comments?filter[post]=1,2&filter[author]=12 HTTP/1.1
+
+
+https://jsonapi.org/recommendations
+https://laravel-json-api.readthedocs.io/en/latest/fetching/filtering/
+
+
+- Incluir links:
+
+https://jsonapi.org/recommendations/#including-links
+
+
+- Hacer que el "method override" sea también por headers:
+
+X-HTTP-Method-Override
+
+https://jsonapi.org/recommendations/#patchless-clients
+
+
+- Hacer que el lenguaje se pueda elegir via headers !
+
+- Leer todas las recommendations
+
+https://jsonapi.org/recommendations
+
+
+- Implementar opcionalmente "cursor pagination"
+
+https://jsonapi.org/profiles/ethanresnick/cursor-pagination/
+https://jsonapi.org/format/#fetching-pagination
+
+- Meditar si implementar la forma de crear recursos como en JSON:API
+
+POST /photos HTTP/1.1
+Content-Type: application/vnd.api+json
+Accept: application/vnd.api+json
+
+{
+  "data": {  <--- "data" es obligatorio
+    "type": "photos",  
+    "attributes": {
+      "title": "Ember Hamster",
+      "src": "http://example.com/images/productivity.png"
+    },
+    "relationships": {
+      "photographer": {  <----------------------- incluye sub-recursos. 
+        "data": { "type": "people", "id": "9" }  
+      }
+    }
+  }
+}
+
+<-- parece pensado para trabajar con un ORM.
+
+https://jsonapi.org/format/#crud  !!!!!!!!!
+
+
+- Implementar withoutWrapping para poder quitar la key "data" como requerimiento en la respuesta y en los requests.
+
+https://laravel.su/docs/8.x/eloquent-resources  !

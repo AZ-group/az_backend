@@ -312,7 +312,8 @@ class ModelTest extends TestCase
 
     //  
     DB::table('products')
-    ->find(103);
+    ->find(103)
+    ->get();
     $this->assertEquals(DB::getLog(), "SELECT * FROM products WHERE (id = 103) AND deleted_at IS NULL;");
 
     // 

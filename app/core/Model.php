@@ -196,6 +196,10 @@ class Model {
 		return $this->schema['id_name'];
 	}
 
+	function getTableName(){
+		return $this->table_name;
+	}
+
 	/*
 		Turns on / off pagination
 	*/
@@ -456,7 +460,58 @@ class Model {
 	}
 
 	// INNER | LEFT | RIGTH JOIN
-	function join($table, $on1, $op, $on2, string $type = 'INNER JOIN') {
+	function join($table, $on1 = null, $op = '=', $on2 = null, string $type = 'INNER JOIN') {
+		// try auto-join
+		if ($on1 == null && $on2 == null){
+			if ($this->schema == NULL){
+				throw new \Exception("Undefined schema for ". $this->table_name); 
+			}
+
+			if (!isset($this->schema['relationships'])){
+				throw new \Exception("Undefined relationships for ". $this->table_name); 
+			}
+
+			$rel = $this->schema['relationships'];
+
+			if (!isset($rel[$table])){
+				if (preg_match('/([a-zA-Z][a-zA-Z0-9]+) as ([a-zA-Z][a-zA-Z0-9]+)/', $table, $matches)){
+					$tb = $matches[1];
+					$fk = $matches[2];
+				}
+
+				//dd($tb);
+				//dd($fk);
+
+				if ($fk == NULL || !isset($rel[$tb])){
+					throw new \Exception("There is no explicit relationship between {$this->table_name} and $tb");
+				}				
+			}	
+			
+			if (!isset($fk)){
+				if (count($rel[$table][0]) != 2){
+					//dd($rel[$table]);
+					throw new \Exception("Unexpected number of arguments for relationship between {$this->table_name} and $table");
+				}
+
+				$on1 = $rel[$table][0][0];
+				$on2 = $rel[$table][0][1];
+			} else {
+				$found = false;
+				foreach ($rel[$tb] as $r){
+					if (Strings::startsWith($fk, $r[0])){
+						$found = true;
+						//dd($r);
+						[$on1, $on2] = $r;
+						break;
+					}
+				}
+
+				if (!$found){
+					throw new \Exception("FK '$fk' in '$tb' not found!");
+				}
+			}			
+		}
+
 		$this->joins[] = [$table, $on1, $op, $on2, $type];
 		return $this;
 	}
@@ -673,7 +728,6 @@ class Model {
 				}			
 
 			}
-
 							
 			if ($this->distinct){
 				$remove = [$this->schema['id_name']];
@@ -1546,7 +1600,7 @@ class Model {
 	}
 
 	function find($id){
-		return $this->where([$this->schema['id_name'] => $id])->get();
+		return $this->where([$this->schema['id_name'] => $id]);
 	}
 
 	function whereNull(string $field){
