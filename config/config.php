@@ -45,7 +45,17 @@ return [
 			'db_name' 	=> env('DB_DATABASE_2'), 
 			'user'		=> env('DB_USERNAME_2'), 
 			'pass'		=> env('DB_PASSWORD_2'),
+		],
+
+		'db3' => [
+			'host'		=> env('DB_HOST_3', '127.0.0.1'),
+			'port'		=> env('DB_PORT_3', 3306),
+			'driver' 	=> env('DB_CONNECTION_3'),
+			'db_name' 	=> env('DB_DATABASE_3'), 
+			'user'		=> env('DB_USERNAME_3'), 
+			'pass'		=> env('DB_PASSWORD_3'),
 		]
+
 	], 
 
 	'db_connection_default' => 'db1',

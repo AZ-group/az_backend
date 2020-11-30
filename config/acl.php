@@ -23,6 +23,8 @@ if (!$acl_cache || is_file($acl_file) !== true) {
     ->addResourcePermissions('products', ['read_all'])  //  ---- es importante el read_all_trashcah !!!
     ->addResourcePermissions('baz', ['read'])
     ->addResourcePermissions('bar', ['read', 'write'])
+    ->addResourcePermissions('divisas', ['read', 'write'])
+    ->addResourcePermissions('cotizaciones', ['read', 'write'])
     //->setGuest('guest')
 
     ->addRole('registered', 1)

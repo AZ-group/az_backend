@@ -59,9 +59,12 @@ class DumbController extends Controller
     }
 
     function login(){
-		return view('login.php');
-	}
-	
+		view('login.php');
+    }
+    
+    function vue(){
+        view('casa_cambio/home.htm', [], 'casa_cambio/layout.php', 'casa_cambio/app.htm' );
+    }
 
     /*
     function mul(Request $req){

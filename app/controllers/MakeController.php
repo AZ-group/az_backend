@@ -352,6 +352,15 @@ class MakeController extends Controller
     function schema($name, ...$opt) { 
         $this->setup($name);    
 
+        foreach ($opt as $o){            
+            if (preg_match('/^--from[=|:]([a-z][a-z0-9A-Z_]+)$/', $o, $matches)){
+                $from_db = $matches[1];
+                DB::getConnection($from_db);
+            }
+        }
+
+        //dd($from_db, 'FROM DB');
+
         $filename = $this->camel_case.'Schema.php';
 
         // destination
@@ -509,6 +518,13 @@ class MakeController extends Controller
     function model($name, ...$opt) { 
         $this->setup($name);    
 
+        foreach ($opt as $o){            
+            if (preg_match('/^--from[=|:]([a-z][a-z0-9A-Z_]+)$/', $o, $matches)){
+                $from_db = $matches[1];
+                DB::getConnection($from_db);
+            }
+        }
+
         $filename = $this->camel_case . 'Model'.'.php';
 
         // destination
@@ -590,15 +606,15 @@ class MakeController extends Controller
 
         $up_rep = '';
         foreach ($opt as $o){
-            if (preg_match('/^--to[=|:]([a-z][a-z0-9A-Z]+)$/', $o, $matches)){
+            if (preg_match('/^--to[=|:]([a-z][a-z0-9A-Z_]+)$/', $o, $matches)){
                 $to_db = $matches[1];
             }
 
-            if (preg_match('/^--table[=|:]([a-z][a-z0-9A-Z]+)$/', $o, $matches)){
+            if (preg_match('/^--table[=|:]([a-z][a-z0-9A-Z_]+)$/', $o, $matches)){
                 $tb_name = $matches[1];
             }
 
-            if (preg_match('/^--from[=|:]([a-z][a-z0-9A-Z]+)$/', $o, $matches)){
+            if (preg_match('/^--from[=|:]([a-z][a-z0-9A-Z_]+)$/', $o, $matches)){
                 $from_db = $matches[1];
             }
         }

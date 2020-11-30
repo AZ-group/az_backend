@@ -1,7 +1,8 @@
 <?php
 
-namespace simplerest\core; 
+namespace simplerest\core;
 
+use simplerest\core\api\v1\AuthController;
 use simplerest\core\interfaces\Arrayable;
 
 class Request  implements \ArrayAccess, Arrayable
@@ -69,10 +70,11 @@ class Request  implements \ArrayAccess, Arrayable
     }
 
     function getTenantId(){
-        // faltaría en JWT
-        return  $this->shiftQuery('tenantid') ??
-                static::$headers['x-tenant-id'] ??                 
-                NULL;
+        return  
+            (new AuthController())->check()['tenantid'] ??
+            $this->shiftQuery('tenantid') ??
+            static::$headers['x-tenant-id'] ??                 
+            NULL;
     }
 
     function hasTenantId(){

@@ -655,6 +655,11 @@ class AuthController extends Controller implements IAuth
         @return mixed array | null
     */
     function check() {
+        static $ret;
+
+        if ($ret != null)
+            return $ret;
+
         switch (Factory::request()->authMethod()){
             case 'API_KEY': 
                 $api_key = Factory::request()->getApiKey();

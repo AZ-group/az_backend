@@ -2520,6 +2520,8 @@ Parece ser que simplifica "armar" un HATEOAS
 
 - CORS debe no ser por defecto sino habilitarse via Midleware
 
+- Deben poder configurarse los "trusted domains" (array) en vez de "*"
+
 
 [ SSL ]
 
@@ -2881,37 +2883,107 @@ https://jsonapi.org/format/#crud  !!!!!!!!!
 
 https://laravel.su/docs/8.x/eloquent-resources  !
 
-- Chequear que es JSONP
 
+- Securitizar el tenant haciendo de mínima un hash sobre el id de conexión. <-- evitar que sea solo elegir que conexión usar (sin control alguno)
+
+- Sería ideal que los modelos pudieran cargarse desde "cualquier ubicación" lo que permitiría:
+
+  - Que cada versión de API tenga su namespace de modelos
+  - Que distintos endpoints usen distintas DBs
+
+- Exteneder Response y Request y colocar las clases extendidas donde se puedan versionar.  
+
+
+- JSON + CORS vs. JSONP (hack) vs. JSON (sin CORS) usando al server que sirve la API como proxy para acceder a otras APIs
+
+JSON + CORS
+JSONP (es un back)
+JSON usando a la API como proxy server
+XML + CORS
+XML usando a la API como proxy server
+
+
+https://www.youtube.com/watch?v=stvCHJZq5MI
+https://www.web-technology-experts-notes.in/2013/07/difference-between-json-and-jsonp.html
 https://woocommerce.github.io/woocommerce-rest-api-docs/#requirements
+https://www.programmableweb.com/news/258-jsonp-apis-get-your-json-response-anywhere/2011/10/07
 
 
-- El tenant-id permitir que se pueda especificar no solo desde la url y del header sino dentro del payload del access_token 
+- Cookies "Http Only"
 
-  ?tenantid=<id>
-o
-  X-TENANT-ID (header)
+  - Se guardan en el browser y JS no puede leerlo en browsers modernos.
+  
+  "An http-only cookie cannot be accessed by client-side APIs, such as JavaScript. This restriction eliminates the threat of cookie theft via cross-site scripting (XSS). However, the cookie remains vulnerable to cross-site tracing (XST) and cross-site request forgery (CSRF) attacks. A cookie is given this characteristic by adding the HttpOnly flag to the cookie." 
 
-para JWT incluirlo en el payload
+  https://en.wikipedia.org/wiki/HTTP_cookie#HttpOnly_cookie
 
-  {
-    “sub”: “1234567890”,
-    “name”: “<user-name>”,
-    “iat”: 1516239022,
-    “userid”: “<user-id>”,
-    “tenantid”: “<tenant-id>”
-  }
+  - Desde PHP se puede marcar con el flag "http-only" de varias formas:
 
-El tenantid identifica la conexión de base de datos a fin de poder seleccionarla.
+    - Desde el web server: en Apache via .htaccess
 
-https://stackoverflow.com/questions/13761336/rest-api-with-multi-tenant-database-separated-by-client/13764490#13764490
-https://medium.com/@vivekmadurai/multi-tenancy-in-rest-api-a570d728620c
-https://dzone.com/articles/multi-tenancy-in-the-api-world-made-easy
+      <IfModule php5_module>
+        php_flag session.cookie_httponly on
+      </IfModule>
+
+    - Via php.ini
+
+      session.cookie_httponly=On
+      session.cookie_secure=On
+
+    - Antes de session_start() seteando session.cookie_httponly en 1
+
+      ini_set('session.cookie_httponly',1);
+      ini_set('session.use_only_cookies',1);
+      ini_set('session.cookie_secure', 1);
+
+    - Con setcookie() pasando true en el 7mo parámetro
+
+      //None HttpOnly cookie:
+      setcookie("abc", "test", NULL, NULL, NULL, NULL, FALSE); 
+
+      //HttpOnly cookie:
+      setcookie("abc", "test", NULL, NULL, NULL, NULL, TRUE); 
+        
+    - Via header()
+
+      header("Set-Cookie: hidden=value; httpOnly");
+
+    o 
+
+      header("Set-Cookie: key=value; path=/; domain=www.tutorialshore.com; HttpOnly; Secure; SameSite=Strict");
 
 
-- Securitizar el tenant haciendo de mínima un hash sobre el id de conexión.
+Notar que las cookies tienen este órden de parámetros:
+
+  key-value;expiration_date;path;domain;
+
+<-- path podría ser /api
+
+https://www.tutorialshore.com/make-cookie-secure-httponly-php/
+https://stackoverflow.com/questions/36877/how-do-you-set-up-use-httponly-cookies-in-php#8726269
+https://www.sitepoint.com/eat-those-cookies-with-jquery/
+https://www.sitepoint.com/how-to-deal-with-cookies-in-javascript/
+https://github.com/js-cookie/js-cookie
 
 
+Las cookies se envian automáticamente..... así que supongo que en la cookie http-only debería enviar tanto access como refresh tokens......porque no voya poder elegir cual envio EXCEPTO que sean dos cookies distintas con expiraciones distintas... con lo cual la que expira (digamos access_token) ya no se envia!
+
+https://stackoverflow.com/a/39833955/980631
 
 
+- En las migraciones asegurarse que es posible mover un campo de lugar
 
+ALTER TABLE divisas MODIFY COLUMN ISO VARCHAR(10) AFTER id
+
+
+- Benchmarking Tool: wrk
+
+- Para manejar concurrencia:
+
+    - Usar el módulo php-fpm de Apache o fpm de Nginx
+    - Usar "colas" 
+    - Usar "Swoole"  !!!!!!!!!
+
+"Swoole is a production-grade async programming framework for PHP. It is a PHP extension written in pure C language, which enables PHP developers to write high-performance, scalable, concurrent TCP, UDP, Unix socket, HTTP, WebSocket services in PHP without too much knowledge of the non-blocking I/O programming and low-level Linux kernel. You can think of Swoole as something like NodeJS but for PHP, with higher performance."
+    
+https://laravel-news.com/laravel-swoole

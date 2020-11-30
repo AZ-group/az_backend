@@ -2643,11 +2643,11 @@ created_by
 Para generar modelos, controladores y apis se utiliza el comando make de la siguiente forma: 
 
 	php com make schema SuperAwesome [-f | --force]
-    php com make schema super_awesome  [-f | --force]
+    php com make schema super_awesome  [-f | --force] [ --from:db_connection ]
 
     php com make model SuperAwesomeModel  [-f | --force]
     php com make model SuperAwesome [-f | --force]
-    php com make model super_awesome  [-f | --force]
+    php com make model super_awesome  [-f | --force] [ --from:db_connection ]
 
     php com make controller SuperAwesome  [-f | --force]
 
@@ -2659,7 +2659,6 @@ Para generar modelos, controladores y apis se utiliza el comando make de la sigu
                             [-c | --controller ] 
                             [-a | --api ] 
                             [-f | --force]
-
 Ejemplo:
     
     php com make any baz -s -m -a -f
@@ -2676,6 +2675,11 @@ Para controladores es posible especificar una ruta interior a apps\controllers:
 
 <-- el index.php está en la carpeta public
 
+
+Para generar schemas o models de una DB que no es la default se debe especificar la conexión. Ej:
+
+	php com make schema cotizaciones --from:db3
+	php com make model cotizaciones --from:db3
 
 Es posible ignorar controladores, api resful controllers, modelos y schemas colocándo sus nombres en el siguiente archivo en /apps:
 
@@ -2807,7 +2811,7 @@ El tenant-id permitir que se pueda especificar no solo desde la url y del header
 o
   X-TENANT-ID (header)
 
-para JWT incluirlo en el payload  <-- sin implementar
+para JWT incluirlo en el payload como "tenantid"
 
   {
     “sub”: “1234567890”,
@@ -2818,6 +2822,11 @@ para JWT incluirlo en el payload  <-- sin implementar
   }
 
 El tenantid identifica la conexión de base de datos a fin de poder seleccionarla.
+
+https://stackoverflow.com/questions/13761336/rest-api-with-multi-tenant-database-separated-by-client/13764490#13764490
+https://medium.com/@vivekmadurai/multi-tenancy-in-rest-api-a570d728620c
+https://dzone.com/articles/multi-tenancy-in-the-api-world-made-easy
+
 
 Ventajas del multi-tenant implementado con múltiples DB(s) ->
 
