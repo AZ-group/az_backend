@@ -62,9 +62,109 @@ class DumbController extends Controller
 		view('login.php');
     }
     
-    function vue(){
+    function casa_cambio(){
         view('casa_cambio/home.htm', [], 'casa_cambio/layout.php', 'casa_cambio/app.htm' );
     }
+
+    /*
+    function xyz(){
+        DB::getConnection('db3');
+        
+        $curs = DB::table('countries')
+        ->distinct(['currency'])->get();
+
+        $groups = [];
+
+        $rows = DB::table('countries')
+        ->orderBy(['currency' => 'ASC'])
+        ->get();
+
+        foreach ($rows as $row){
+            $groups[$row['currency']][] = $row;
+        }
+
+        $m2 = DB::table('currencies');
+        $at = $m2->getAttr();
+
+        //dd($groups);
+        //exit;
+
+        foreach ($groups as $curr_code => $g){
+            $alpha2 = [];
+            $alpha3 = [];
+            $langCS = [];
+            $langDE = [];
+            $langEN = [];
+            $langES = [];
+            $langFR = [];
+            $langIT = [];
+            $langNL = [];
+            foreach ($g as $c){
+                $alpha2[] = $c['alpha2'];
+                $alpha3[] = $c['alpha3'];
+                $langCS[] = $c['langCS'];
+                $langDE[] = $c['langDE'];
+                $langEN[] = $c['langEN'];
+                $langES[] = $c['langES'];
+                $langFR[] = $c['langFR'];
+                $langIT[] = $c['langIT'];
+                $langNL[] = $c['langNL'];
+                //dd($country);
+            }
+
+            $alpha2_main = count($alpha2) == 1 ? $alpha2[0] : NULL;
+            $alpha3_main = count($alpha3) == 1 ? $alpha3[0] : NULL;
+
+            $alpha2 = json_encode($alpha2);
+            $alpha3 = json_encode($alpha3);
+            $langCS = json_encode($langCS);
+            $langDE = json_encode($langDE);
+            $langEN = json_encode($langEN);
+            $langES = json_encode($langES);
+            $langFR = json_encode($langFR);
+            $langIT = json_encode($langIT);
+            $langNL = json_encode($langNL);
+
+         
+            $data = array_combine($at, [$alpha2_main, $alpha3_main, $alpha2, $alpha3, $langCS, $langDE, $langEN, $langES, $langFR, $langIT, $langNL, $curr_code]);
+            
+            //exit;
+            $m2->create($data);        
+        }
+
+        //dd($not_grouped);
+        //dd($groups);
+        //dd($alpha2);
+        //dd(count($groups));
+    }
+    */
+
+
+    /*
+    function csv(){
+        DB::getConnection('db3');
+        $m = (new Model())->connect()->table('currencies');
+
+        $file = file_get_contents(UPLOADS_PATH . 'iso_4217.csv');
+        $lines = explode("\n", $file);
+        
+        $regs = [];
+
+        foreach($lines as $line){
+            $r = explode(';', $line);
+            $r[4] = explode(',', $r[4]);
+            array_walk($r[4], function(&$str){ $str =  trim($str);});
+            $r[4] = json_encode($r[4]);
+            //dd($r);
+            
+            $reg = array_combine(['code', 'num', 'digits', 'cur_name', 'locations'], $r);
+            dd($reg);
+
+            dd($m->create($reg));
+        }
+    }
+    */
+
 
     /*
     function mul(Request $req){

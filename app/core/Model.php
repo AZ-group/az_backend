@@ -115,7 +115,12 @@ class Model {
 		//dd($this->schema, 'SCHEMA:');
 
 		$this->attributes = array_keys($this->schema['attr_types']);
+
+		if (in_array('', $this->attributes, true)){
+			throw new \Exception("An attribute is invalid");
+		}
 		
+		/*
 		if ($this->schema['id_name'] == NULL){
 			if ($this->inSchema(['id'])){
 				$this->schema['id_name'] = 'id';
@@ -123,16 +128,18 @@ class Model {
 				throw new \Exception("Undefined table identifier for '".$this->table_name. "' Use 'id' or \$id_name to specify another field name");
 			}
 		}			
+		*/
 
-
+	
 		if ($this->fillable == NULL){
 			$this->fillable = $this->attributes;
-			$this->unfill(['locked', 'created_at', 'created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by']);
+			$this->unfill(['locked', 'created_at', 'created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by']);	
 		}
+
 
 		$this->unfill($this->not_fillable);
 
-		// innecesario, debería provenir del propio schema !
+		// debería ser innecesario pues debería provenir del propio schema !
 		$this->schema['nullable'][] = 'locked';
 		$this->schema['nullable'][] = 'belongs_to';
 		$this->schema['nullable'][] = 'created_at';
@@ -142,7 +149,11 @@ class Model {
 		$this->schema['nullable'][] = 'updated_by';
 		$this->schema['nullable'][] = 'deleted_by';
 
-		$to_fill = [$this->schema['id_name']];
+		$to_fill = [];
+
+		if (!empty($this->schema['id_name'])){
+			$to_fill[] = $this->schema['id_name'];
+		}
 
 		if ($this->inSchema(['created_by'])){
 			$to_fill[] = 'created_by';
@@ -152,7 +163,7 @@ class Model {
 			$to_fill[] = 'updated_by';
 		}
 
-		$this->fill($to_fill);				
+		$this->fill($to_fill);		
 		
 		$this->soft_delete = $this->inSchema(['deleted_at']);
 
@@ -452,7 +463,10 @@ class Model {
 		if (!empty($this->fillable) && !empty($fields)){			
 			foreach ($fields as $uf){
 				$k = array_search($uf, $this->fillable);
-				unset($this->fillable[$k]);
+
+				if ($k !== false){
+					unset($this->fillable[$k]);
+				}				
 			}
 		}
 
@@ -1180,12 +1194,6 @@ class Model {
 
 		$q = $this->toSql($fields, $order, $limit, $offset);
 		$st = $this->bind($q);
-
-
-		//dd($q, 'Q'); ////////
-		//dd($this->dd());
-		//var_dump($this->from());
-		//exit;
 
 		$count = null;
 		if ($this->exec && $st->execute()){

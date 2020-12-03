@@ -417,6 +417,7 @@ class MakeController extends Controller
             if ($field['Null']  == 'YES') { $nullables[] = $field['Field']; }
             
             if ($field['Key'] == 'PRI'){ 
+                // Posible fuente de problemas !!!!!!!!!!!!!!!!!!!
                 if ($id_name != NULL){
                     throw new \Exception("Only one Primary Key is allowed by convention");
                 }
@@ -442,9 +443,11 @@ class MakeController extends Controller
             }    
         }
 
+        /*
         if ($id_name == NULL){
             throw new \Exception("No Primary Key found!");
         }
+        */
 
         $nullables = array_unique($nullables);
 
@@ -467,13 +470,16 @@ class MakeController extends Controller
         $rules  = "[\r\n". implode(",\r\n", $_rules). "\r\n\t\t\t]";
 
         if ($uuid){
-            $nullables[] = $id_name;
+            if (!empty($id_name)){
+                $nullables[] = $id_name;
+            }
+                
             //Strings::replace('### IMPORTS', 'use simplerest\traits\Uuids;', $file); 
             //Strings::replace('### TRAITS', "use Uuids;", $file);        
         }
 
         Strings::replace('__TABLE_NAME__', "'{$this->snake_case}'", $file);  
-        Strings::replace('__ID__', "'$id_name'", $file);  
+        Strings::replace('__ID__', !empty($id_name) ? "'$id_name'" : 'NULL', $file);          
         Strings::replace('__ATTR_TYPES__', $attr_types, $file);
         Strings::replace('__NULLABLES__', '['. implode(', ',array_map($escf, $nullables)). ']',$file);        
         //Strings::replace('__NOT_FILLABLE__', '['.implode(', ',array_map($escf, $not_fillable)). ']',$file);

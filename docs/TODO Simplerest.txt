@@ -2068,6 +2068,16 @@ https://aleson-itc.com/en/free-monitoring-using-influxdb-telegraf-and-grafana/
 
 - Prevenir correctamente SQL injections
 
+"SQL injection must exploit a security vulnerability in an application's software, for example, when user input is either incorrectly filtered for string literal escape characters embedded in SQL statements or user input is not strongly typed and unexpectedly executed." =>
+
+	- Validar o castear todo tipo de parámetros (paginación, entidad, etc) no solo los de las queries tanto en las urls como por GET o incluso en los headers
+
+  - No admitir que un parámetro sea '/ OR$/' o '/^OR /' o '/ UNION$/' o '/^UNION /'
+	
+	- Validar idealmente todos los parámetros de controladores
+
+
+https://en.wikipedia.org/wiki/SQL_injection#In_popular_culture
 https://paragonie.com/blog/2015/05/preventing-sql-injection-in-php-applications-easy-and-definitive-guide
 https://www.paladion.net/blogs/are-stored-procedures-safe-against-sql-injection
 

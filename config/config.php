@@ -54,6 +54,23 @@ return [
 			'db_name' 	=> env('DB_DATABASE_3'), 
 			'user'		=> env('DB_USERNAME_3'), 
 			'pass'		=> env('DB_PASSWORD_3'),
+			'pdo_options' => [
+				\PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+				\PDO::ATTR_EMULATE_PREPARES => false
+			]
+		],
+
+		'db4' => [
+			'host'		=> env('DB_HOST_4', '127.0.0.1'),
+			'port'		=> env('DB_PORT_4', 3306),
+			'driver' 	=> env('DB_CONNECTION_4'),
+			'db_name' 	=> env('DB_DATABASE_4'), 
+			'user'		=> env('DB_USERNAME_4'), 
+			'pass'		=> env('DB_PASSWORD_4'),
+			'pdo_options' => [
+				\PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+				\PDO::ATTR_EMULATE_PREPARES => false
+			]
 		]
 
 	], 
