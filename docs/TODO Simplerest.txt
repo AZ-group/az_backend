@@ -51,6 +51,52 @@ Ver tuto:
 https://www.youtube.com/watch?v=In6DBL0tq9c  !!!!!!!
 
 
+- Considerar usar Apache ZooKeeper/Kafka
+
+La comunicación entre microservicios debería ser asincrónica para evitar acoplamiento:
+
+"when an employee is deleted through the employee service, how are other services made aware of this deletion? Having the Employee Service call out synchronously to other services interested in employee's would be coupling. Asynchronous messaging provides a way to communicate in a decoupled fashion."
+
+Tener "algo" (un broker) que reciba los mensajes de un "productor" a para los distintos microservicios subscriptos ("consumidores" del mensaje), los encole los sirva a los consumidores.
+
+"Using a durable, resilient messaging system such as ZooKeeper/Kafka (or something equivalent) provides a way to accomplish this. Kafka has a persistent logging mechanism and will replay event messaging history to consumers if they are not available when a message event is raised by a publisher. This supports the independence of a Microservice platform with services moving in and out on an ad-hoc basis."
+
+Cuando el evento se completa se debe enviar una senal hacia quien lo generó para que sepa que ya ha completado:
+
+"Consumer services, such as the Project Service, need to know when an employee is deleted, so it can update a its Project's Resources, in other words, the employee assigned to a project no longer exists. The project service can listen for this Kakfa event topic published from the employee service and react accordingly."
+
+Los mensajes no son empujados (push) del broker a los consumidores sino son jalados (pull) por los consumidores al broker.
+
+
+  [ Productor ] --- push --->  [ Broker ] <--- pull --- [ Consumidor ]
+
+  
+  Producer (producer): news and data generation
+
+  Agent (Broker): caching proxy
+
+  Consumer (consumer): news and data consumers
+
+
+Los mensajes persisten en el broker. Los mensajes no son borrados inmediatamente del broker sino hasta cierto tiempo después para dar tiempo de volver a ser consumidos en caso de que el consumidor falle. 
+
+Kafka forma "clusters" donde cada cluster está especializado en mensajes de un determinado "topico":
+
+"Kafka can run as a cluster on one or more servers that can span multiple data-centers. The Kafka cluster stores streams of records in categories called "topics". For instance, if I have data streams coming from Twitter (refer blog), you can name this topic as 'Tweets'"
+
+
+https://dzone.com/articles/implementing-a-bounded-context
+https://www.slideshare.net/rahuldausa/introduction-to-kafka-and-zookeeper/11
+https://www.dataneb.com/post/apache-kafka-and-zookeeper-installation-sample-pub-sub-model
+https://www.programering.com/a/MTOwkjNwATc.html
+https://beyondcorner.com/learn-apache-kafka-tutorial/is-zookeeper-is-must-in-kafka/
+
+Existe una extensión de PHP que permite usar Apache Kafka
+
+https://blog.programster.org/using-php-with-apache-kafka
+https://github.com/leocavalcante/kafka-phplayground
+
+
 [ MIGRATIONS ]
 
 - Usar la tabla `migrations`  !!!
@@ -652,17 +698,20 @@ https://github.com/fzaninotto/Faker
 https://anchetawern.github.io/blog/2016/01/28/generating-fake-data-in-php-with-faker/
 
 
-- Analizar la API con alguna herramineta cono jMeter
+- Testear todo:
 
+https://www.sisense.com/blog/rest-api-testing-strategy-what-exactly-should-you-test/
+https://medium.com/@alicealdaine/top-10-api-testing-tools-rest-soap-services-5395cb03cfa9
+
+
+- Pruebas de stress (JMeter,...)
+
+https://stackoverflow.com/a/3093060/980631
+https://chrome.google.com/webstore/detail/restful-stress/lljgneahfmgjmpglpbhmkangancgdgeb
 https://medium.com/@chamikakasun/rest-api-load-testing-with-apache-jmeter-a4d25ea2b7b6
 https://www.blazemeter.com/blog/rest-api-testing-how-to-do-it-right
 https://developers.redhat.com/blog/2015/04/30/how-to-load-test-and-tune-performance-on-your-api/
 
-- Correr algún test de stress sobre la API Rest.
-
-- Como realizar pruebas de stress 
-
-https://www.sisense.com/blog/rest-api-testing-strategy-what-exactly-should-you-test/
 
 - Posibilidad de serializar Modelos para incrementar performance
 
@@ -2820,6 +2869,16 @@ Más
 https://stackoverflow.com/questions/44469503/sql-insert-into-with-inner-join
 
 
+- Para lidiar con la contrucción de APIs sobre tablas con "PK compuestas" o "múltiples" crear un campo virtual "id" o "id_nombre_tabla" 
+
+  - Reconocer el PK compuesto en el schema como un array
+
+  - Crear un campo virtual 'id' 
+
+
+Intentar con az.students
+
+
 [ API ]
 
 - Agregar ?filter de JSON:API en principio manteniendo compatibilidad con su no-uso
@@ -2997,3 +3056,32 @@ ALTER TABLE divisas MODIFY COLUMN ISO VARCHAR(10) AFTER id
 "Swoole is a production-grade async programming framework for PHP. It is a PHP extension written in pure C language, which enables PHP developers to write high-performance, scalable, concurrent TCP, UDP, Unix socket, HTTP, WebSocket services in PHP without too much knowledge of the non-blocking I/O programming and low-level Linux kernel. You can think of Swoole as something like NodeJS but for PHP, with higher performance."
     
 https://laravel-news.com/laravel-swoole
+
+
+- Leer sobre gRPC (lo que viene)
+
+"A formal specification for HTTP API with JSON doesn't exist. Developers debate the best format of URLs, HTTP verbs, and response codes.
+
+The gRPC specification is prescriptive about the format a gRPC service must follow. gRPC eliminates debate and saves developer time because gRPC is consistent across platforms and implementations."
+
+"The communication between the microservices over HTTP can be done in multiple ways. The most widely used way is to follow the REST protocol. gRPC is another way to perform this communication. It is built to overcome the limitations of REST in microservice communication."
+
+https://en.wikipedia.org/wiki/GRPC
+https://docs.microsoft.com/en-us/aspnet/core/grpc/comparison?view=aspnetcore-5.0
+https://medium.com/@saboteurkid/apis-solution-debate-rest-vs-grpc-vs-graphql-d9c25e44d6
+https://medium.com/better-programming/understanding-grpc-60737b23e79e
+https://www.gslab.com/blogs/grpc-vs-rest-a-complete-guide
+
+
+- Reemplazar clases Resonse y Request por http_foundation
+
+https://symfony.com/doc/current/create_framework/http_foundation.html
+https://symfony.com/doc/current/components/http_foundation.html
+
+
+- Más adelante migrar a Rust en vez de a Go para APIs
+
+https://blog.discord.com/why-discord-is-switching-from-go-to-rust-a190bbca2b1f
+
+
+- Desacoplar el ACL de Auth y mover el ACL a un ServiceProvider 

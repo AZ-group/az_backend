@@ -2518,6 +2518,9 @@ Es posible calcular directamente en la base de datos las funciones min(), max(),
 
 Ejemplos:
 
+GET /api/v1/products?props=count(*)
+GET /api/v1/products?props=count(description)
+GET /api/v1/products?props=sum(cost)
 GET /api/v1/products?size=2L&props=avg(cost)
 GET /api/v1/products?size=2L&props=avg(cost) as prom
 GET /api/v1/products?size=2L&props=sum(cost) as suma
