@@ -9,8 +9,6 @@ use simplerest\libs\Factory;
 use simplerest\libs\Permissions;
 use simplerest\libs\DB;
 use simplerest\libs\Utils;
-use simplerest\models\UsersModel;
-use simplerest\models\UserRolesModel;
 use simplerest\libs\Debug;
 use simplerest\libs\Validator;
 use simplerest\core\exceptions\InvalidValidationException;
@@ -18,6 +16,8 @@ use simplerest\core\exceptions\InvalidValidationException;
 
 class AuthController extends Controller implements IAuth
 {
+    protected $users_table = 'users';
+
     function __construct()
     { 
         header('Access-Control-Allow-Credentials: True');
@@ -99,7 +99,7 @@ class AuthController extends Controller implements IAuth
 
         try {              
 
-            $row = DB::table('users')->assoc()->unhide(['password'])
+            $row = DB::table($this->users_table)->assoc()->unhide(['password'])
             ->where([ 'email'=> $email, 'username' => $username ], 'OR')
             ->setValidator((new Validator())->setRequired(false))  
             ->first();
@@ -238,7 +238,7 @@ class AuthController extends Controller implements IAuth
             if (!empty($impersonate_user)){ 
                 $uid = $impersonate_user;
 
-                $row = DB::table('users')->assoc()
+                $row = DB::table($this->users_table)->assoc()
                 ->where([ 'id' =>  $uid ] ) 
                 ->first();
 
@@ -412,7 +412,7 @@ class AuthController extends Controller implements IAuth
 
             if (!$impersonated_by || $impersonated_by_role) {
 
-                $row = DB::table('users')->assoc()->where(['id' => $payload->uid])->first();
+                $row = DB::table($this->users_table)->assoc()->where(['id' => $payload->uid])->first();
 
                 if (!$row)
                     throw new Exception("User not found");
@@ -458,6 +458,8 @@ class AuthController extends Controller implements IAuth
 
     function register()
     {
+        global $api_version;
+
         if (!in_array($_SERVER['REQUEST_METHOD'], ['POST','OPTIONS']))
             Factory::response()->sendError('Incorrect verb ('.$_SERVER['REQUEST_METHOD'].'), expecting POST',405);
             
@@ -485,7 +487,7 @@ class AuthController extends Controller implements IAuth
                 unset($data['roles']);
             }        
             
-            $u = new UsersModel();
+            $u = DB::table($this->users_table);
 
             $missing = $u->getMissing($data);
             if (!empty($missing))
@@ -502,18 +504,18 @@ class AuthController extends Controller implements IAuth
                 if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL))
                     throw new Exception("Invalid email");  
 
-                if (DB::table('users')->where(['email', $data['email']])->exists())
+                if (DB::table($this->users_table)->where(['email', $data['email']])->exists())
                     Factory::response()->sendError('Email already exists');    
             }            
 
-            if (DB::table('users')->where(['username', $data['username']])->exists())
+            if (DB::table($this->users_table)->where(['username', $data['username']])->exists())
                 Factory::response()->sendError('Username already exists');
 
-            $uid = DB::table('users')->setValidator(new Validator())->create($data);
+            $uid = DB::table($this->users_table)->setValidator(new Validator())->create($data);
             if (empty($uid))
                 throw new Exception('Error creating user');
 
-            $u = DB::table('users');    
+            $u = DB::table($this->users_table);    
             if ($u->inSchema(['belongs_to'])){
                 $affected = $u->where(['id', $uid])->update(['belongs_to' => $uid]);
             }
@@ -548,7 +550,7 @@ class AuthController extends Controller implements IAuth
 
                 $token = $this->gen_jwt_email_conf($data['email'], $roles, $perms);
 
-                $url = $base_url . (!$this->config['REMOVE_API_SLUG'] ? 'api/v1' : 'v1') . '/auth/confirm_email/' . $token . '/' . $exp; 
+                $url = $base_url . (!$this->config['REMOVE_API_SLUG'] ? "api/$api_version" : $api_version) . '/auth/confirm_email/' . $token . '/' . $exp; 
 
                 $firstname = $data['firstname'] ?? null;
                 $lastname  = $data['lastname']  ?? null;
@@ -722,9 +724,9 @@ class AuthController extends Controller implements IAuth
                 //}
 
 
-                $u = DB::table('users');
+                $u = DB::table($this->users_table);
 
-                $rows = DB::table('users')->assoc()->where(['email', $payload->email])->get(['id', 'active']);
+                $rows = DB::table($this->users_table)->assoc()->where(['email', $payload->email])->get(['id', 'active']);
 
                 if (count($rows) == 0){
                     Factory::response()->sendError("Not found", 404, "Email not found");
@@ -736,7 +738,7 @@ class AuthController extends Controller implements IAuth
 
                 $uid  = $rows[0]['id'];
                 
-                $ok = (bool) DB::table('users')->where(['id', $uid])
+                $ok = (bool) DB::table($this->users_table)->where(['id', $uid])
                 ->fill(['confirmed_email'])
                 ->update(['confirmed_email' => 1]);
 
@@ -815,7 +817,7 @@ class AuthController extends Controller implements IAuth
                     Factory::response()->sendError('Token expired',401);
 			
 				
-				$rows = DB::table('users')->assoc()->where(['email', $payload->email])->get(['id', 'active']);
+				$rows = DB::table($this->users_table)->assoc()->where(['email', $payload->email])->get(['id', 'active']);
                 $uid = $rows[0]['id'];
                 
                 $active = $rows[0]['active'];
@@ -824,7 +826,7 @@ class AuthController extends Controller implements IAuth
                     Factory::response()->sendError('Non authorized', 403, 'Deactivated account !');
                 }
 
-				$affected = DB::table('users')->where(['id', $rows[0]['id']])->update(['password' => $data['password']]);
+				$affected = DB::table($this->users_table)->where(['id', $rows[0]['id']])->update(['password' => $data['password']]);
 
 				// Fetch roles
 				$uid = $rows[0]['id'];
@@ -870,6 +872,8 @@ class AuthController extends Controller implements IAuth
         sino no hacer nada.
     */
 	function rememberme(){
+        global $api_version;
+
 		$data  = Factory::request()->getBody();
 
 		if ($data == null)
@@ -882,7 +886,7 @@ class AuthController extends Controller implements IAuth
 
 		try {	
 
-			$u = (DB::table('users'))->assoc();
+			$u = (DB::table($this->users_table))->assoc();
 			$rows = $u->where(['email', $email])->get(['id', 'active']);
 
 			if (count($rows) === 0){
@@ -904,7 +908,7 @@ class AuthController extends Controller implements IAuth
 
             $token = $this->gen_jwt_rememberme($uid);
             
-            $url = $base_url . (!$this->config['REMOVE_API_SLUG'] ? 'api/v1' : 'v1') .'/auth/change_pass_by_link/' . $token . '/' . $exp; 	
+            $url = $base_url . (!$this->config['REMOVE_API_SLUG'] ? "api/$api_version" : $api_version) .'/auth/change_pass_by_link/' . $token . '/' . $exp; 	
 
 		} catch (\Exception $e){
 			Factory::response()->sendError($e->getMessage(), 500);
@@ -953,7 +957,7 @@ class AuthController extends Controller implements IAuth
                     $roles = Permissions::fetchRoles($uid);
                     $perms = Permissions::fetchPermissions($uid);
 
-                    $row = DB::table('users')->assoc()
+                    $row = DB::table($this->users_table)->assoc()
                     ->where(['id'=> $uid]) 
                     ->first();
 

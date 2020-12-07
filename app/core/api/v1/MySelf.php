@@ -14,7 +14,7 @@ use simplerest\core\exceptions\InvalidValidationException;
 
 class MySelf extends MyApiController 
 {  
-    protected $model_name = 'UsersModel';
+    protected $model_table = 'users';
 
     function __construct() 
     { 
@@ -54,7 +54,7 @@ class MySelf extends MyApiController
     function delete($id = null){
         $id = $this->uid;
 
-        $ok = (bool) DB::table('users')->where([['id', $id], ['active', 1]])
+        $ok = (bool) DB::table($this->model_table)->where([['id', $id], ['active', 1]])
         ->fill(['active'])
         ->update(['active' => 0]);
 
