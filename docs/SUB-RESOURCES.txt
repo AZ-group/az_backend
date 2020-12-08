@@ -289,3 +289,8 @@ Inclusive hacer un join de muchos a muchos haciendo "implícita" la tabla interm
 	->get()
 
 
+
+
+
+
+products_product_categories
