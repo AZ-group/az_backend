@@ -3084,4 +3084,62 @@ https://symfony.com/doc/current/components/http_foundation.html
 https://blog.discord.com/why-discord-is-switching-from-go-to-rust-a190bbca2b1f
 
 
-- Desacoplar el ACL de Auth y mover el ACL a un ServiceProvider 
+
+- Implementar (sin apuro) "Contenedor de dependencias inversas" 
+
+  <?php
+
+  class Service
+  {
+      //
+  }
+
+  Route::get('/', function (Service $service) {
+      die(get_class($service));
+  });
+
+In this example, hitting your application's / route will automatically resolve the Service class and inject it into your route's handler. This is game changing. It means you can develop your application and take advantage of dependency injection without worrying about bloated configuration files.
+
+
+  use Illuminate\Http\Request;
+
+  Route::get('/', function (Request $request) {
+      // ...
+  });
+
+
+"There is no need to bind classes into the container if they do not depend on any interfaces"
+
+"it can automatically resolve these objects using reflection."
+
+
+http://fabien.potencier.org/do-you-need-a-dependency-injection-container.html
+https://laravel.com/docs/8.x/container#binding-basics
+https://stackify.com/dependency-injection/
+https://www.sitepoint.com/how-to-build-your-own-dependency-injection-container/
+
+
+- Migraciones en el ServiceProvider (es sencillo, solo hacen un up)
+
+- Desacoplar el ACL de Auth (si fuera posible) y mover el ACL a un ServiceProvider (incluir migraciones)
+
+- FacebookConnect y GoogleConnect deben ser ServiceProviders (que deberían implementar la interfaz del ACL con el fin de poder desacoplarlos)
+
+- Ensayar con Apache y Nginx como correr SimpleRest como carpeta, ej: /api dentro de un proyecto en PHP como alternativa a meter la API en un subdominio
+
+Posibilidades para ofrecer APIs:
+
+  - Como carpeta /api lo cual implicaría:
+
+    1. Que usen el mismo motor (MySQL de momento)
+    2. Que no usen SPs
+    3. Que el proyecto esté en PHP?  
+    4. Configurar el .htaccess de Apache o su equivalente
+    5. Desacoplar el ACL y poder ajustarse a su tabla users.
+
+  - Como subdominio: podría estar en otro lenguaje pero implica configurarlo.
+
+  - Usando microservicios
+
+
+  

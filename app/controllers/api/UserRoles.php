@@ -6,7 +6,7 @@ use simplerest\controllers\MyApiController;
 use simplerest\libs\Factory;
 
 
-class UserRoles extends MyApiController
+class UserRoles extends MyApiController  /* implements IApiController */
 {    
     protected $table_name = 'user_roles';
 

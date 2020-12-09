@@ -64,7 +64,6 @@ class Model {
 	protected $limit;
 	protected $offset;
 	protected $pag_vals = [];
-	protected $roles;
 	protected $validator;
 	protected $input_mutators = [];
 	protected $output_mutators = [];
