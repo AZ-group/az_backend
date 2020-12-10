@@ -789,9 +789,15 @@ abstract class ApiController extends ResourceController
                 }else                               
                     $rows = $this->instance->get();
                 
-                    
-                //dd($this->instance->dd2(), 'SQL');
-            
+                //dd($this->instance->dd(), 'SQL');
+                //dd($rows);
+                
+                if ($rows === false){
+                    $db = DB::getCurrentDB();
+                    Factory::response()->sendError("Something goes wrong with $db.{$this->model_table}");
+                }
+
+
                 $res = Factory::response()->setPretty($pretty);
 
                 /*

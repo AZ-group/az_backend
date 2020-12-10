@@ -1,6 +1,6 @@
 <?php
 
-namespace Devdojo\Calculator;
+namespace devdojo\calculator;
 
 use simplerest\core\Controller;
 use simplerest\core\Request;

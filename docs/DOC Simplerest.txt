@@ -2857,7 +2857,7 @@ Los paquetes deben registrarse en config.php agregándose a $providers[]
 	*/
 
 	'providers' => [
-		Devdojo\Calculator\CalculatorServiceProvider::class,
+		devdojo\calculator\CalculatorServiceProvider::class,
 		// ...
     ],
 

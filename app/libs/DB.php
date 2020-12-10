@@ -18,6 +18,10 @@ class DB
 		return static::$current_id_conn;
 	}
 
+	public static function getCurrentDB(){
+		return Factory::config()['db_connections'][static::$current_id_conn]['db_name'];
+	}
+
 	public static function setConnection($id){
 		static::$current_id_conn = $id;
 	}

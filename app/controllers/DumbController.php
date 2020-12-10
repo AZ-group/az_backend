@@ -182,7 +182,8 @@ class DumbController extends Controller
         $m = (new Model(true))
             ->table('products')  // <---------------- 
             ->select(['id', 'name', 'size'])
-            ->where(['cost', 150, '>=']);
+            ->where(['cost', 150, '>='])
+            ->where(['id', 100, '<']);
 
         dd($m->get());
 

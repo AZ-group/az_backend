@@ -1,10 +1,10 @@
 <?php
 
-namespace devdojo\calculator;
+namespace boctulus\grained_acl;
 
 use simplerest\core\ServiceProvider;
 
-class CalculatorServiceProvider extends ServiceProvider
+class GrainedAclServiceProvider extends ServiceProvider
 {
     /**
      * Bootstrap the application services.
@@ -13,7 +13,8 @@ class CalculatorServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        include __DIR__.'/routes.php';
+        //dd("booting from boctulus\grained_acl");
+        //include __DIR__.'/routes.php';
     }
 
     /**

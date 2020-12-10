@@ -1,6 +1,6 @@
 <?php
 
-use simplerest\core\Acl;
+use boctulus\grained_acl\Acl;
 use simplerest\libs\Debug;
 
 

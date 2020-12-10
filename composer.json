@@ -23,7 +23,9 @@
     "autoload": {
         "psr-4": {
             "simplerest\\": "app/",
-            "Devdojo\\Calculator\\": "packages/devdojo/calculator/src"
+            "devdojo\\calculator\\": "packages/devdojo/calculator/src",
+            "boctulus\\grained_acl\\": "packages/boctulus/grained_acl/src",
+            "boctulus\\basic_acl\\": "packages/boctulus/basic_acl/src"
         }
     },
     "require-dev": {

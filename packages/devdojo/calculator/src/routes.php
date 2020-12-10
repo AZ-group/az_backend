@@ -11,7 +11,7 @@ Route::get('calculator', function(){
 */
 
 // http://az.lan/add/60/7
-Route::get('add', 'Devdojo\Calculator\CalculatorController@add');
+Route::get('add', 'devdojo\calculator\CalculatorController@add');
 
 // http://az.lan/subtract/60/7
-Route::get('subtract', 'Devdojo\Calculator\CalculatorController@subtract');
+Route::get('subtract', 'devdojo\calculator\CalculatorController@subtract');

@@ -168,8 +168,10 @@ return [
 	*/
 
 	'providers' => [
-		Devdojo\Calculator\CalculatorServiceProvider::class,
+		devdojo\calculator\CalculatorServiceProvider::class,
+		boctulus\grained_acl\GrainedAclServiceProvider::class,
+		//boctulus\basic_acl\BasicAclServiceProvider::class
 		// ...
-    ],
+	],
 	
 ];

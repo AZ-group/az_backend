@@ -55,27 +55,4 @@ abstract class ResourceController extends Controller
         parent::__construct();
     }
     
-    protected function getTbPermissions(string $table = NULL){
-        if (empty($this->permissions)){
-            return NULL;
-        }
-
-        $tb_perms = $this->permissions['tb'];
-
-        if ($table == NULL)
-            return $tb_perms;
-
-        if (!isset($tb_perms[$table]))
-            return NULL;
-
-        return $tb_perms[$table];
-    }
-
-    
-
-
-    
-    
-    
-    
 }  
