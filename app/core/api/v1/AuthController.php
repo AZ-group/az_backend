@@ -6,7 +6,6 @@ use Exception;
 use simplerest\core\Controller;
 use simplerest\core\interfaces\IAuth;
 use simplerest\libs\Factory;
-use simplerest\libs\Permissions;
 use simplerest\libs\DB;
 use simplerest\libs\Utils;
 use simplerest\libs\Debug;
@@ -17,6 +16,7 @@ use simplerest\core\exceptions\InvalidValidationException;
 class AuthController extends Controller implements IAuth
 {
     protected $users_table = 'users';
+    public $uid;
 
     function __construct()
     { 
@@ -133,8 +133,9 @@ class AuthController extends Controller implements IAuth
             // Fetch roles && permissions
             $uid = $row['id'];
 
-            $roles = self::fetchRoles($uid);
-            $perms = self::fetchPermissions($uid);
+            $acl   = Factory::acl();
+            $roles = $acl->fetchRoles($uid);
+            $perms = $acl->fetchPermissions($uid);
 
             //var_export($perms);
 
@@ -203,13 +204,14 @@ class AuthController extends Controller implements IAuth
                 Factory::response()->sendError('uid is needed',400);
             }
 
-            $roles = self::fetchRoles($payload->uid);
+            $acl   = Factory::acl();
+            $roles = $acl->fetchRoles($payload->uid);
 
-            if (!Factory::acl()->hasSpecialPermission("impersonate", $roles) && !(isset($payload->impersonated_by) && !empty($payload->impersonated_by)) ){
+            if (!$acl->hasSpecialPermission("impersonate", $roles) && !(isset($payload->impersonated_by) && !empty($payload->impersonated_by)) ){
                 Factory::response()->sendError('Unauthorized!',401, 'Impersonate requires elevated privileges');
             }    
 
-            $acl        = Factory::acl();
+            
             $guest_role = $acl->getGuest();
 
             $impersonate_user = $data->uid ?? null;
@@ -253,8 +255,8 @@ class AuthController extends Controller implements IAuth
                     Factory::response()->sendError('User account to be impersonated is deactivated', 500);
                 }  
                 
-                $roles = self::fetchRoles($uid);
-                $perms = self::fetchPermissions($uid);
+                $roles = $acl->fetchRoles($uid);
+                $perms = $acl->fetchPermissions($uid);
             }    
 
             $impersonated_by = $payload->impersonated_by ?? $payload->uid;
@@ -326,8 +328,9 @@ class AuthController extends Controller implements IAuth
 
         $uid = $payload->impersonated_by;
         
-        $roles = self::fetchRoles($uid);
-        $perms = self::fetchPermissions($uid);
+        $acl   = Factory::acl();
+        $roles = $acl->fetchRoles($uid);
+        $perms = $acl->fetchPermissions($uid);
 
         //////
         
@@ -402,9 +405,11 @@ class AuthController extends Controller implements IAuth
                 // guest
                 if ($payload->uid == -1) 
                 {
+                    $acl   = Factory::acl();
+
                     $active = false;
-                    $roles = [Factory::acl()->getGuest()];
-                    $permissions = [];
+                    $roles = [$acl->getGuest()];
+                    $perms = [];
                 } else {
                     $impersonated_by_role = true;
                 }
@@ -412,7 +417,8 @@ class AuthController extends Controller implements IAuth
 
             if (!$impersonated_by || $impersonated_by_role) {
 
-                $row = DB::table($this->users_table)->assoc()->where(['id' => $payload->uid])->first();
+                $row = DB::table($this->users_table)->assoc()
+                ->where(['id' => $payload->uid])->first();
 
                 if (!$row)
                     throw new Exception("User not found");
@@ -420,17 +426,19 @@ class AuthController extends Controller implements IAuth
                 $active = $row['active']; 
 
                 if ($active == 0 || (string) $active === "0") {
-                    Factory::response()->sendError('Non authorized', 403, 'Deactivated account !');
+                    Factory::response()
+                    ->sendError('Non authorized', 403, 'Deactivated account !');
                 }
 
-                $roles = self::fetchRoles($uid);
-                $permissions = self::fetchPermissions($uid);
+                $acl   = $acl ?? Factory::acl();
+                $roles = $acl->fetchRoles($uid);
+                $perms = $acl->fetchPermissions($uid);
             }            
 
           
             $access  = $this->gen_jwt([ 'uid' => $payload->uid,
                                         'roles' => $roles, 
-                                        'permissions' => $permissions, 
+                                        'permissions' => $perms, 
                                         'impersonated_by' => $impersonated_by,
                                         'active' => $active
                                     ], 
@@ -456,6 +464,9 @@ class AuthController extends Controller implements IAuth
         }	
     }
 
+    /*
+        Minimizar la cantidad de instancias de UsersModel !!!!!!!!!
+    */
     function register()
     {
         global $api_version;
@@ -520,27 +531,14 @@ class AuthController extends Controller implements IAuth
                 $affected = $u->where(['id', $uid])->update(['belongs_to' => $uid]);
             }
 
+            $acl   = Factory::acl();
+
             if (!empty($roles))
             {
-                foreach ($roles as $role) {
-                    $role_id = Factory::acl()->getRoleId($role);
-
-                    if ($role_id == null){
-                        throw new Exception("Role $role is invalid");
-                    }
-                    
-                    // Podrian crearse todos juntos con un Store Procedure ?
-                    $ur_id = DB::table('user_roles')
-                                                    ->where(['id' => $uid])
-                                                    ->create(['user_id' => $uid, 'role_id' => $role_id]);
-
-                    if (empty($ur_id))
-                        throw new Exception("Error registrating user role $role"); 
-                    
-                } 
+                $acl->addUserRoles($roles, $uid);
             }       
             
-            $perms = self::fetchPermissions($uid);
+            $perms = $acl->fetchPermissions($uid);
 
             if ($email_in_schema){ 
                 // Email confirmation
@@ -551,9 +549,6 @@ class AuthController extends Controller implements IAuth
                 $token = $this->gen_jwt_email_conf($data['email'], $roles, $perms);
 
                 $url = $base_url . (!$this->config['REMOVE_API_SLUG'] ? "api/$api_version" : $api_version) . '/auth/confirm_email/' . $token . '/' . $exp; 
-
-                $firstname = $data['firstname'] ?? null;
-                $lastname  = $data['lastname']  ?? null;
             }                
             
 
@@ -665,17 +660,19 @@ class AuthController extends Controller implements IAuth
         switch (Factory::request()->authMethod()){
             case 'API_KEY': 
                 $api_key = Factory::request()->getApiKey();
-                $uid = DB::table('api_keys')->where(['value', $api_key])->value('user_id');
+
+                $acl = Factory::acl();
+                $uid = $acl->getUserIdFromApiKey($api_key);
 
                 if ($uid == NULL){
                     Factory::response()->sendError('Invalid API Key', 401);
                 }
 
                 $ret = [
-                    'uid' => $uid,
-                    'roles' => self::fetchRoles($uid),
-                    'permissions' => self::fetchPermissions($uid),
-                    'active' => true //
+                    'uid'           => $uid,
+                    'roles'         => $acl->fetchRoles($uid),
+                    'permissions'   => $acl->fetchPermissions($uid),
+                    'active'        => true //
                 ];
             break;
             case 'JWT':
@@ -690,6 +687,7 @@ class AuthController extends Controller implements IAuth
                 ];
         }
 
+        $this->uid = $ret['uid'];
         return $ret;
     }
 
@@ -826,13 +824,16 @@ class AuthController extends Controller implements IAuth
                     Factory::response()->sendError('Non authorized', 403, 'Deactivated account !');
                 }
 
-				$affected = DB::table($this->users_table)->where(['id', $rows[0]['id']])->update(['password' => $data['password']]);
+                $affected = DB::table($this->users_table)
+                ->where(['id', $rows[0]['id']])
+                ->update(['password' => $data['password']]);
 
 				// Fetch roles
 				$uid = $rows[0]['id'];
             
-                $roles = self::fetchRoles($uid);
-                $perms = self::fetchPermissions($uid);
+                $acl   = Factory::acl();
+                $roles = $acl->fetchRoles($uid);
+                $perms = $acl->fetchPermissions($uid);
 
                 $access  = $this->gen_jwt([ 'uid' => $uid, 
                                             'roles' => $roles, 
@@ -954,8 +955,9 @@ class AuthController extends Controller implements IAuth
 
                     $uid = $payload->uid;
 
-                    $roles = self::fetchRoles($uid);
-                    $perms = self::fetchPermissions($uid);
+                    $acl   = Factory::acl();
+                    $roles = $acl->fetchRoles($uid);
+                    $perms = $acl->fetchPermissions($uid);
 
                     $row = DB::table($this->users_table)->assoc()
                     ->where(['id'=> $uid]) 
@@ -1011,62 +1013,5 @@ class AuthController extends Controller implements IAuth
         }	
 
     }      
-
-    /*
-        Permissions
-    */
-    
-    static function fetchRoles($uid) : Array {
-        $rows = DB::table('user_roles')
-        ->assoc()
-        ->where(['user_id', $uid])
-        ->select(['role_id as role'])
-        ->get();	
-
-        $acl = Factory::acl();
-
-        $roles = [];
-        if (count($rows) != 0){
-            foreach ($rows as $row){
-                $roles[] = $acl->getRoleName($row['role']);
-            }
-        }
-
-        return $roles;
-    }
-
-    static function fetchTbPermissions($uid) : Array {
-        $_permissions = DB::table('user_tb_permissions')
-        ->assoc()
-        ->select(['tb', 'can_list_all as la', 'can_show_all as ra', 'can_list as l', 'can_show as r', 'can_create as c', 'can_update as u', 'can_delete as d'])
-        ->where(['user_id' => $uid])
-        ->get();
-
-        $perms = [];
-        foreach ((array) $_permissions as $p){
-            $tb = $p['tb'];
-            $perms[$tb] =  $p['la'] * 64 + $p['ra'] * 32 +  $p['l'] * 16 + $p['r'] * 8 + $p['c'] * 4 + $p['u'] * 2 + $p['d'];
-        }
-
-        return $perms;
-    }
-
-    static function fetchSpPermissions($uid) : Array {
-        $perms = DB::table('user_sp_permissions')
-        ->assoc()
-        ->where(['user_id' => $uid])
-        ->join('sp_permissions', 'user_sp_permissions.sp_permission_id', '=', 'sp_permissions.id')
-        ->pluck('name');
-
-        return $perms ?? [];
-    }
-
-    static function fetchPermissions($uid) : Array { 
-        return [
-                'tb' => self::fetchTbPermissions($uid), 
-                'sp' => self::fetchSpPermissions($uid) 
-        ];
-    }
-
 
 }

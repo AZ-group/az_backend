@@ -15,11 +15,11 @@ class DumbAuthController extends ResourceController
 
     function super_cool_action($a)
     {
-        //var_dump($this->isGuest());    
-        //var_dump($this->getRoles());
-        //var_dump($this->isRegistered());
+        //var_dump($this->acl->isGuest());    
+        //var_dump($this->acl->getRoles());
+        //var_dump($this->acl->isRegistered());
 
-        if (!$this->hasAnyRole(['cajero', 'basic']))
+        if (!$this->acl->hasAnyRole(['cajero', 'basic']))
             Factory::response()->sendError('Unauthorized', 401);
 
         // acción cualquiera:
@@ -28,7 +28,7 @@ class DumbAuthController extends ResourceController
     
     function test()
     {
-        $permissions = $this->getPermissions();
+        $permissions = $this->acl->getTbPermissions();
         foreach ((array) $permissions as $tb => $perms){
             echo "[$tb]\n";
             $perms = (int) $perms;

@@ -26,9 +26,10 @@ class DownloadController extends ResourceController
             return;
 
         $_get = [];    
-        
-        if (!Factory::acl()->hasSpecialPermission('read_all', $this->roles)){
-            if ($this->isGuest()){                
+
+        $acl = Factory::acl();        
+        if (!$acl->hasSpecialPermission('read_all', $this->roles)){
+            if ($acl->isGuest()){                
                 $instance = DB::table('files');
                 
                 if ($instance->inSchema(['guest_access'])){

@@ -861,12 +861,18 @@ class ModelTest extends TestCase
   function test_update(){
     $u = DB::table('users');
     $u->where(['id' => 100000])
-    ->update(['firstname'=>'Nico', 'lastname'=>'Buzzi']);    
+    ->update(['firstname' => 'Nico', 'lastname' => 'Buzzi']);    
     $this->assertEquals(DB::getLog(), "UPDATE users SET firstname = 'Nico', lastname = 'Buzzi' WHERE id = 100000;");
 
     $u->where([ ['lastname', ['AAA', 'Buzzi']] ])
-    ->update(['firstname'=>'Nicolay']);
+    ->update(['firstname' => 'Nicolay']);
     $this->assertEquals(DB::getLog(), "UPDATE users SET firstname = 'Nicolay' WHERE id = 100000 AND lastname IN ('AAA', 'Buzzi');");
+
+    $u = DB::table('users');
+    $u->where(['id' => 100000])
+    ->update(['firstname' => NULL]);
+    $this->assertEquals(DB::getLog(), "UPDATE users SET firstname = NULL WHERE id = 100000;");
+    
   }
 
 

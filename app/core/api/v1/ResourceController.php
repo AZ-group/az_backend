@@ -7,8 +7,7 @@ use simplerest\core\Request;
 use simplerest\libs\Factory;
 use simplerest\core\Controller;
 use simplerest\core\api\v1\AuthController;
-use simplerest\models\FolderPermissionsModel;
-use simplerest\models\FolderOtherPermissionsModel;
+use simplerest\libs\DB;
 
 
 abstract class ResourceController extends Controller
@@ -37,10 +36,8 @@ abstract class ResourceController extends Controller
         if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
             Factory::response()->sendOK(); // no tocar !
         }
-
-        $this->acl = Factory::acl();
         
-        $auth = $auth ?? (new AuthController());
+        $auth = $auth ?? Factory::auth();
         $this->auth = ($auth)->check();
         
         $this->uid          = $this->auth['uid']; 
@@ -48,21 +45,17 @@ abstract class ResourceController extends Controller
         $this->permissions  = $this->auth['permissions'];   
         
 
+        $this->acl = Factory::acl();
+
         //dd($this->uid, 'uid');
         //dd($this->acl->getRoleName(), 'possible roles');  ///// 
         //dd($this->roles, 'active roles');
         //dd($this->permissions, 'permissions');
 
-        Factory::response()->asObject();
-
         parent::__construct();
     }
-
-    protected function getRoles(){
-        return $this->roles;
-    }
     
-    protected function getPermissions(string $table = NULL){
+    protected function getTbPermissions(string $table = NULL){
         if (empty($this->permissions)){
             return NULL;
         }
@@ -78,72 +71,10 @@ abstract class ResourceController extends Controller
         return $tb_perms[$table];
     }
 
-    protected function isGuest(){
-        return $this->roles == [Factory::acl()->getGuest()];
-    }
+    
 
-    protected function isRegistered(){
-        return !$this->isGuest();
-    }
 
-    protected function hasRole(string $role){
-        return in_array($role, $this->roles);
-    }
-
-    protected function hasAnyRole(array $authorized_roles){
-        $authorized = false;
-        foreach ((array) $this->roles as $role)
-            if (in_array($role, $authorized_roles))
-                $authorized = true;
-
-        return $authorized;        
-    }
-
-    /**
-     * hasFolderPermission
-     *
-     * @param  int    $folder
-     * @param  string $operation
-     *
-     * @return bool
-     */
-    protected function hasFolderPermission(int $folder, string $operation)
-    {
-        if ($operation != 'r' && $operation != 'w')
-            throw new \InvalidArgumentException("Invalid operation '$operation'. It should be 'r' or 'w'.");
-
-        $o = (new FolderOtherPermissionsModel($this->conn))->assoc();
-
-        $rows = $o->where(['folder_id', $folder])->get();
-
-        $r = $rows[0]['r'] ?? null;
-        $w = $rows[0]['w'] ?? null;
-
-        if ($this->isGuest()){
-            $guest_role = $this->acl->getGuest();
-            $r = $r && $rows[0][$guest_role];
-            $w = $w && $rows[0][$guest_role];
-        }
-
-        if (($operation == 'r' && $r) || ($operation == 'w' && $w)) {
-            return true;
-        }
-        
-        $g = (new FolderPermissionsModel($this->conn))->assoc();
-        $rows = $g->where([
-                                    ['folder_id', $folder], 
-                                    ['access_to', $this->uid]
-        ])->get();
-
-        $r = $rows[0]['r'] ?? null;
-        $w = $rows[0]['w'] ?? null;
-
-        if (($operation == 'r' && $r) || ($operation == 'w' && $w)) {
-            return true;
-        }
-
-        return false;
-    } 
+    
     
     
     

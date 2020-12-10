@@ -10,7 +10,7 @@ use simplerest\libs\Debug;
 use simplerest\libs\Url;
 use simplerest\libs\Strings;
 use simplerest\libs\Validator;
-use simplerest\models\FoldersModel;
+use simplerest\core\FoldersAclExtension;
 use simplerest\core\api\v1\ResourceController;
 use simplerest\core\exceptions\SqlException;
 use simplerest\core\exceptions\InvalidValidationException;
@@ -62,7 +62,7 @@ abstract class ApiController extends ResourceController
             }  
         }
         
-        $perms = $this->getPermissions($this->model_table);
+        $perms = $this->acl->getTbPermissions($this->model_table);
         //dd($perms, 'perms'); /////
         //dd($this->acl->getRolePermissions());
         //dd($this->acl->hasSpecialPermission('read_all', $this->roles));
@@ -307,7 +307,7 @@ abstract class ApiController extends ResourceController
 
             if ($this->ask_for_deleted && !$this->acl->hasSpecialPermission('read_all_trashcan', $this->roles)){
                 if ($this->instance->inSchema(['belongs_to'])){
-                    $data['belongs_to'] = $this->uid;
+                    $_get['belongs_to'] = $this->uid;
                 }
             } 
 
@@ -411,7 +411,7 @@ abstract class ApiController extends ResourceController
                 if (count($f_rows) == 0 || $f_rows[0]['tb'] != $this->model_table)
                     Factory::response()->sendError('Folder not found', 404);  
         
-                $this->folder_access = $this->acl->hasSpecialPermission('read_all_folders', $this->roles) || $f_rows[0]['belongs_to'] == $this->uid  || $this->hasFolderPermission($this->folder, 'r');   
+                $this->folder_access = $this->acl->hasSpecialPermission('read_all_folders', $this->roles) || $f_rows[0]['belongs_to'] == $this->uid  || FoldersAclExtension::hasFolderPermission($this->folder, 'r');   
 
                 if (!$this->folder_access)
                     Factory::response()->sendError("Forbidden", 403, "You don't have permission for the folder $this->folder");
@@ -426,7 +426,7 @@ abstract class ApiController extends ResourceController
                 if (empty($this->folder)){               
                     // root, by id          
                          
-                    if ($this->isGuest()){                        
+                    if ($this->acl->isGuest()){                        
                         if ($this->instance->inSchema(['guest_access'])){
                             $_get[] = ['guest_access', 1];
                         } elseif (!empty(static::$folder_field)) {
@@ -453,7 +453,7 @@ abstract class ApiController extends ResourceController
 
 
                 // avoid guests can see everything with just 'read' permission
-                if ($this->isGuest()){
+                if ($this->acl->isGuest()){
                     if ($owned){             
                         if (!$this->acl->hasSpecialPermission('read_all', $this->roles) && 
                             (!$this->acl->hasResourcePermission('show_all', $this->roles, $this->model_table))
@@ -654,7 +654,7 @@ abstract class ApiController extends ResourceController
                 }
 
                 // avoid guests can see everything with just 'read' permission
-                if ($this->isGuest()){
+                if ($this->acl->isGuest()){
                     if ($owned){             
                         if (!$this->acl->hasSpecialPermission('read_all', $this->roles) && 
                             (!$this->acl->hasResourcePermission('list_all', $this->roles, $this->model_table))
@@ -674,7 +674,7 @@ abstract class ApiController extends ResourceController
 
                 if (empty($this->folder)){
                     // root, sin especificar folder ni id (lista)   // *             
-                    if (!$this->isGuest() && $owned && 
+                    if (!$this->acl->isGuest() && $owned && 
                         !$this->acl->hasSpecialPermission('read_all', $this->roles) &&
                         !$this->acl->hasResourcePermission('list_all', $this->roles, $this->model_table) ){
                         $_get[] = ['belongs_to', $this->uid];     
@@ -707,7 +707,7 @@ abstract class ApiController extends ResourceController
                 else
                     $pretty = true;   
 
-                //var_export($_get); ////
+                //dd($_get); ////
                 //var_export($_SERVER["QUERY_STRING"]);
 
                 $query = Factory::request()->getQuery();
@@ -740,7 +740,7 @@ abstract class ApiController extends ResourceController
 
                 // WHERE
                 $this->instance->where($_get);
-                //var_export($_get);
+                //dd($_get);
 
                 // GROUP BY
                 if ($group_by != NULL){
@@ -916,7 +916,7 @@ abstract class ApiController extends ResourceController
                 if (count($f_rows) == 0 || $f_rows[0]['tb'] != $this->model_table)
                     Factory::response()->sendError('Folder not found', 404); 
         
-                if ($f_rows[0]['belongs_to'] != $this->uid  && !$this->hasFolderPermission($this->folder, 'w'))
+                if ($f_rows[0]['belongs_to'] != $this->uid  && !FoldersAclExtension::hasFolderPermission($this->folder, 'w'))
                     Factory::response()->sendError("Forbidden", 403, "You have not permission for the folder $this->folder");
 
                 unset($data['folder']);    
@@ -1032,7 +1032,7 @@ abstract class ApiController extends ResourceController
                 if (count($f_rows) == 0 || $f_rows[0]['tb'] != $this->model_table)
                     Factory::response()->sendError('Folder not found', 404); 
         
-                if ($f_rows[0]['belongs_to'] != $this->uid  && !$this->hasFolderPermission($this->folder, 'w') && !$this->acl->hasSpecialPermission('write_all_folders', $this->roles))
+                if ($f_rows[0]['belongs_to'] != $this->uid  && !FoldersAclExtension::hasFolderPermission($this->folder, 'w') && !$this->acl->hasSpecialPermission('write_all_folders', $this->roles))
                     Factory::response()->sendError("You have not permission for the folder $this->folder", 403);
 
                 $this->folder_name = $f_rows[0]['name'];
@@ -1199,7 +1199,7 @@ abstract class ApiController extends ResourceController
                 if (count($f_rows) == 0 || $f_rows[0]['tb'] != $this->model_table)
                     Factory::response()->sendError('Folder not found', 404); 
         
-                if ($f_rows[0]['belongs_to'] != $this->uid  && !$this->hasFolderPermission($this->folder, 'w'))
+                if ($f_rows[0]['belongs_to'] != $this->uid  && !FoldersAclExtension::hasFolderPermission($this->folder, 'w'))
                     Factory::response()->sendError("You have not permission for the folder $this->folder", 403);
 
                 $this->folder_name = $f_rows[0]['name'];

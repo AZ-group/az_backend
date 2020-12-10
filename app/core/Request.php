@@ -2,7 +2,7 @@
 
 namespace simplerest\core;
 
-use simplerest\core\api\v1\AuthController;
+use simplerest\libs\Factory;
 use simplerest\core\interfaces\Arrayable;
 
 class Request  implements \ArrayAccess, Arrayable
@@ -60,8 +60,8 @@ class Request  implements \ArrayAccess, Arrayable
     }
 
     function getApiKey(){
-        return  $this->shiftQuery('api_key') ??
-                static::$headers['x-api-key'] ??                 
+        return  static::$headers['x-api-key'] ?? 
+                $this->shiftQuery('api_key') ??                
                 NULL;
     }
 
@@ -71,7 +71,7 @@ class Request  implements \ArrayAccess, Arrayable
 
     function getTenantId(){
         return  
-            (new AuthController())->check()['tenantid'] ??
+            Factory::auth()->check()['tenantid'] ??
             $this->shiftQuery('tenantid') ??
             static::$headers['x-tenant-id'] ??                 
             NULL;
@@ -108,8 +108,20 @@ class Request  implements \ArrayAccess, Arrayable
     // getter destructivo sobre $query_arr
     function shiftQuery($key, $default_value = NULL)
     {
-        $out = static::$query_arr[$key] ?? $default_value;
-        unset(static::$query_arr[$key]);
+        static $arr = [];
+
+        if (isset($arr[$key])){
+            return $arr[$key];
+        }
+
+        if (isset(static::$query_arr[$key])){
+            $out = static::$query_arr[$key];
+            unset(static::$query_arr[$key]);
+            $arr[$key] = $out;
+        } else {
+            $out = $default_value;
+        }
+
         return $out;
     }
 

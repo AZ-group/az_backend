@@ -1486,7 +1486,8 @@ class Model {
 		$ops    = [];
 		if (count($conditions)>0){
 			if(is_array($conditions[Arrays::array_key_first($conditions)])){
-				foreach ($conditions as $cond) {
+
+				foreach ($conditions as $ix => $cond) {
 					if ($cond[0] == null)
 						throw new SqlException("Field can not be NULL");
 
@@ -1509,6 +1510,7 @@ class Model {
 							$ops[] = $cond[2] ?? '=';
 					}	
 				}
+
 			}else{
 				$vars[]   = $conditions[0];
 				$this->w_vals[] = $conditions[1];
@@ -1793,11 +1795,32 @@ class Model {
 
 		$q = "UPDATE ".$this->from() .
 				" SET $set WHERE " . $where;		
+
+
+		$values = array_merge($values, $this->w_vals);
+		$vars   = array_merge($vars, $this->w_vars);		
+
+		///////////////[ BUG FIX ]/////////////////
+
+		$_vals = [];
+		$reps  = 0;
+		foreach($values as $ix => $val)
+		{				
+			if($val == NULL){
+				$q = Strings::replaceNth('?', 'NULL', $q, $ix+1-$reps);
+				$reps++;
+			} else {
+				$_vals[] = $val;
+			}
+		}
+
+		$values = $_vals;
+
+		///////////////////////////////////////////
+
 	
 		$st = $this->conn->prepare($q);
 
-		$values = array_merge($values, $this->w_vals);
-		$vars   = array_merge($vars, $this->w_vars);
 
 		//var_export($q);
 		//var_export($vars);
@@ -1877,25 +1900,11 @@ class Model {
 		$where = implode(' AND ', $this->where);
 
 		$q = "DELETE FROM ". $this->from() . " WHERE " . $where;
-		
-		$st = $this->conn->prepare($q);
-		
-		$vars = $this->w_vars;		
-		foreach($this->w_vals as $ix => $val){			
-			if(is_null($val)){
-				$type = \PDO::PARAM_NULL;
-			}elseif(isset($vars[$ix]) && isset($this->schema['attr_types'][$vars[$ix]])){
-				$const = $this->schema['attr_types'][$vars[$ix]];
-				$type = constant("PDO::PARAM_{$const}");
-			}elseif(is_int($val))
-				$type = \PDO::PARAM_INT;
-			elseif(is_bool($val))
-				$type = \PDO::PARAM_BOOL;
-			elseif(is_string($val))
-				$type = \PDO::PARAM_STR;	
+		//dd($q);
+		//exit;     ///////////////////
 
-			$st->bindValue($ix+1, $val, $type);
-		}
+		
+		$st = $this->bind($q);
 	 
 		$this->last_bindings = $this->getBindings();
 		$this->last_pre_compiled_query = $q;
@@ -1961,25 +1970,7 @@ class Model {
 		}
 
 		$q = "INSERT INTO " . $this->from() . " ($str_vars) VALUES ($str_vals)";
-		$st = $this->conn->prepare($q);
-
-		foreach($vals as $ix => $val){			
-			if(is_null($val)){
-				$type = \PDO::PARAM_NULL;
-			}elseif(isset($vars[$ix]) && $this->schema != NULL && isset($this->schema['attr_types'][$vars[$ix]])){
-				$const = $this->schema['attr_types'][$vars[$ix]];
-				$type = constant("PDO::PARAM_{$const}");
-			}elseif(is_int($val))
-				$type = \PDO::PARAM_INT;
-			elseif(is_bool($val))
-				$type = \PDO::PARAM_BOOL;
-			elseif(is_string($val))
-				$type = \PDO::PARAM_STR;	
-
-			//dd($type, "TYPE for $val");	
-
-			$st->bindValue($ix+1, $val, $type);
-		}
+		$st = $this->bind($q);
 
 		$this->last_bindings = $vals;
 		$this->last_pre_compiled_query = $q;

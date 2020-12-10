@@ -12,7 +12,7 @@ class UserRoles extends MyApiController  /* implements IApiController */
 
     function __construct()
     {
-        if (Factory::request()->hasAuth() && $this->isRegistered()){
+        if (Factory::request()->hasAuth() && Factory::acl()->isRegistered()){
             $this->callable = ['get'];
 
             $this->is_retrievable   = true;

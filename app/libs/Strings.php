@@ -128,6 +128,25 @@ class Strings
 		
 		return $subject;	
 	}
+
+	/* 
+		retorna posición de nth ocurrencia de un caracter (no de un substr)
+	*/
+	static function posCharNth(string $str, $neddle, int $n){
+		$findings = 0;
+
+		$len = strlen($str);
+		for ($i=0; $i<$len; $i++){
+			if ($str[$i] == $neddle){
+				$findings++;
+
+				if ($findings == $n){
+					return $i;
+				} 
+			}
+		}
+	}
+
 	
 	/**
 	* String replace nth occurrence
