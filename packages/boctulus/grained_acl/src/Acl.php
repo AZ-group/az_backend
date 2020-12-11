@@ -7,6 +7,20 @@ use simplerest\libs\Factory;
 
 class Acl extends \simplerest\core\Acl
 {
+    protected $roles = [];
+    protected $role_perms = [];
+    protected $role_ids   = [];
+    protected $role_names = [];
+    protected $sp_permissions = []; 
+    protected $current_role;
+    protected $guest_name = 'guest';
+
+
+    public function __construct() { 
+        $this->config = Factory::config();
+        $this->setup();
+    }
+
  
     protected function setup(){        
         // get all available sp_permissions
@@ -93,72 +107,6 @@ class Acl extends \simplerest\core\Acl
         }         
     }
 
-    public function addInherit(string $role_name, $to_role = null) {
-        if ($to_role != null){
-            $this->current_role = $to_role;
-        }
-
-        if ($this->current_role == null){
-            throw new \Exception("You can't inherit from undefined rol");
-        }
-
-        if (!isset($this->role_perms[$this->current_role]['sp_permissions'])){
-            $this->role_perms[$this->current_role]['sp_permissions'] = [];
-        } else {
-            if (!empty($this->role_perms[$this->current_role]['sp_permissions'])){
-                throw new \Exception("You can't inherit permissions from '$role_name' when you have already permissions for '".$this->current_role."'");
-            }
-        }
-
-        if (!isset($this->role_perms[$this->current_role]['tb_permissions'])){
-            $this->role_perms[$this->current_role]['tb_permissions'] = [];
-        } else {
-            if (!empty($this->role_perms[$this->current_role]['tb_permissions'])){
-                throw new \Exception("You can't inherit permissions from '$role_name' when you have already permissions for '$this->current_role'");
-            }
-        }
-
-        if (!empty($this->role_perms[$this->current_role]['sp_permissions']) || !empty($this->role_perms[$this->current_role]['sp_permissions'])){
-            throw new \Exception("You can't inherit permissions from '$role_name' when you have already permissions for '$this->current_role'");
-        }
-
-        if (!isset($this->role_perms[$role_name]) || !isset($this->role_perms[$role_name]['sp_permissions']) || !isset($this->role_perms[$role_name]['tb_permissions']) ){
-            throw new \Exception("[ Inherit ] Role '$role_name' not found");
-        }
-
-        $this->role_perms[$this->current_role]['sp_permissions'] = $this->role_perms[$role_name]['sp_permissions'];
-        $this->role_perms[$this->current_role]['tb_permissions'] = $this->role_perms[$role_name]['tb_permissions'];
-
-        return $this;
-    }
-
-    public function addSpecialPermissions(Array $sp_permissions, $to_role = null) {
-        if ($to_role != null){
-            $this->current_role = $to_role;
-        }
-
-        if ($this->current_role == null){
-            throw new \Exception("You can't inherit from undefined rol");
-        }
-
-        // chequear que $sp_permissions no se cualquier cosa
-        foreach ($sp_permissions as $spp){
-            if (!in_array($spp, $this->sp_permissions)){
-                throw new \Exception("'$spp' is not a valid special permission");
-            }
-
-            // caso especial de un pseudo-permiso
-            if ($spp == 'grant'){
-                $this->addResourcePermissions('tb_permissions', ['read', 'write']);
-                //return $this;
-            }
-        }
-        
-        $this->role_perms[$this->current_role]['sp_permissions'] = array_unique(array_merge($this->role_perms[$this->current_role]['sp_permissions'], $sp_permissions));
-     
-        return $this;
-    }
-
     function fetchRoles($uid) : Array {
         $rows = DB::table('user_roles')
         ->assoc()
@@ -212,6 +160,8 @@ class Acl extends \simplerest\core\Acl
         return $perms ?? [];
     }
 
+    // Plus
+
     function getUserIdFromApiKey($api_key){
         $uid = DB::table('api_keys')
         ->where(['value', $api_key])
@@ -220,6 +170,21 @@ class Acl extends \simplerest\core\Acl
         return $uid;
     }
 
+
+    // Plus - not in interfaces neither needed 
+
+    public function hasRole(string $role){
+        return in_array($role, $this->roles);
+    }
+
+    public function hasAnyRole(array $authorized_roles){
+        $authorized = false;
+        foreach ((array) $this->roles as $role)
+            if (in_array($role, $authorized_roles))
+                $authorized = true;
+
+        return $authorized;        
+    }
 
 
 }

@@ -1970,7 +1970,25 @@ class Model {
 		}
 
 		$q = "INSERT INTO " . $this->from() . " ($str_vars) VALUES ($str_vals)";
-		$st = $this->bind($q);
+		$st = $this->conn->prepare($q);
+
+		foreach($vals as $ix => $val){			
+			if(is_null($val)){
+				$type = \PDO::PARAM_NULL;
+			}elseif(isset($vars[$ix]) && $this->schema != NULL && isset($this->schema['attr_types'][$vars[$ix]])){
+				$const = $this->schema['attr_types'][$vars[$ix]];
+				$type = constant("PDO::PARAM_{$const}");
+			}elseif(is_int($val))
+				$type = \PDO::PARAM_INT;
+			elseif(is_bool($val))
+				$type = \PDO::PARAM_BOOL;
+			elseif(is_string($val))
+				$type = \PDO::PARAM_STR;	
+
+			//dd($type, "TYPE for $val");	
+
+			$st->bindValue($ix+1, $val, $type);
+		}
 
 		$this->last_bindings = $vals;
 		$this->last_pre_compiled_query = $q;
@@ -1996,9 +2014,9 @@ class Model {
 			$this->last_inserted_id = false;	
 		}
 
-		return $this->last_inserted_id;	
-		
+		return $this->last_inserted_id;		
 	}
+	
 
 	function insert(Array $data){
 		return $this->create($data);

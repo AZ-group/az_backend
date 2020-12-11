@@ -525,6 +525,7 @@ class AuthController extends Controller implements IAuth
             $uid = DB::table($this->users_table)->setValidator(new Validator())->create($data);
             if (empty($uid))
                 throw new Exception('Error creating user');
+            
 
             $u = DB::table($this->users_table);    
             if ($u->inSchema(['belongs_to'])){
