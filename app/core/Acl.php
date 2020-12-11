@@ -3,16 +3,14 @@
 namespace simplerest\core;
 
 use simplerest\core\interfaces\IAcl;
-use simplerest\core\Model;
 use simplerest\libs\DB;
 use simplerest\libs\Factory;
-use simplerest\libs\Debug;
 
 abstract class Acl implements IAcl
 {
-    protected $roles = [];
     protected $role_ids   = [];
     protected $role_names = [];
+    protected $role_perms = [];
     protected $current_role;
     protected $guest_name = 'guest';
     protected $sp_permissions = [];    
@@ -139,7 +137,6 @@ abstract class Acl implements IAcl
         return $this;
     }
     
-    // reemplazada !
     public function addResourcePermissions(string $table, Array $tb_permissions, $to_role = null) {
         if ($to_role != null){
             $this->current_role = $to_role;
@@ -284,7 +281,6 @@ abstract class Acl implements IAcl
         return false;
     }
 
-    // reemplazada !
     public function getResourcePermissions(string $role, string $resource, $op_type = null){
         $ops = [
             'read'  => ['show', 'list', 'show_all', 'list_all'],
@@ -314,25 +310,6 @@ abstract class Acl implements IAcl
     ////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////
 
-
-    public function addUserRoles(Array $roles, $uid) { }
-
-    function fetchRoles($uid) { }
-
-    function fetchTbPermissions($uid) { }
-
-    function fetchSpPermissions($uid) { }
-
-    function fetchPermissions($uid) : Array { 
-        return [
-                'tb' => $this->fetchTbPermissions($uid), 
-                'sp' => $this->fetchSpPermissions($uid) 
-        ];
-    }
-
-    function getUserIdFromApiKey($api_key){ }
-
-
     // Also needed but not in interface
 
     public function getTbPermissions(string $table = NULL){
@@ -352,7 +329,93 @@ abstract class Acl implements IAcl
     }
 
 
-    // needed but should be in AuthController ?
+    // Related with AuthController !
+
+    function getUserIdFromApiKey($api_key){
+        $uid = DB::table('api_keys')
+        ->where(['value', $api_key])
+        ->value('user_id');
+
+        return $uid;
+    }
+
+    function fetchRoles($uid) : Array {
+        $rows = DB::table('user_roles')
+        ->assoc()
+        ->where(['user_id', $uid])
+        ->select(['role_id as role'])
+        ->get();	
+
+        $acl = Factory::acl();
+
+        $roles = [];
+        if (count($rows) != 0){
+            foreach ($rows as $row){
+                $roles[] = $acl->getRoleName($row['role']);
+            }
+        }
+
+        return $roles;
+    }
+
+    function fetchTbPermissions($uid) : Array {
+        $_permissions = DB::table('user_tb_permissions')
+        ->assoc()
+        ->select([  
+                    'tb', 
+                    'can_list_all as la',
+                    'can_show_all as ra', 
+                    'can_list as l',
+                    'can_show as r',
+                    'can_create as c',
+                    'can_update as u',
+                    'can_delete as d'])
+        ->where(['user_id' => $uid])
+        ->get();
+
+        $perms = [];
+        foreach ((array) $_permissions as $p){
+            $tb = $p['tb'];
+            $perms[$tb] =  $p['la'] * 64 + $p['ra'] * 32 +  $p['l'] * 16 + $p['r'] * 8 + $p['c'] * 4 + $p['u'] * 2 + $p['d'];
+        }
+
+        return $perms;
+    }
+
+    function fetchSpPermissions($uid) : Array {
+        $perms = DB::table('user_sp_permissions')
+        ->assoc()
+        ->where(['user_id' => $uid])
+        ->join('sp_permissions', 'user_sp_permissions.sp_permission_id', '=', 'sp_permissions.id')
+        ->pluck('name');
+
+        return $perms ?? [];
+    }
+
+    function fetchPermissions($uid) : Array { 
+        return [
+                'tb' => $this->fetchTbPermissions($uid), 
+                'sp' => $this->fetchSpPermissions($uid) 
+        ];
+    }
+
+    public function addUserRoles(Array $roles, $uid) {
+        foreach ($roles as $role) {
+            $role_id = $this->getRoleId($role);
+
+            if ($role_id == null){
+                throw new \Exception("Role $role is invalid");
+            }
+            
+            // lo ideal es validar los roles y obtener los ids para luego hacer un "INSERT in bulk"
+            $ur_id = DB::table('user_roles')
+            ->where(['id' => $uid])
+            ->create(['user_id' => $uid, 'role_id' => $role_id]);
+
+            if (empty($ur_id))
+                throw new \Exception("Error registrating user role $role");             
+        }         
+    }
 
     public function isGuest(){
         return $this->roles == [$this->getGuest()];
