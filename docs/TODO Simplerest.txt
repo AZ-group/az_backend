@@ -3181,3 +3181,32 @@ Desde el ApiController se accderían como:
 
   $this->instance::CREATED_AT 
   etc
+
+
+- Reemplazar inSchema : en vez de instanciar el modelo para luego tener que instanciar el Schema correspondiente, tener un schema con solo propiedades estáticas y accederlo directamente saltando al modelo.
+
+  Antes:    $books_reviews->inSchema(['campo'])
+  Debe ser: in_array('campo', simplerest\models\schemas\BookReviewsSchema::attr)
+
+  O mejor con un helper
+
+    hasAtrr('books_reviews', 'campo')
+
+Claramente lo siguiente debe dejarse de hacer:
+
+    use simplerest\models\schemas\BooksSchema;                  
+
+    class BooksModel extends Model
+    { 
+      protected $hidden   = [];
+      protected $not_fillable = [];
+
+        function __construct(bool $connect = false){
+            parent::__construct($connect, new BooksSchema());   <--- no más
+      }	
+    }
+
+
+Para saber que esquemas hay disponibles crear un "libro de schemas" que se debe actualizar con cada "make schema".
+
+
