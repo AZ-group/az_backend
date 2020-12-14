@@ -36,6 +36,7 @@ abstract class ApiController extends ResourceController
     protected $id;
     protected $folder;
 
+    protected $show_deleted;
     protected $ask_for_deleted;
 
 
@@ -306,15 +307,23 @@ abstract class ApiController extends ResourceController
             $this->onGettingAfterCheck($id);
 
             if ($this->ask_for_deleted && !$this->acl->hasSpecialPermission('read_all_trashcan', $this->roles)){
-                if ($this->instance->inSchema(['belongs_to'])){
-                    $_get['belongs_to'] = $this->uid;
+                if ($this->instance->inSchema([$this->instance->belongsTo()])){
+                    $_get[$this->instance->belongsTo()] = $this->uid;
                 }
             } 
 
             $id_name = $this->instance->getIdName();
 
-            if ($id == null) {            
-                foreach (['created_by', 'updated_by', 'deleted_by', 'belongs_to', 'user_id'] as $f){
+            if ($id == null) { 
+                $fs = [
+                    $this->instance->createdBy(), 
+                    $this->instance->updatedBy(), 
+                    $this->instance->deletedBy(), 
+                    $this->instance->belongsTo(), 
+                    'user_id'
+                ];
+
+                foreach ($fs as $f){
                     if (isset($_get[$f])){
                         if ($_get[$f] == 'me')
                             $_get[$f] = $this->uid;
@@ -349,8 +358,8 @@ abstract class ApiController extends ResourceController
                 //var_export($_get);
                 //exit; ////
 
-                if (isset($_get['created_by']) && $_get['created_by'] == 'me')
-                    $_get['created_by'] = $this->uid;
+                if (isset($_get[$this->instance->createdBy()]) && $_get[$this->instance->createdBy()] == 'me')
+                    $_get[$this->instance->createdBy()] = $this->uid;
 
                 foreach ($_get as $f => $v){
                     if (!is_array($v) && strpos($v, ',')=== false)
@@ -361,7 +370,7 @@ abstract class ApiController extends ResourceController
             //var_export($_get);
             //exit;
                 
-            $owned = $this->instance->inSchema(['belongs_to']);
+            $owned = $this->instance->inSchema([$this->instance->belongsTo()]);
 
             $_q      = Arrays::shift($_get,'q'); /* search */
             
@@ -437,7 +446,7 @@ abstract class ApiController extends ResourceController
                         // avoid guests can see everything with just 'read' permission
                         if ($owned && !$this->acl->hasSpecialPermission('read_all', $this->roles) && !$this->acl->hasResourcePermission('show_all', $this->roles, $this->model_table))
                         {                              
-                            $_get[] = ['belongs_to', $this->uid];
+                            $_get[] = [$this->instance->belongsTo(), $this->uid];
                         }                            
                     }
                        
@@ -448,7 +457,7 @@ abstract class ApiController extends ResourceController
                         Factory::response()->sendError("Forbidden", 403, "folder_field is undefined");    
                                            
                     $_get[] = [static::$folder_field, $f_rows[0]['name']];
-                    $_get[] = ['belongs_to', $f_rows[0]['belongs_to']];
+                    $_get[] = [$this->instance->belongsTo(), $f_rows[0][$this->instance->belongsTo()]];
                 }
 
 
@@ -458,7 +467,7 @@ abstract class ApiController extends ResourceController
                         if (!$this->acl->hasSpecialPermission('read_all', $this->roles) && 
                             (!$this->acl->hasResourcePermission('show_all', $this->roles, $this->model_table))
                         ){
-                            $_get[] = ['belongs_to', NULL, 'IS'];
+                            $_get[] = [$this->instance->belongsTo(), NULL, 'IS'];
                         }
                     }
                 }   
@@ -659,7 +668,7 @@ abstract class ApiController extends ResourceController
                         if (!$this->acl->hasSpecialPermission('read_all', $this->roles) && 
                             (!$this->acl->hasResourcePermission('list_all', $this->roles, $this->model_table))
                         ){
-                            $_get[] = ['belongs_to', NULL, 'IS'];
+                            $_get[] = [$this->instance->belongsTo(), NULL, 'IS'];
                         }
                     }
                 }   
@@ -677,7 +686,7 @@ abstract class ApiController extends ResourceController
                     if (!$this->acl->isGuest() && $owned && 
                         !$this->acl->hasSpecialPermission('read_all', $this->roles) &&
                         !$this->acl->hasResourcePermission('list_all', $this->roles, $this->model_table) ){
-                        $_get[] = ['belongs_to', $this->uid];     
+                        $_get[] = [$this->instance->belongsTo(), $this->uid];     
                     }       
                 }else{
                     // folder, sin id
@@ -687,7 +696,7 @@ abstract class ApiController extends ResourceController
                     }    
 
                     $_get[] = [static::$folder_field, $f_rows[0]['name']];
-                    $_get[] = ['belongs_to', $f_rows[0]['belongs_to']];
+                    $_get[] = [$this->instance->belongsTo(), $f_rows[0][$this->instance->belongsTo()]];
                 }
                 
                 if ($id == null){
@@ -884,27 +893,28 @@ abstract class ApiController extends ResourceController
            
             if (!$this->acl->hasSpecialPermission('fill_all', $this->roles)){
                 $unfill = [ 
-                            'deleted_at',
-                            'deleted_by',
-                            'updated_at',
-                            'updated_by'
+                            $this->instance->deletedAt(),
+                            $this->instance->deletedBy(),
+                            $this->instance->updatedAt(),
+                            $this->instance->deletedBy()
                 ];    
 
-                if ($this->instance->inSchema(['created_by'])){
-                    if (isset($data['created_by'])){
-                        Factory::response()->sendError("'created_by' is not fillable", 400);
+                if ($this->instance->inSchema([$this->instance->createdBy()])){
+                    if (isset($data[$this->instance->createdBy()])){
+                        Factory::response()->sendError("'{$this->instance->createdBy()}' is not fillable", 400);
                     }
-
-                    $data['created_by'] = $this->impersonated_by != null ? $this->impersonated_by : $this->uid;
                 }  
-
             }else{
                 $this->instance->fillAll();
             }
+
+            if ($this->instance->inSchema([$this->instance->createdBy()])){
+                $data[$this->instance->createdBy()] = $this->impersonated_by != null ? $this->impersonated_by : $this->uid;
+            }  
     
             if (!$this->acl->hasSpecialPermission('transfer', $this->roles)){    
-                if ($this->instance->inSchema(['belongs_to'])){
-                    $data['belongs_to'] = $this->uid;
+                if ($this->instance->inSchema([$this->instance->belongsTo()])){
+                    $data[$this->instance->belongsTo()] = $this->uid;
                 }
             }   
             
@@ -922,12 +932,12 @@ abstract class ApiController extends ResourceController
                 if (count($f_rows) == 0 || $f_rows[0]['tb'] != $this->model_table)
                     Factory::response()->sendError('Folder not found', 404); 
         
-                if ($f_rows[0]['belongs_to'] != $this->uid  && !FoldersAclExtension::hasFolderPermission($this->folder, 'w'))
+                if ($f_rows[0][$this->instance->belongsTo()] != $this->uid  && !FoldersAclExtension::hasFolderPermission($this->folder, 'w'))
                     Factory::response()->sendError("Forbidden", 403, "You have not permission for the folder $this->folder");
 
                 unset($data['folder']);    
                 $data[static::$folder_field] = $f_rows[0]['name'];
-                $data['belongs_to'] = $f_rows[0]['belongs_to'];    
+                $data[$this->instance->belongsTo()] = $f_rows[0][$this->instance->belongsTo()];    
             }    
 
             $validado = (new Validator)->validate($this->instance->getRules(), $data);
@@ -1004,25 +1014,27 @@ abstract class ApiController extends ResourceController
 
             if (!$this->acl->hasSpecialPermission('fill_all', $this->roles)){
                 $unfill = [ 
-                            'deleted_at',
-                            'deleted_by',
-                            'created_at',
-                            'created_by'
+                            $this->instance->deletedAt(),
+                            $this->instance->deletedBy(),
+                            $this->instance->createdAt(),
+                            $this->instance->createdBy()
                 ];    
 
-                if ($this->instance->inSchema(['updated_by'])){
-                    if (isset($data['updated_by'])){
-                        Factory::response()->sendError("'updated_by' is not fillable", 400);
+                if ($this->instance->inSchema([$this->instance->updatedBy()])){
+                    if (isset($data[$this->instance->updatedBy()])){
+                        Factory::response()->sendError("{$this->instance->updatedBy()} is not fillable", 400);
                     }
-
-                    $data['updated_by'] = $this->impersonated_by != null ? $this->impersonated_by : $this->uid;
                 }  
 
             }else{
-                $this->instance->fillAll();
+                $this->instance->fillAll();                
             }
 
-            $owned = $this->instance->inSchema(['belongs_to']);            
+            if ($this->instance->inSchema([$this->instance->updatedBy()])){
+                $data[$this->instance->updatedBy()] = $this->impersonated_by != null ? $this->impersonated_by : $this->uid;
+            }  
+
+            $owned = $this->instance->inSchema([$this->instance->belongsTo()]);            
 
             if ($this->folder !== null)
             {
@@ -1038,7 +1050,7 @@ abstract class ApiController extends ResourceController
                 if (count($f_rows) == 0 || $f_rows[0]['tb'] != $this->model_table)
                     Factory::response()->sendError('Folder not found', 404); 
         
-                if ($f_rows[0]['belongs_to'] != $this->uid  && !FoldersAclExtension::hasFolderPermission($this->folder, 'w') && !$this->acl->hasSpecialPermission('write_all_folders', $this->roles))
+                if ($f_rows[0][$this->instance->belongsTo()] != $this->uid  && !FoldersAclExtension::hasFolderPermission($this->folder, 'w') && !$this->acl->hasSpecialPermission('write_all_folders', $this->roles))
                     Factory::response()->sendError("You have not permission for the folder $this->folder", 403);
 
                 $this->folder_name = $f_rows[0]['name'];
@@ -1052,7 +1064,7 @@ abstract class ApiController extends ResourceController
 
                 unset($data['folder']);    
                 $data[static::$folder_field] = $f_rows[0]['name'];
-                $data['belongs_to'] = $f_rows[0]['belongs_to'];    
+                $data[$this->instance->belongsTo()] = $f_rows[0][$this->instance->belongsTo()];    
                 
             } else {
 
@@ -1068,7 +1080,7 @@ abstract class ApiController extends ResourceController
                     Factory::response()->code(404)->sendError("Register for id=$id does not exists!");
                 }
 
-                if  ($owned && !$this->acl->hasSpecialPermission('write_all', $this->roles) && $rows[0]['belongs_to'] != $this->uid){
+                if  ($owned && !$this->acl->hasSpecialPermission('write_all', $this->roles) && $rows[0][$this->instance->belongsTo()] != $this->uid){
                     Factory::response()->sendError('Forbidden', 403, 'You are not the owner!');
                 } 
                     
@@ -1093,8 +1105,8 @@ abstract class ApiController extends ResourceController
             $this->onPuttingAfterCheck($id, $data);
 
             if (!$owned && $this->show_deleted && !$this->acl->hasSpecialPermission('write_all_trashcan', $this->roles)){
-                if ($this->instance->inSchema(['belongs_to'])){
-                    $data['belongs_to'] = $this->uid;
+                if ($this->instance->inSchema([$this->instance->belongsTo()])){
+                    $data[$this->instance->belongsTo()] = $this->uid;
                 } 
             } 
                         
@@ -1172,12 +1184,14 @@ abstract class ApiController extends ResourceController
         try {
             $model    = 'simplerest\\models\\'.$this->model_name;
             
-            $this->instance = (new $model(true))
+            $this->instance = (new $model(true));
+
+            $this->instance
             ->assoc()
-            ->fill(['deleted_at']); //
+            ->fill([$this->instance->deletedBy()]); //
 
             $id_name = $this->instance->getIdName();
-            $owned   = $this->instance->inSchema(['belongs_to']);
+            $owned   = $this->instance->inSchema([$this->instance->belongsTo()]);
 
             $rows  = $this->instance->where([$id_name, $id]);
         
@@ -1205,7 +1219,7 @@ abstract class ApiController extends ResourceController
                 if (count($f_rows) == 0 || $f_rows[0]['tb'] != $this->model_table)
                     Factory::response()->sendError('Folder not found', 404); 
         
-                if ($f_rows[0]['belongs_to'] != $this->uid  && !FoldersAclExtension::hasFolderPermission($this->folder, 'w'))
+                if ($f_rows[0][$this->instance->belongsTo()] != $this->uid  && !FoldersAclExtension::hasFolderPermission($this->folder, 'w'))
                     Factory::response()->sendError("You have not permission for the folder $this->folder", 403);
 
                 $this->folder_name = $f_rows[0]['name'];
@@ -1219,7 +1233,7 @@ abstract class ApiController extends ResourceController
 
                 unset($data['folder']);    
                 $data[static::$folder_field] = $f_rows[0]['name'];
-                $data['belongs_to'] = $f_rows[0]['belongs_to'];    
+                $data['belongs_to'] = $f_rows[0][$this->instance->belongsTo()];    
             } else {
                 if ($owned && !$this->acl->hasSpecialPermission('write_all', $this->roles) && $rows[0]['belongs_to'] != $this->uid){
                     Factory::response()->sendError('Forbidden', 403, 'You are not the owner');
@@ -1229,19 +1243,19 @@ abstract class ApiController extends ResourceController
             $extra = [];
 
             if ($this->acl->hasSpecialPermission('lock', $this->roles)){
-                if ($this->instance->inSchema(['locked'])){
-                    $extra = array_merge($extra, ['locked' => 1]);
+                if ($this->instance->inSchema([$this->instance->locked()])){
+                    $extra = array_merge($extra, [$this->instance->locked() => 1]);
                 }   
             }else {
-                if (isset($rows[0]['locked']) && $rows[0]['locked'] == 1){
+                if (isset($rows[0][$this->instance->locked()]) && $rows[0][$this->instance->locked()] == 1){
                     Factory::response()->sendError("Locked by Admin", 403);
                 }
             }
 
-            $soft_is_supported  = $this->instance->inSchema(['deleted_by']);
+            $soft_is_supported  = $this->instance->inSchema([$this->instance->deletedBy()]);
 
             if ($soft_is_supported){
-                $extra = array_merge($extra, ['deleted_by' => $this->impersonated_by != null ? $this->impersonated_by : $this->uid]);
+                $extra = array_merge($extra, [$this->instance->deletedBy() => $this->impersonated_by != null ? $this->impersonated_by : $this->uid]);
             }               
        
             if (!empty($this->folder)) {
@@ -1267,7 +1281,7 @@ abstract class ApiController extends ResourceController
                 Factory::response()->sendJson("OK");
             }	
             else
-                Factory::response()->sendError("Record not found",404);
+                Factory::response()->sendError("Record not found", 404);
 
         } catch (\Exception $e) {
             Factory::response()->sendError("Error during DELETE for $id_name=$id with message: {$e->getMessage()}");

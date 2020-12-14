@@ -220,7 +220,7 @@ class Validator implements IValidator
 				//$constraints = array_diff(array_keys($rule), ['messages']);
 				//var_export($constraints);
 
-				if (!isset($dato) || $dato == '' || $dato == null){
+				if (!isset($dato) || $dato === '' || $dato === null){
 					//var_export(['field' =>$dato, 'required' => $rule['required']]);
 	
 					if ($this->required && isset($rule['required']) && $rule['required']){
@@ -374,7 +374,6 @@ class Validator implements IValidator
 
 		return $validated;
 	}
-	
 	
 	
 	private static function isValidDate($date, $format = 'd-m-Y') {

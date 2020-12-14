@@ -47,7 +47,7 @@ class TrashCan extends MyApiController
 
         $this->instance = (new $this->model())->assoc();  
         
-        if (!$this->instance->inSchema(['belongs_to']) || !$this->instance->inSchema(['deleted_at'])){
+        if (!$this->instance->inSchema([$this->instance->deletedAt()])){
             Factory::response()->sendError('Not implemented', 501, "Trashcan not implemented for $entity");
         }
             
@@ -61,13 +61,17 @@ class TrashCan extends MyApiController
     }
 
     function get($id = null) {
+        if (!$this->instance->inSchema([$this->instance->belongsTo()]) && !$this->acl->hasSpecialPermission('read_all_trashcan', $this->roles)){
+            Factory::response()->sendError("Forbidden", 403);
+        }
+
         parent::get($id);
     }  
 
     protected function onGettingAfterCheck($id){
         $this->instance
         ->showDeleted()
-        ->where(['deleted_at', NULL, 'IS NOT']);
+        ->where([$this->instance->deletedAt(), NULL, 'IS NOT']);
     }
 
 
@@ -77,17 +81,21 @@ class TrashCan extends MyApiController
 
     function modify($id = NULL, bool $put_mode = false)
     {
+        if (!$this->instance->inSchema([$this->instance->belongsTo()]) && !$this->acl->hasSpecialPermission('write_all_trashcan', $this->roles)){
+            Factory::response()->sendError("Forbidden", 403);
+        }
+
         parent::modify($id, $put_mode);
     }   
 
     protected function onPuttingBeforeCheck2($id, &$data){
         $this->instance
         ->showDeleted()
-        ->fill(['deleted_at']);
+        ->fill([$this->instance->deletedAt()]);
  
         $this->instance2
         ->showDeleted()
-        ->where(['deleted_at', NULL, 'IS NOT']);
+        ->where([$this->instance->deletedAt(), NULL, 'IS NOT']);
     }
 
             
@@ -98,18 +106,22 @@ class TrashCan extends MyApiController
             return;
         
         unset($data['trashed']);
-        $data['deleted_at'] = NULL;
+        $data[$this->instance->deletedAt()] = NULL;
     } 
 
 
     function delete($id = NULL) {
+        if (!$this->instance->inSchema([$this->instance->belongsTo()]) && !$this->acl->hasSpecialPermission('write_all_trashcan', $this->roles)){
+            Factory::response()->sendError("Forbidden", 403);
+        }
+
         parent::delete($id);
     } 
 
     protected function onDeletingBeforeCheck($id){
         $this->instance
         ->showDeleted()
-        ->where(['deleted_at', NULL, 'IS NOT']);
+        ->where([$this->instance->deletedAt(), NULL, 'IS NOT']);
     }
 
     protected function onDeletingAfterCheck($id){

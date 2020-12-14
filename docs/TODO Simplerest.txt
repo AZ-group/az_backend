@@ -2164,6 +2164,35 @@ https://nordicapis.com/the-difference-between-http-auth-api-keys-and-oauth/
 You need OAuth only when you want to enable a user of your service to allow a third-party client application to access his/her data hosted in your service without revealing his/her credentials (ID & password) to the application.
 
 
+- Investigar Laravel Sanctum
+
+https://laravel.com/docs/8.x/sanctum
+
+
+[ OAuth ]
+
+- Intro:
+
+https://www.digitalocean.com/community/tutorials/una-introduccion-a-oauth-2-es?fbclid=IwAR1HP35GfAhLHcSWzA1bSwpvXsoOMQpTOq53vSkvahs4nakyYp5kMUXlKf0
+
+- Estudiar Laravel Passport que está construido sobre league/oauth2-server y permite armar OAuth 
+
+league/oauth2-server is a standards compliant implementation of an OAuth 2.0 authorization server written in PHP which makes working with OAuth 2.0 trivial. You can easily configure an OAuth 2.0 server to protect your API with access tokens, or allow clients to request new access tokens and refresh them.
+
+Out of the box it supports the following grants:
+
+    Authorization code grant
+    Implicit grant
+    Client credentials grant
+    Resource owner password credentials grant
+    Refresh grant
+
+
+https://laravel.com/docs/8.x/passport
+https://github.com/thephpleague/oauth2-server
+https://oauth2.thephpleague.com/
+
+
 [ MODELO ]
 
 - Hay un *bug importante* por el que un usuario "logueado" puede ver menos registros que un "guest".
@@ -3142,4 +3171,13 @@ Posibilidades para ofrecer APIs:
   - Usando microservicios
 
 
+- Podrian usarse constantes en el modelo para created_at, etc
+
+  const CREATED_AT = 'created_at';
+  const UPDATED_AT = 'updated_at';
+  etc
   
+Desde el ApiController se accderían como:
+
+  $this->instance::CREATED_AT 
+  etc

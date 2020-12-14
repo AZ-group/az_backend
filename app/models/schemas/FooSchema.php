@@ -20,10 +20,15 @@ class FooSchema implements ISchema
 				'id' => 'INT',
 				'bar' => 'STR',
 				'hide' => 'INT',
-				'deleted_at' => 'STR'
+				'alta' => 'STR',
+				'creado_por' => 'INT',
+				'fecha_modificacion' => 'STR',
+				'modificado_por' => 'INT',
+				'fecha_borrado' => 'STR',
+				'borrado_por' => 'INT'
 			],
 
-			'nullable'		=> ['deleted_at'],
+			'nullable'		=> ['alta', 'creado_por', 'fecha_modificacion', 'modificado_por', 'fecha_borrado', 'borrado_por'],
 
 			'rules' 		=> [
 				'bar' => ['max' => 45]

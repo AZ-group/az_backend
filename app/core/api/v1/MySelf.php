@@ -15,6 +15,7 @@ use simplerest\core\exceptions\InvalidValidationException;
 class MySelf extends MyApiController 
 {  
     protected $model_table = 'users';
+	protected $active = 'active';
 
     function __construct() 
     { 
@@ -48,15 +49,15 @@ class MySelf extends MyApiController
     } //
         
     function onPuttingAfterCheck($id, &$data){
-        $this->instance->fill(['active']);
+        $this->instance->fill([$this->active]);
     }
 
     function delete($id = null){
         $id = $this->uid;
 
-        $ok = (bool) DB::table($this->model_table)->where([['id', $id], ['active', 1]])
-        ->fill(['active'])
-        ->update(['active' => 0]);
+        $ok = (bool) DB::table($this->model_table)->where([['id', $id], [$this->active, 1]])
+        ->fill([$this->active])
+        ->update([$this->active => 0]);
 
         if ($ok) {
             Factory::response()->send("Your account was succesfully disabled");

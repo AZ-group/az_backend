@@ -77,7 +77,48 @@ class Model {
 	protected $fetch_mode_default = \PDO::FETCH_ASSOC;
 	protected $data = []; 
 
-	
+	protected $createdAt = 'created_at';
+	protected $updatedAt = 'updated_at';
+	protected $deletedAt = 'deleted_at'; 
+	protected $createdBy = 'created_by';
+	protected $updatedBy = 'updated_by';
+	protected $deletedBy = 'deleted_by'; 
+	protected $locked    = 'locked';
+	protected $belongsTo = 'belongs_to';
+
+	function createdAt(){
+		return $this->createdBy;
+	}
+
+	function createdBy(){
+		return $this->createdBy;
+	}
+
+	function updatedAt(){
+		return $this->updatedAt;
+	}
+
+	function updatedBy(){
+		return $this->updatedBy;
+	}
+
+	function deletedAt(){
+		return $this->deletedAt;
+	}
+
+	function deletedBy(){
+		return $this->deletedBy;
+	}
+
+	function locked(){
+		return $this->locked;
+	}
+
+	function belongsTo(){
+		return $this->belongsTo;
+	}
+
+
 	function __construct(bool $connect = false, $schema = null){
 		if ($connect){
 			$this->connect();
@@ -132,21 +173,28 @@ class Model {
 	
 		if ($this->fillable == NULL){
 			$this->fillable = $this->attributes;
-			$this->unfill(['locked', 'created_at', 'created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by']);	
+			$this->unfill([
+							$this->locked, 
+							$this->createdAt,							
+							$this->updatedAt, 							
+							$this->deletedAt, 
+							$this->createdBy, 
+							$this->updatedBy, 
+							$this->deletedBy
+			]);	
 		}
-
 
 		$this->unfill($this->not_fillable);
 
 		// debería ser innecesario pues debería provenir del propio schema !
-		$this->schema['nullable'][] = 'locked';
-		$this->schema['nullable'][] = 'belongs_to';
-		$this->schema['nullable'][] = 'created_at';
-		$this->schema['nullable'][] = 'updated_at';
-		$this->schema['nullable'][] = 'deleted_at';
-		$this->schema['nullable'][] = 'created_by';
-		$this->schema['nullable'][] = 'updated_by';
-		$this->schema['nullable'][] = 'deleted_by';
+		$this->schema['nullable'][] = $this->locked;		
+		$this->schema['nullable'][] = $this->createdAt;
+		$this->schema['nullable'][] = $this->updatedAt;
+		$this->schema['nullable'][] = $this->deletedAt;
+		$this->schema['nullable'][] = $this->createdBy;
+		$this->schema['nullable'][] = $this->updatedBy;
+		$this->schema['nullable'][] = $this->deletedBy;
+		$this->schema['nullable'][] = $this->belongsTo;
 
 		$to_fill = [];
 
@@ -154,17 +202,17 @@ class Model {
 			$to_fill[] = $this->schema['id_name'];
 		}
 
-		if ($this->inSchema(['created_by'])){
-			$to_fill[] = 'created_by';
+		if ($this->inSchema([$this->createdBy])){
+			$to_fill[] = $this->createdBy;
 		}
 
-		if ($this->inSchema(['updated_by'])){
-			$to_fill[] = 'updated_by';
+		if ($this->inSchema([$this->updatedBy])){
+			$to_fill[] = $this->updatedBy;
 		}
 
 		$this->fill($to_fill);		
 		
-		$this->soft_delete = $this->inSchema(['deleted_at']);
+		$this->soft_delete = $this->inSchema([$this->deletedAt]);
 
 		// Kill dupes
 		$this->schema['nullable'] = array_unique($this->schema['nullable']);
@@ -340,16 +388,16 @@ class Model {
 		return $this;
 	}
 
-	// debe remover cualquier condición que involucre a 'deleted_at' en el WHERE !!!!
+	// debe remover cualquier condición que involucre a $this->deletedAt en el WHERE !!!!
 	function showDeleted($state = true){
 		$this->show_deleted = $state;
 		return $this;
 	}
 
 	function setSoftDelete(bool $status) {
-		if (!$this->inSchema(['deleted_at'])){
+		if (!$this->inSchema([$this->deletedAt])){
 			if ($status){
-				throw new SqlException("There is no 'deleted_at' for table '".$this->from()."' in the attr_types");
+				throw new SqlException("There is no $this->deletedAt for table '".$this->from()."' in the attr_types");
 			}
 		} 
 		
@@ -745,14 +793,14 @@ class Model {
 			if ($this->distinct){
 				$remove = [$this->schema['id_name']];
 
-				if ($this->inSchema(['created_at']))
-					$remove[] = 'created_at';
+				if ($this->inSchema([$this->createdAt]))
+					$remove[] = $this->createdAt;
 
-				if ($this->inSchema(['updated_at']))
-					$remove[] = 'updated_at';
+				if ($this->inSchema([$this->updatedAt]))
+					$remove[] = $this->updatedAt;
 
-				if ($this->inSchema(['deleted_at']))
-					$remove[] = 'deleted_at';
+				if ($this->inSchema([$this->deletedAt]))
+					$remove[] = $this->deletedAt;
 
 				if (!empty($fields)){
 					$fields = array_diff($fields, $remove);
@@ -1000,12 +1048,12 @@ class Model {
 
 		$where = trim($where);
 		
-		if ($this->inSchema(['deleted_at'])){
+		if ($this->inSchema([$this->deletedAt])){
 			if (!$this->show_deleted){
 				if (empty($where))
-					$where = "deleted_at IS NULL";
+					$where = "{$this->deletedAt} IS NULL";
 				else
-					$where =  ($where[0]=='(' && $where[strlen($where)-1] ==')' ? $where :   "($where)" ) . " AND deleted_at IS NULL";
+					$where =  ($where[0]=='(' && $where[strlen($where)-1] ==')' ? $where :   "($where)" ) . " AND {$this->deletedAt} IS NULL";
 
 			}
 		}
@@ -1659,17 +1707,17 @@ class Model {
 	}
 
 	function oldest(){
-		$this->orderBy(['created_at' => 'DESC']);
+		$this->orderBy([$this->createdAt => 'DESC']);
 		return $this;
 	}
 
 	function latest(){
-		$this->orderBy(['created_at' => 'DESC']);
+		$this->orderBy([$this->createdAt => 'DESC']);
 		return $this;
 	}
 
 	function newest(){
-		$this->orderBy(['created_at' => 'ASC']);
+		$this->orderBy([$this->createdAt => 'ASC']);
 		return $this;
 	}
 	
@@ -1748,8 +1796,8 @@ class Model {
 			throw new SqlException('Array of data should be associative');
 		}
 			
-		if (isset($data['created_by']))
-			unset($data['created_by']);
+		if (isset($data[$this->createdBy]))
+			unset($data[$this->createdBy]);
 	
 
 		$data = $this->applyInputMutator($data, 'UPDATE');
@@ -1784,11 +1832,11 @@ class Model {
 		}
 		$set =trim(substr($set, 0, strlen($set)-2));
 
-		if ($set_updated_at && $this->inSchema(['updated_at'])){
+		if ($set_updated_at && $this->inSchema([$this->updatedAt])){
 			$d = new \DateTime(NULL, new \DateTimeZone($this->config['DateTimeZone']));
 			$at = $d->format('Y-m-d G:i:s');
 
-			$set .= ", updated_at = '$at'";
+			$set .= ", {$this->updatedAt} = '$at'";
 		}
 
 		$where = implode(' AND ', $this->where);
@@ -1889,9 +1937,9 @@ class Model {
 			if (!empty($data)){
 				$to_fill = array_keys($data);
 			}
-			$to_fill[] = 'deleted_at';
+			$to_fill[] = $this->deletedAt;
 
-			$data =  array_merge($data, ['deleted_at' => $at]);
+			$data =  array_merge($data, [$this->deletedAt => $at]);
 
 			$this->fill($to_fill);
 			return $this->update($data, false);
@@ -1961,11 +2009,11 @@ class Model {
 		$symbols = array_map(function($v){ return '?';}, $vars);
 		$str_vals = implode(', ',$symbols);
 
-		if ($this->inSchema(['created_at'])){
+		if ($this->inSchema([$this->createdAt])){
 			$d = new \DateTime(NULL, new \DateTimeZone($this->config['DateTimeZone']));
 			$at = $d->format('Y-m-d G:i:s');
 
-			$str_vars .= ', created_at';
+			$str_vars .= ", {$this->createdAt}";
 			$str_vals .= ", '$at'";
 		}
 
@@ -2100,6 +2148,7 @@ class Model {
 	 * @return bool
 	 */
 	function inSchema(array $props){
+		// debería chequear que la tabla exista
 
 		if (empty($props))
 			throw new \InvalidArgumentException("Attributes not found!");

@@ -34,7 +34,7 @@ return [
 			'pass'		=> env('DB_PASSWORD'),
 			'pdo_options' => [
 				\PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
-				/* \PDO::ATTR_EMULATE_PREPARES => false */
+				\PDO::ATTR_EMULATE_PREPARES => false
 			]
 		],
 		
@@ -88,7 +88,7 @@ return [
 
 	], 
 
-	'db_connection_default' => 'db5',  // cambiar de nuevo a db1
+	'db_connection_default' => 'db1',  // cambiar de nuevo a db1
 	
 	'DateTimeZone' => 'America/Argentina/Buenos_Aires',
 
@@ -169,8 +169,8 @@ return [
 
 	'providers' => [
 		devdojo\calculator\CalculatorServiceProvider::class,
-		//boctulus\grained_acl\GrainedAclServiceProvider::class,
-		boctulus\basic_acl\BasicAclServiceProvider::class
+		boctulus\grained_acl\GrainedAclServiceProvider::class,
+		//boctulus\basic_acl\BasicAclServiceProvider::class
 		// ...
 	],
 	

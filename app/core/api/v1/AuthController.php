@@ -99,7 +99,9 @@ class AuthController extends Controller implements IAuth
 
         try {              
 
-            $row = DB::table($this->users_table)->assoc()->unhide(['password'])
+            $u = DB::table($this->users_table);
+
+            $row = $u->assoc()->unhide(['password'])
             ->where([ 'email'=> $email, 'username' => $username ], 'OR')
             ->setValidator((new Validator())->setRequired(false))  
             ->first();
@@ -112,24 +114,24 @@ class AuthController extends Controller implements IAuth
             if (!password_verify($password, $hash))
                 Factory::response()->sendError('Incorrect username / email or password', 401);
 
-            $active = $row['active']; 
-            //dd($active, 'active');
+            $active = 1; 
+            if ($u->inSchema(['active'])){
+                $active = $row['active']; 
 
-            if ($active == null) {
+                if ($active == null) {
 
-                if ($row['confirmed_email'] === "0") {
-                    Factory::response()->sendError('Non authorized', 403, 'Please confirm your e-mail');
-                } else {
-                    Factory::response()->sendError('Non authorized', 403, 'Account pending for activation');
+                    if ($row['confirmed_email'] === "0") {
+                        Factory::response()->sendError('Non authorized', 403, 'Please confirm your e-mail');
+                    } else {
+                        Factory::response()->sendError('Non authorized', 403, 'Account pending for activation');
+                    }
                 }
-            }
 
-            if ($active == 0 || (string) $active === "0") {
-                Factory::response()->sendError('Non authorized', 403, 'Deactivated account !');
-            }
+                if ($active == 0 || (string) $active === "0") {
+                    Factory::response()->sendError('Non authorized', 403, 'Deactivated account !');
+                } 
+            }        
 
-            $username = $row['username'];   
-    
             // Fetch roles && permissions
             $uid = $row['id'];
 
@@ -416,8 +418,9 @@ class AuthController extends Controller implements IAuth
             }     
 
             if (!$impersonated_by || $impersonated_by_role) {
+                $u = DB::table($this->users_table);
 
-                $row = DB::table($this->users_table)->assoc()
+                $row = $u->assoc()
                 ->where(['id' => $payload->uid])->first();
 
                 if (!$row)
@@ -482,23 +485,39 @@ class AuthController extends Controller implements IAuth
             if ($data == null)
                 Factory::response()->sendError('Bad request',400, 'Invalid JSON');
 
-            $roles = [];    
-            if (!empty($data['roles'])) {
-                if (isset($this->config['auto_approval_roles']) && !empty($this->config['auto_approval_roles'])) {
+            $acl = Factory::acl();
+            $u   = DB::table($this->users_table);
 
-                    foreach ($data['roles'] as $r){
-                        if (!in_array($r, $this->config['auto_approval_roles'])) {
-                            throw new Exception("Role $r is not auto-approved");
+            $roles = [];    
+
+            if ($u->inSchema(['rol'])){
+                if (!empty($data['rol'])) {
+                    if (isset($this->config['auto_approval_roles']) && !empty($this->config['auto_approval_roles'])) {
+                    
+                        if (!in_array($acl->getRoleName($data['rol']), $this->config['auto_approval_roles'])) {
+                            throw new Exception("Role {$data['rol']} is not auto-approved");
                         }
 
-                        $roles[] = $r;
-                    }                    
-                }    
-            
-                unset($data['roles']);
-            }        
-            
-            $u = DB::table($this->users_table);
+                    }    
+                }   
+
+                $roles = [ $data['rol'] ];   
+            } else {
+                if (!empty($data['roles'])) {
+                    if (isset($this->config['auto_approval_roles']) && !empty($this->config['auto_approval_roles'])) {
+
+                        foreach ($data['roles'] as $r){
+                            if (!in_array($r, $this->config['auto_approval_roles'])) {
+                                throw new Exception("Role $r is not auto-approved");
+                            }
+
+                            $roles[] = $r;
+                        }                    
+                    }    
+                
+                    unset($data['roles']);
+                }        
+            }
 
             $missing = $u->getMissing($data);
             if (!empty($missing))
@@ -532,16 +551,14 @@ class AuthController extends Controller implements IAuth
                 $affected = $u->where(['id', $uid])->update(['belongs_to' => $uid]);
             }
 
-            $acl   = Factory::acl();
-
             if (!empty($roles))
             {
                 $acl->addUserRoles($roles, $uid);
             }       
-            
-            $perms = $acl->fetchPermissions($uid);
 
-            if ($email_in_schema){ 
+            $email_confirmation = $email_in_schema && $u->inSchema(['confirmed_email']);
+
+            if ($email_confirmation){ 
                 // Email confirmation
                 $exp = time() + $this->config['email']['expires_in'];	
 
@@ -556,7 +573,7 @@ class AuthController extends Controller implements IAuth
             $access  = $this->gen_jwt([
                                         'uid' => $uid, 
                                         'roles' => $roles,
-                                        'permissions' => $perms,
+                                        'permissions' => [],
                                         'active' => $this->config['pre_activated'] ? true : null
             ], 'access_token');
 
@@ -573,7 +590,7 @@ class AuthController extends Controller implements IAuth
                 'roles' => $roles
             ];
 
-            if ($email_in_schema)
+            if ($email_confirmation)
                 $res['email_confirmation_link'] = $url;
 
 
@@ -669,9 +686,18 @@ class AuthController extends Controller implements IAuth
                     Factory::response()->sendError('Invalid API Key', 401);
                 }
 
+                $u = DB::table($this->users_table);
+
+                if ($u->inSchema(['rol'])){
+                    $rid   = $u->where(['id' =>$uid])->value('rol');
+                    $roles = [ $acl->getRoleName($rid) ]; 
+                } else {
+                    $roles = $acl->fetchRoles($uid);
+                }
+                
                 $ret = [
                     'uid'           => $uid,
-                    'roles'         => $acl->fetchRoles($uid),
+                    'roles'         => $roles,
                     'permissions'   => $acl->fetchPermissions($uid),
                     'active'        => true //
                 ];
@@ -688,10 +714,14 @@ class AuthController extends Controller implements IAuth
                 ];
         }
 
+        if (!empty($ret['roles']) && is_integer($ret['roles'])){
+            $ret['roles'] = [ Factory::acl()->getRoleName($ret['roles']) ];
+        }
+
         $this->uid = $ret['uid'];
+
         return $ret;
     }
-
     
 	function confirm_email($jwt, $exp)
 	{
