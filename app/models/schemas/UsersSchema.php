@@ -17,20 +17,19 @@ class UsersSchema implements ISchema
 			'id_name'		=> 'id',
 
 			'attr_types'	=> [
-			'id' => 'INT',
-			'username' => 'STR',
-			'active' => 'INT',
-			'locked' => 'INT',
-			'email' => 'STR',
-			'confirmed_email' => 'INT',
-			'firstname' => 'STR',
-			'lastname' => 'STR',
-			'password' => 'STR',
-			'deleted_at' => 'STR',
-			'belongs_to' => 'INT'
-		],
+				'id' => 'INT',
+				'username' => 'STR',
+				'active' => 'INT',
+				'locked' => 'INT',
+				'email' => 'STR',
+				'confirmed_email' => 'INT',
+				'firstname' => 'STR',
+				'lastname' => 'STR',
+				'password' => 'STR',
+				'deleted_at' => 'STR'
+			],
 
-			'nullable'		=> ['id', 'active', 'confirmed_email', 'firstname', 'lastname', 'password', 'deleted_at', 'belongs_to'],
+			'nullable'		=> ['id', 'active', 'confirmed_email', 'firstname', 'lastname', 'password', 'deleted_at'],
 
 			'rules' 		=> [
 				'username' => ['max' => 15],

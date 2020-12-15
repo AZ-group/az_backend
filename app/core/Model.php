@@ -86,6 +86,7 @@ class Model {
 	protected $locked    = 'locked';
 	protected $belongsTo = 'belongs_to';
 
+	
 	function createdAt(){
 		return $this->createdBy;
 	}

@@ -157,18 +157,11 @@ Se devuelve un JSON como el siguiente:
     "error_detail": ""
 }
 
+
 # Verficación de correo
 
 Es solo seguir el enlace provisto al momento de registrarse o .........
 
-# Cambiar / establecer contraseña
-
-	POST /api/v1/auth/change_pass
-
-	{
-		"username": "xxxx",
-		"password" : "zzzz"
-	}
 
 # Recordar contraseña
 

@@ -55,7 +55,14 @@ class MySelf extends MyApiController
     function delete($id = null){
         $id = $this->uid;
 
-        $ok = (bool) DB::table($this->model_table)->where([['id', $id], [$this->active, 1]])
+        $u = DB::table($this->model_table);
+
+        if ($u->inSchema(['active'])){
+            Factory::response()->send("Account deactivation not implemented", 501);
+        }
+
+        $ok = (bool) $u
+        ->where([['id', $id], [$this->active, 1]])
         ->fill([$this->active])
         ->update([$this->active => 0]);
 

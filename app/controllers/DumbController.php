@@ -741,7 +741,8 @@ class DumbController extends Controller
         dd(DB::table('products')
         ->where([ ['cost', 100, '>='], ['size', '1L'], ['belongs_to', 90] ])
         ->selectRaw('cost * ? as cost_after_inc', [1.05])
-        ->addSelect('name', 'cost')
+        ->addSelect('name')
+        ->addSelect('cost')
         ->get());
     }
 

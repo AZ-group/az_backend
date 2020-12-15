@@ -3183,6 +3183,21 @@ Desde el ApiController se accderían como:
   etc
 
 
+- El modelo de usuarios (aka: UserModel) debe contener las constantes:
+
+  const USERNAME = 'username';
+  const EMAIL    = 'email';
+  const PASSWORD = 'password';
+  const ACTIVE   = 'active';
+
+- (ver de) reemplazar $soft_delete por una constante:
+
+  static protected $soft_delete = true;
+
+a..
+
+  const $soft_delete = true;
+
 - Reemplazar inSchema : en vez de instanciar el modelo para luego tener que instanciar el Schema correspondiente, tener un schema con solo propiedades estáticas y accederlo directamente saltando al modelo.
 
   Antes:    $books_reviews->inSchema(['campo'])
