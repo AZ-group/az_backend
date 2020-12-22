@@ -14,14 +14,3 @@ DOMINIO "free"
 
 freenom     
 
-DB
-
-remotemysql.com
-
-    Free 100MB database size.
-    phpMyAdmin
-    No query limits.
-    Unlimited bandwidth.
-    Suitable for testing/develoment use only.
-
-

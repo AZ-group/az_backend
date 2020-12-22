@@ -2,6 +2,35 @@
 
 [ ACL ]
 
+- Métodos como belongsTo() deberían poder ser re-definidos en un modelo permitiendo especificar indirectamente un campo como "idcliente" que *no* es el user_id 
+
+	class RecoleccionModel extends Model
+	{ 
+		// ..
+		protected $belongsTo = 'idcliente';
+
+	Donde en Model,
+	
+	function belongsTo(){
+		return $this->belongsTo;
+	}
+
+
+Lo que habría que hacer es decir que filtre por 'idcliente' a pesar de no ser un user_id pero instruir al modelo a que en vez de ir directo a comparar 'idcliente' con el 'user_id' que devuelve Auth, que convierta ese idclient, ej:
+
+	idcliente = (SELECT cliente_id FROM api_keys WHERE user_id = 108)
+	
+Entonces una Query como:
+
+	SELECT * FROM recoleccion WHERE idcliente = $user_id
+	
+se transformaría en
+
+	SELECT * FROM recoleccion WHERE idcliente = (SELECT cliente_id FROM api_keys WHERE user_id = $user_id);
+
+donde $user_id en el ApiController es $this->uid
+
+
 - Agregar los métodos addDescription() y disabled(), enabled() que hace un update sobre la tabla roles.
 
   ->addRole('basic', 2)
@@ -3225,3 +3254,4 @@ Claramente lo siguiente debe dejarse de hacer:
 Para saber que esquemas hay disponibles crear un "libro de schemas" que se debe actualizar con cada "make schema".
 
 
+- Resolver incocistencia con /rememberme ya que en algún caso almacena el nombre del rol y en otros el id del rol en el payload del JWT lo que hace que se rompa el ACL 
