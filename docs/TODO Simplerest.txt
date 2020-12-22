@@ -31,6 +31,11 @@ se transformaría en
 donde $user_id en el ApiController es $this->uid
 
 
+QUIZAS,... la forma más sencilla de resolver sería crear un hook sobre el AuthController para setear un campo como 'idcliente' en base a una relacion que se pueda especificar (seguir desarrollando la idea) 
+
+Si seteo como campo un 'idcliente' (pensando en la DB 'demo') la comparación se va a hacer contra $this->uid en el ApiController con el uid proviniente de Auth. De alguna forma toca especificar contra que comparar (en este caso contra el 'idcliente' del usuario autenticado)
+
+
 - Agregar los métodos addDescription() y disabled(), enabled() que hace un update sobre la tabla roles.
 
   ->addRole('basic', 2)
