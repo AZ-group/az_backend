@@ -69,7 +69,7 @@ class Paginator
                     break;
     
                 case 'pgsql': 
-                    $query .= " LIMIT ? OFFSET ?";
+                    $query .= " OFFSET ? LIMIT ?";
                     break;            
             }
              

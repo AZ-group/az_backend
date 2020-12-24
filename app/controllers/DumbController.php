@@ -34,6 +34,55 @@ class DumbController extends Controller
         parent::__construct();
     }
 
+    // ok
+    function test504(){
+        DB::table('products')
+        ->setFetchMode('COLUMN')
+        ->selectRaw('cost * 1.05 as cost_after_inc')->get();
+    }
+
+    // fails en PSQL
+    function test505(){
+        DB::table('products')
+        ->setFetchMode('COLUMN')
+        ->selectRaw('cost * ? as cost_after_inc', [1.05])->get();
+    }
+
+    function test506()
+    {
+        $con = DB::getConnection();
+        $sth = $con->prepare('SELECT cost * ? as cost_after_inc FROM products');
+        
+        $sth->bindValue(1, 1.05, \PDO::PARAM_INT);
+
+        /*
+            caught PDOException: SQLSTATE[22P02]: 
+            Invalid text representation: 7 ERROR:  
+            invalid input syntax for type bigint: "1.05
+        */
+        $sth->execute(); // fallo
+       
+        $res = $sth->fetch();
+        dd($res);
+    }
+
+
+    function test507()
+    {
+        //dd(is_float('1.25'));
+        //exit;
+
+        $con = DB::getConnection();
+        $sth = $con->prepare('SELECT cost * CAST(? AS DOUBLE PRECISION) as cost_after_inc FROM products');
+        
+        $sth->bindValue(1, 1.05, \PDO::PARAM_INT);
+
+        $sth->execute(); // ok
+       
+        $res = $sth->fetch();
+        dd($res);
+    }
+
     function index(){
         return 'INDEX';
     }
@@ -451,12 +500,11 @@ class DumbController extends Controller
 
     function limit(){
         dd(DB::table('products')
-        ->where(['cost', 200])
         ->select(['id', 'name', 'cost'])
-        ->limit(10)
-        ->offset(20)
+        ->offset(10)
+        ->limit(5)
         ->get());
-        
+
         dd(DB::getLog());
     }
 

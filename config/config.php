@@ -85,11 +85,23 @@ return [
 				\PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
 				\PDO::ATTR_EMULATE_PREPARES => false
 			]
-		]
+		],
+		'db6' => [
+			'host'		=> env('DB_HOST_6', '127.0.0.1'),
+			'port'		=> env('DB_PORT_6'),
+			'driver' 	=> env('DB_CONNECTION_6'),
+			'db_name' 	=> env('DB_DATABASE_6'), 
+			'user'		=> env('DB_USERNAME_6'), 
+			'pass'		=> env('DB_PASSWORD_6'),
+			'pdo_options' => [
+				\PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+				\PDO::ATTR_EMULATE_PREPARES => false
+			]
+		]	
 
 	], 
 
-	'db_connection_default' => 'db1',  // cambiar de nuevo a db1
+	'db_connection_default' => 'db6',  // cambiar de nuevo a db1
 	
 	'DateTimeZone' => 'America/Argentina/Buenos_Aires',
 

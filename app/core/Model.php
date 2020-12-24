@@ -972,9 +972,19 @@ class Model {
 			$q  .= ' HAVING ' . $having_section;
 		}
 
-		if ($this->randomize)
-			$q .= ' ORDER BY RAND() ';
-		else {
+		if ($this->randomize){
+			switch (DB::driver()){
+				case 'mysql':
+				case 'sqlite':
+					$q .= ' ORDER BY RAND() ';
+					break;
+				case 'pgsql':
+					$q .= ' ORDER BY RANDOM() ';
+					break;
+				default: 
+					throw new \Exception("Invalid driver");	
+			}
+		} else {
 			if (!empty($this->raw_order))
 				$q .= ' ORDER BY '.implode(', ', $this->raw_order);
 		}
@@ -1137,7 +1147,7 @@ class Model {
 							$this->h_vals,
 							$this->union_vals);
 
-		///////////////[ BUG FIX ]/////////////////
+		///////////////[ BUG FIXES ]/////////////////
 
 		$_vals = [];
 		$reps  = 0;
@@ -1146,6 +1156,14 @@ class Model {
 			if($val == NULL){
 				$q = Strings::replaceNth('?', 'NULL', $q, $ix+1-$reps);
 				$reps++;
+
+			/*
+				Corrección para operaciones entre enteros y floats en PGSQL
+			*/
+			} elseif(DB::driver() == 'pgsql' && is_float($val)){ 
+				$q = Strings::replaceNth('?', 'CAST(? AS DOUBLE PRECISION)', $q, $ix+1-$reps);
+				$reps++;
+				$_vals[] = $val;
 			} else {
 				$_vals[] = $val;
 			}
@@ -1155,6 +1173,7 @@ class Model {
 
 		///////////////////////////////////////////
 
+		
 		$st = $this->conn->prepare($q);			
 	
 		foreach($vals as $ix => $val)
@@ -1803,7 +1822,7 @@ class Model {
 
 		$data = $this->applyInputMutator($data, 'UPDATE');
 		$vars   = array_keys($data);
-		$values = array_values($data);
+		$vals = array_values($data);
 
 		
 		//var_dump($data); ///
@@ -1846,24 +1865,32 @@ class Model {
 				" SET $set WHERE " . $where;		
 
 
-		$values = array_merge($values, $this->w_vals);
-		$vars   = array_merge($vars, $this->w_vars);		
+		$vals = array_merge($vals, $this->w_vals);
+		$vars = array_merge($vars, $this->w_vars);		
 
-		///////////////[ BUG FIX ]/////////////////
+		///////////////[ BUG FIXES ]/////////////////
 
 		$_vals = [];
 		$reps  = 0;
-		foreach($values as $ix => $val)
+		foreach($vals as $ix => $val)
 		{				
 			if($val == NULL){
 				$q = Strings::replaceNth('?', 'NULL', $q, $ix+1-$reps);
 				$reps++;
+
+			/*
+				Corrección para operaciones entre enteros y floats en PGSQL
+			*/
+			} elseif(DB::driver() == 'pgsql' && is_float($val)){ 
+				$q = Strings::replaceNth('?', 'CAST(? AS DOUBLE PRECISION)', $q, $ix+1-$reps);
+				$reps++;
+				$_vals[] = $val;
 			} else {
 				$_vals[] = $val;
 			}
 		}
 
-		$values = $_vals;
+		$vals = $_vals;
 
 		///////////////////////////////////////////
 
@@ -1873,10 +1900,10 @@ class Model {
 
 		//var_export($q);
 		//var_export($vars);
-		//var_export($values);
+		//var_export($vals);
 		//exit;
 
-		foreach($values as $ix => $val){			
+		foreach($vals as $ix => $val){			
 			if(is_null($val)){
 				$type = \PDO::PARAM_NULL;
 			}elseif(isset($vars[$ix]) && isset($this->schema['attr_types'][$vars[$ix]])){
@@ -1893,7 +1920,7 @@ class Model {
 			//echo "Bind: ".($ix+1)." - $val ($type)\n";
 		}
 
-		$this->last_bindings = $values;
+		$this->last_bindings = $vals;
 		$this->last_pre_compiled_query = $q;
 	 
 		if (!$this->exec){
