@@ -1,6 +1,7 @@
 <?php
 
 require_once 'constants.php';
+require_once HELPERS_PATH. 'etc.php';
 
 // puede afectar el punto decimal al formar sentencias SQL !!!
 // setlocale(LC_ALL, 'es_AR.UTF-8');

@@ -1506,7 +1506,7 @@ class Model {
 	}
 
 
-	function when($precondition = null, callable $closure, callable $closure2 = null){
+	function when($precondition = null, callable $closure = null, callable $closure2 = null){
 		if (!empty($precondition)){			
 			call_user_func($closure, $this);	
 		} elseif ($closure2 != null){
@@ -1516,7 +1516,7 @@ class Model {
 		return $this;	
 	}
 
-	protected function _where($conditions, $group_op = 'AND', $conjunction)
+	protected function _where($conditions = null, $group_op = 'AND', $conjunction = null)
 	{
 		if (empty($conditions)){
 			return;
@@ -1722,7 +1722,7 @@ class Model {
 		return $this;
 	}
 	
-	function _having(array $conditions, $group_op = 'AND', $conjunction)
+	function _having(array $conditions = null, $group_op = 'AND', $conjunction = null)
 	{	
 		if (Arrays::is_assoc($conditions)){
             $conditions = Arrays::nonassoc($conditions);

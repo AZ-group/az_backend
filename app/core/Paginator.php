@@ -3,6 +3,8 @@ declare(strict_types=1);
 
 namespace simplerest\core;
 
+use simplerest\libs\DB;
+
 class Paginator
 {
     protected $orders = [];
@@ -58,8 +60,19 @@ class Paginator
 
         }
 
+        // https://stackoverflow.com/questions/595123/is-there-an-ansi-sql-alternative-to-the-mysql-limit-keyword
         if($this->limit >0){
-            $query .= " LIMIT ?, ?"; 
+            switch (DB::driver()){
+                case 'mysql':
+                case 'sqlite':
+                    $query .= " LIMIT ?, ?";
+                    break;
+    
+                case 'pgsql': 
+                    $query .= " LIMIT ? OFFSET ?";
+                    break;            
+            }
+             
             $this->binding[] = [1 , $this->offset, \PDO::PARAM_INT];
             $this->binding[] = [2 , $this->limit, \PDO::PARAM_INT];
         }

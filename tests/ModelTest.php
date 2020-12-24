@@ -69,9 +69,9 @@ class ModelTest extends TestCase
 
     // 
     $query = DB::table('users')
-    ->where([ 'belongs_to'=> 160] )
+    ->where([ 'id'=> 160] )
     ->count();
-    $this->assertEquals(DB::getLog(), 'SELECT COUNT(*) FROM users WHERE (belongs_to = 160) AND deleted_at IS NULL;');
+    $this->assertEquals(DB::getLog(), 'SELECT COUNT(*) FROM users WHERE (id = 160) AND deleted_at IS NULL;');
 
     //  
     DB::table('products')->showDeleted()
@@ -401,7 +401,7 @@ class ModelTest extends TestCase
         ->get();
 
     // Debería chequear solo la parte del WHERE
-    $this->assertEquals(DB::getLog(), "SELECT id, username, active, locked, email, confirmed_email, firstname, lastname, deleted_at, belongs_to FROM users WHERE email = 'nano@g.c' OR username = 'nano';");
+    $this->assertEquals(DB::getLog(), "SELECT id, username, active, locked, email, confirmed_email, firstname, lastname, deleted_at FROM users WHERE email = 'nano@g.c' OR username = 'nano';");
 
     //  
     $rows = DB::table('users')
@@ -411,7 +411,7 @@ class ModelTest extends TestCase
         ->get();
 
     // Debería chequear solo la parte del WHERE
-    $this->assertEquals(DB::getLog(), "SELECT id, username, active, locked, email, confirmed_email, firstname, lastname, deleted_at, belongs_to FROM users WHERE (email = 'nano@g.c' OR username = 'nano') AND deleted_at IS NULL;");
+    $this->assertEquals(DB::getLog(), "SELECT id, username, active, locked, email, confirmed_email, firstname, lastname, deleted_at FROM users WHERE (email = 'nano@g.c' OR username = 'nano') AND deleted_at IS NULL;");
   
 
     // 

@@ -566,7 +566,12 @@ class AuthController extends Controller implements IAuth
             if (DB::table($this->users_table)->where(['username', $data['username']])->exists())
                 Factory::response()->sendError('Username already exists');
 
-            $uid = DB::table($this->users_table)
+            if ($u->inSchema(['active'])){  
+                $u->fill(['active']);      
+                $data['active'] = $this->config['pre_activated'] ?? false;
+            }
+
+            $uid = $u
             ->setValidator(new Validator())
             ->create($data);
 
@@ -582,20 +587,19 @@ class AuthController extends Controller implements IAuth
                 Email confirmation
 
                 (debería ser con un hook y enviar correo)
-            */    
-            $email_confirmation = $email_in_schema && $u->inSchema(['confirmed_email']);
+            */  
+            if (!$this->config['pre_activated']){  
+                $email_confirmation = $email_in_schema && $u->inSchema(['confirmed_email']);
 
-            if ($email_confirmation)
-            {                 
-                $exp = time() + $this->config['email']['expires_in'];
-
-                $base_url =  HTTP_PROTOCOL . '://' . $_SERVER['HTTP_HOST'] . ($this->config['BASE_URL'] == '/' ? '/' : $this->config['BASE_URL']) ;
-
-                $token = $this->gen_jwt_email_conf($data['email'], $roles, []);
-
-                $url = $base_url . (!$this->config['REMOVE_API_SLUG'] ? "api/$api_version" : $api_version) . '/auth/confirm_email/' . $token . '/' . $exp; 
-            }                
-            
+                if ($email_confirmation)
+                {                 
+                    $exp = time() + $this->config['email']['expires_in'];
+                    $base_url =  HTTP_PROTOCOL . '://' . $_SERVER['HTTP_HOST'] . ($this->config['BASE_URL'] == '/' ? '/' : $this->config['BASE_URL']) ;
+                    $token = $this->gen_jwt_email_conf($data['email'], $roles, []);
+                    $url = $base_url . (!$this->config['REMOVE_API_SLUG'] ? "api/$api_version" : $api_version) . '/auth/confirm_email/' . $token . '/' . $exp; 
+                } 
+            }
+                
             $access  = $this->gen_jwt([
                                         'uid' => $uid, 
                                         'roles' => $roles,
@@ -617,9 +621,10 @@ class AuthController extends Controller implements IAuth
             ];
 
             
-            if ($email_confirmation)
-                dd($url, 'email_confirmation_link');
-            
+            if (isset($email_confirmation) && $email_confirmation){
+                //dd($url, 'email_confirmation_link');
+            }
+                
 
             DB::commit();    
             Factory::response()->send($res);
@@ -734,9 +739,7 @@ class AuthController extends Controller implements IAuth
 
                 if (DB::table($this->users_table)->inSchema([$this->role_field])){
                     $ret['roles'] = [ Factory::acl()->getRoleName($ret['roles']) ]; 
-                } else {
-                    $ret['roles'] = [ Factory::acl()->getGuest() ];
-                }
+                } 
             break;
             default:
                 $ret = [
