@@ -83,6 +83,24 @@ class DumbController extends Controller
         dd($res);
     }
 
+    /*
+        Falla en POSTGRES:
+
+        SELECT COUNT(*) as c, name FROM products GROUP BY name HAVING COUNT(*) > 3
+
+        Es como si en pgsql se evaluara primero el HAVING y luego el SELECT.
+    */
+    function alias(){
+        $rows = DB::table('products')->showDeleted()
+        ->groupBy(['name'])
+        ->having(['c', 3, '>'])
+        ->select(['name'])
+        ->selectRaw('COUNT(*) as c')
+        ->get();
+
+        dd(DB::getLog());
+    }
+
     function index(){
         return 'INDEX';
     }

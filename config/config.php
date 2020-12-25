@@ -101,7 +101,7 @@ return [
 
 	], 
 
-	'db_connection_default' => 'db6',  // cambiar de nuevo a db1
+	'db_connection_default' => 'db1',  // cambiar de nuevo a db1
 	
 	'DateTimeZone' => 'America/Argentina/Buenos_Aires',
 

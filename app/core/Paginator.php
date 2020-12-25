@@ -57,24 +57,51 @@ class Paginator
                 
             }
             $query = substr($query,0,strlen($query)-2);
-
         }
 
+        $ol = [$this->limit !== null, !empty($this->offset)];
+        //dd($ol, 'ol');
+
         // https://stackoverflow.com/questions/595123/is-there-an-ansi-sql-alternative-to-the-mysql-limit-keyword
-        if($this->limit >0){
+        if ($ol[0] || $ol[1]){
             switch (DB::driver()){
                 case 'mysql':
                 case 'sqlite':
-                    $query .= " LIMIT ?, ?";
-                    break;
-    
+                    switch($ol){
+                        case [true, true]:
+                            $query .= " LIMIT ?, ?";
+                            $this->binding[] = [1 , $this->offset, \PDO::PARAM_INT];
+                            $this->binding[] = [2 , $this->limit,  \PDO::PARAM_INT];
+                        break;
+                        case [true, false]:
+                            $query .= " LIMIT ?";
+                            $this->binding[] = [1 , $this->limit, \PDO::PARAM_INT];
+                        break;
+                        case [false, true]:
+                            // https://stackoverflow.com/questions/7018595/sql-offset-only
+                            $query .= " LIMIT ?, 18446744073709551615";
+                            $this->binding[] = [1 , $this->offset, \PDO::PARAM_INT];
+                        break;
+                    } 
+                    break;    
                 case 'pgsql': 
-                    $query .= " OFFSET ? LIMIT ?";
+                    switch($ol){
+                        case [true, true]:
+                            $query .= " OFFSET ? LIMIT ?";
+                            $this->binding[] = [1 , $this->offset, \PDO::PARAM_INT];
+                            $this->binding[] = [2 , $this->limit,  \PDO::PARAM_INT];
+                        break;
+                        case [true, false]:
+                            $query .= " LIMIT ?";
+                            $this->binding[] = [1 , $this->limit, \PDO::PARAM_INT];
+                        break;
+                        case [false, true]:
+                            $query .= " OFFSET ?";
+                            $this->binding[] = [1 , $this->offset, \PDO::PARAM_INT];
+                        break;
+                    } 
                     break;            
             }
-             
-            $this->binding[] = [1 , $this->offset, \PDO::PARAM_INT];
-            $this->binding[] = [2 , $this->limit, \PDO::PARAM_INT];
         }
 
         $this->query = $query;

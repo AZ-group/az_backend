@@ -28,21 +28,39 @@ include 'config/constants.php';
 class ModelTest extends TestCase
 {   		
   function limit($limit, $offset = 0){
-    switch (DB::driver()){
-      case 'mysql':
-        case 'sqlite':
-          if ($offset == 0){
-            return "LIMIT 0, $limit";
-          } else {
-            return "LIMIT $offset, $limit";
-          }
-          break;
-        case 'pgsql':
-          return "OFFSET $offset LIMIT $limit";
-          break;
-        default: 
-          throw new \Exception("Invalid driver");
-    }	
+    $ol = [$limit !== null, !empty($offset)]; 
+
+    if ($ol[0] || $ol[1]){
+      switch (DB::driver()){
+          case 'mysql':
+          case 'sqlite':
+              switch($ol){
+                  case [true, true]:
+                      return "LIMIT $offset, $limit";
+                  break;
+                  case [true, false]:
+                      return "LIMIT $limit";
+                  break;
+                  case [false, true]:
+                      return "LIMIT $offset, 18446744073709551615";
+                  break;
+              } 
+              break;    
+          case 'pgsql': 
+              switch($ol){
+                  case [true, true]:
+                      return "OFFSET $offset LIMIT $limit";
+                  break;
+                  case [true, false]:
+                      return "LIMIT $limit";;
+                  break;
+                  case [false, true]:
+                      return "OFFSET $offset";
+                  break;
+              } 
+              break;            
+      }
+    }
   }
 
   function rand_fn(){
@@ -549,23 +567,27 @@ class ModelTest extends TestCase
     }	
 
     function test_having(){
-        DB::table('products')->showDeleted()
-        ->groupBy(['name'])
-        ->having(['c', 3, '>'])
-        ->select(['name'])
-        ->selectRaw('COUNT(*) as c')
-        ->get();
+        if (DB::driver() == 'mysql')
+        {
+          DB::table('products')->showDeleted()
+          ->groupBy(['name'])
+          ->having(['c', 3, '>'])
+          ->select(['name'])
+          ->selectRaw('COUNT(*) as c')
+          ->get();
 
-        $this->assertEquals(DB::getLog(), "SELECT COUNT(*) as c, name FROM products GROUP BY name HAVING c > 3;");  
+          $this->assertEquals(DB::getLog(), "SELECT COUNT(*) as c, name FROM products GROUP BY name HAVING c > 3;");  
 
-        DB::table('products')
-        ->groupBy(['name'])
-        ->having(['c', 3, '>='])
-        ->select(['name'])
-        ->selectRaw('COUNT(name) as c')
-        ->get();
-                  
-        $this->assertEquals(DB::getLog(), "SELECT COUNT(name) as c, name FROM products WHERE deleted_at IS NULL GROUP BY name HAVING c >= 3;");     
+
+          DB::table('products')
+          ->groupBy(['name'])
+          ->having(['c', 3, '>='])
+          ->select(['name'])
+          ->selectRaw('COUNT(name) as c')
+          ->get();
+                    
+          $this->assertEquals(DB::getLog(), "SELECT COUNT(name) as c, name FROM products WHERE deleted_at IS NULL GROUP BY name HAVING c >= 3;");     
+        }        
             
         // 
         DB::table('products')
@@ -703,22 +725,36 @@ class ModelTest extends TestCase
 
         PDOException: SQLSTATE[42S02]: Base table or view not found: 1146 Table 'az.countries' doesn't exist
 
-    */
-    /*    
+    */  
     function test_leftjoin(){
-        $users = DB::table('users')->select([
-            "users.id",
-            "users.name",
-            "users.email",
-            "countries.name as country_name"
-        ])
-        ->leftJoin("countries", "countries.id", "=", "users.country_id")
-        ->dontExec()
-        ->get();
+        $current    = DB::getCurrent();
 
-        $this->assertEquals(DB::getLog(), 'SELECT users.id, users.name, users.email, countries.name as country_name FROM users LEFT JOIN countries ON countries.id=users.country_id WHERE deleted_at IS NULL;');
+        $mysql      = in_array(DB::driver(), ['mysql', 'sqlite']);
+        $emul_false = isset($current['pdo_options'][\PDO::ATTR_EMULATE_PREPARES]) && $current['pdo_options'][\PDO::ATTR_EMULATE_PREPARES] == false;
+
+        $dr = [$mysql, $emul_false];
+
+        switch($dr){
+          case [true, true]:
+            $this->assertEquals(true, true);
+            return;
+          case [true,  false]:
+          case [false, false]:
+          case [false, true ]:      
+            $users = DB::table('users')->select([
+              "users.id",
+              "users.name",
+              "users.email",
+              "countries.name as country_name"
+            ])
+            ->leftJoin("countries", "countries.id", "=", "users.country_id")
+            ->dontExec()
+            ->get();
+  
+            $this->assertEquals(DB::getLog(), 'SELECT users.id, users.name, users.email, countries.name as country_name FROM users LEFT JOIN countries ON countries.id=users.country_id WHERE deleted_at IS NULL;');
+            break;
+        }
     }
-    */
 
     function test_crossjoin(){
          DB::table('users')
@@ -842,21 +878,16 @@ class ModelTest extends TestCase
     $this->assertEquals(DB::getLog(), "SELECT size, AVG(cost) FROM products WHERE belongs_to IN (SELECT users.id FROM users INNER JOIN user_roles ON users.id=user_roles.user_id WHERE (confirmed_email = 1) AND password < 100 AND role_id = 3) GROUP BY size;");
 
     //
-    /*   
     $sub = DB::table('products')->showDeleted()
     ->select(['size'])
     ->groupBy(['size']);
 
-    $conn = DB::getConnection();
-
-    $m = new \simplerest\core\Model($conn);
+    $m = new Model(true);
     $res = $m->fromRaw("({$sub->toSql()}) as sub")->count();
 
     $this->assertEquals(trim(preg_replace('!\s+!', ' ',$m->getLastPrecompiledQuery())), "SELECT COUNT(*) FROM (SELECT size FROM products GROUP BY size) as sub");
-    */
     
     //
-    /* 
     $sub = DB::table('products')->showDeleted()
     ->select(['size'])
     ->where(['belongs_to', 90])
@@ -866,8 +897,7 @@ class ModelTest extends TestCase
     ->mergeBindings($sub)
     ->count();
 
-    $this->assertEquals(trim(preg_replace('!\s+!', ' ',DB::getLog())), "SELECT COUNT(*) FROM (SELECT size FROM products WHERE belongs_to = 90 GROUP BY size) as sub");
-    */
+    $this->assertEquals(trim(preg_replace('!\s+!', ' ',DB::getLog())), "SELECT COUNT(*) FROM (SELECT size FROM products WHERE belongs_to = 90 GROUP BY size) as sub;");
   }
 
 

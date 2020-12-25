@@ -1103,9 +1103,20 @@ class Model {
 	}
 
 
-	function getBindings(){
-		$pag = !empty($this->pag_vals) ? [ $this->pag_vals[0][1], $this->pag_vals[1][1] ] : [];
-
+	function getBindings()
+	{	
+		$pag = [];
+		if (!empty($this->pag_vals)){
+			switch (count($this->pag_vals)){
+				case 2:
+					$pag = [ $this->pag_vals[0][1], $this->pag_vals[1][1] ];
+				break;
+				case 1: 	
+					$pag = [ $this->pag_vals[0][1] ];
+				break;
+			} 
+		}
+		
 		$values = array_merge(	
 								$this->select_raw_vals,
 								$this->from_raw_vals,

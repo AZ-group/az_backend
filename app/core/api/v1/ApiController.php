@@ -1116,7 +1116,7 @@ abstract class ApiController extends ResourceController
                 //var_dump($this->instance->dd2());
             } catch (\Exception $e){
                 $affected = $this->instance->where([$id_name => $id])->dontExec()->update($data);
-                dd($this->instance->dd2());
+                //dd($this->instance->dd2());
             }
 
             if ($affected !== false) {
