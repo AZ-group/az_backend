@@ -97,7 +97,7 @@ class Request  implements \ArrayAccess, Arrayable
         return in_array('deflate', explode(',', str_replace(' ', '',$this->header('Accept-Encoding'))));
     }
 
-    function getQuery($key = null)
+    function getQuery(string $key = null)
     {
         if ($key == null)
             return static::$query_arr;
@@ -178,6 +178,10 @@ class Request  implements \ArrayAccess, Arrayable
 
     function getRequestMethod(){
         return $_SERVER['REQUEST_METHOD'] ?? NULL;
+    }
+
+    static function ip(){
+        return $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'];
     }
 
     /* Arrayable Interface */ 

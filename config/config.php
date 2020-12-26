@@ -33,6 +33,7 @@ return [
 			'db_name' 	=> env('DB_DATABASE'), 
 			'user'		=> env('DB_USERNAME'), 
 			'pass'		=> env('DB_PASSWORD'),
+			'charset'	=> 'utf8',
 			'pdo_options' => [
 				\PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
 				\PDO::ATTR_EMULATE_PREPARES => false
@@ -46,6 +47,7 @@ return [
 			'db_name' 	=> env('DB_DATABASE_2'), 
 			'user'		=> env('DB_USERNAME_2'), 
 			'pass'		=> env('DB_PASSWORD_2'),
+			'charset'	=> 'utf8'
 		],
 
 		'db3' => [
@@ -55,6 +57,7 @@ return [
 			'db_name' 	=> env('DB_DATABASE_3'), 
 			'user'		=> env('DB_USERNAME_3'), 
 			'pass'		=> env('DB_PASSWORD_3'),
+			'charset'	=> 'utf8',
 			'pdo_options' => [
 				\PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
 				\PDO::ATTR_EMULATE_PREPARES => false
@@ -81,6 +84,7 @@ return [
 			'db_name' 	=> env('DB_DATABASE_5'), 
 			'user'		=> env('DB_USERNAME_5'), 
 			'pass'		=> env('DB_PASSWORD_5'),
+			'charset'	=> 'utf8',
 			'pdo_options' => [
 				\PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
 				\PDO::ATTR_EMULATE_PREPARES => false
@@ -93,6 +97,8 @@ return [
 			'db_name' 	=> env('DB_DATABASE_6'), 
 			'user'		=> env('DB_USERNAME_6'), 
 			'pass'		=> env('DB_PASSWORD_6'),
+			'charset'	=> 'utf8',
+            //'schema'	=> 'az',  
 			'pdo_options' => [
 				\PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
 				\PDO::ATTR_EMULATE_PREPARES => false

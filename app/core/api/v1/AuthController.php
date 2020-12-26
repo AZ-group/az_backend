@@ -5,6 +5,7 @@ namespace simplerest\core\api\v1;
 use Exception;
 use simplerest\core\Controller;
 use simplerest\core\interfaces\IAuth;
+use simplerest\core\Request;
 use simplerest\libs\Factory;
 use simplerest\libs\DB;
 use simplerest\libs\Utils;
@@ -38,7 +39,7 @@ class AuthController extends Controller implements IAuth
             'typ' => 'JWT',
             'iat' => $time, 
             'exp' => $time + ($expires_in != null ? $expires_in : $this->config[$token_type]['expiration_time']),
-            'ip'  => $_SERVER['REMOTE_ADDR']
+            'ip'  => Request::ip()
         ];
         
         $payload = array_merge($payload, $props);
@@ -54,7 +55,7 @@ class AuthController extends Controller implements IAuth
             'typ' => 'JWT',
             'iat' => $time, 
             'exp' => $time + $this->config['email']['expires_in'],
-            'ip'  => $_SERVER['REMOTE_ADDR'],
+            'ip'  => Request::ip(),
             'email' => $email,
             'roles' => $roles,
             'permissions' => $perms
@@ -71,7 +72,7 @@ class AuthController extends Controller implements IAuth
             'typ' => 'JWT',
             'iat' => $time, 
             'exp' => $time + $this->config['email']['expires_in'],
-            'ip'  => $_SERVER['REMOTE_ADDR'],
+            'ip'  => Request::ip(),
             'uid' => $uid
          ];
 
@@ -658,7 +659,7 @@ class AuthController extends Controller implements IAuth
                 if (!isset($payload->ip) || empty($payload->ip))
                     Factory::response()->sendError('Unauthorized',401,'Lacks IP in web token');
 
-                if ($payload->ip != $_SERVER['REMOTE_ADDR'])
+                if ($payload->ip != Request::ip())
                     Factory::response()->sendError('Unauthorized!',401, 'IP change'); 
 
                 if (!isset($payload->uid) || empty($payload->uid))
