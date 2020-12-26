@@ -429,10 +429,15 @@ class Model {
 
 		if ($this->table_name == null){
 			throw new \Exception("No table_name defined");
-			$this->table_name = '';
 		}
 
-		$from = $this->table_alias != null ? $this->table_name. ' as '.$this->table_alias : $this->table_name.' ';  
+		$tb_name = $this->table_name;
+
+		if (DB::driver() == 'pgsql' && DB::schema() != null){
+			$tb_name = DB::schema() . '.' . $tb_name;
+		}
+
+		$from = $this->table_alias != null ? $tb_name. ' as '.$this->table_alias : $tb_name.' ';  
 		return $from;
 	}
 

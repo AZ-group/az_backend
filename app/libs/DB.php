@@ -35,6 +35,10 @@ class DB
 	public static function driver(){
 		return self::getCurrent()['driver'];
 	}
+
+	public static function schema(){
+		return self::getCurrent()['schema'] ?? NULL;
+	}
 	
 	public static function setConnection($id){
 		static::$current_id_conn = $id;
@@ -78,6 +82,7 @@ class DB
 		$user    = $config['db_connections'][static::$current_id_conn]['user'] ?? 'root';
 		$pass    = $config['db_connections'][static::$current_id_conn]['pass'] ?? '';
 		$pdo_opt = $config['db_connections'][static::$current_id_conn]['pdo_options'] ?? NULL;
+		$charset = $config['db_connections'][static::$current_id_conn]['charset'] ?? NULL;
 
 		// alias
 		if ($driver == 'postgres'){
@@ -87,11 +92,8 @@ class DB
 		try {
 			switch ($driver) {
 				case 'mysql':
-					self::$connections[static::$current_id_conn] = new \PDO("$driver:host=$host;dbname=$db_name;port=$port", $user, $pass, $pdo_opt);
-	
-					self::$connections[static::$current_id_conn]->exec("set names utf8");
+					self::$connections[static::$current_id_conn] = new \PDO("$driver:host=$host;dbname=$db_name;port=$port", $user, $pass, $pdo_opt);				
 					break;
-
 				case 'sqlite':
 					$db_file = Strings::contains(DIRECTORY_SEPARATOR, $db_name) ?  $db_name : STORAGE_PATH . $db_name;
 	
@@ -105,6 +107,11 @@ class DB
 				default:
 					throw new \Exception("Driver '$driver' not supported / tested.");
 			}
+
+
+			if ($charset != null){
+				self::$connections[static::$current_id_conn]->exec("SET NAMES 'UTF8'");	
+			}	
 
 		} catch (\PDOException $e) {
 			throw new \PDOException('PDO Exception: '. $e->getMessage());	
@@ -149,10 +156,9 @@ class DB
 	
 	public static function table($from, $alias = NULL, bool $connect = true) {
 		// Usar un wrapper y chequear el tipo
-		if (stripos($from, ' FROM ') === false){
-			$tb_name = $from;
-		
-			$names = explode('_', $tb_name);
+		if (!Strings::contains(' FROM ', $from))
+		{
+			$names = explode('_', $from);
 			$names = array_map(function($str){ return ucfirst($str); }, $names);
 			$model_instance = implode('', $names).'Model';		
 
