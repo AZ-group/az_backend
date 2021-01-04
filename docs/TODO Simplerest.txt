@@ -85,6 +85,16 @@ Ver tuto:
 https://www.youtube.com/watch?v=In6DBL0tq9c  !!!!!!!
 
 
+- "API GATEWAY" se hace a través del "orquestador" y entre otras cosas se encarga del *logging* con lo cual habría que revisar la necesidad de tener un ACL y el AuthController ************* 
+
+
+Elegir un API GATEWAY como por ejemplo Kong Gateway, KrakenD, Goku API Gateway, etc
+
+
+https://www.axway.com/en/products/api-management/gateway
+https://geekflare.com/api-gateway/
+
+
 - Considerar usar Apache ZooKeeper/Kafka
 
 La comunicación entre microservicios debería ser asincrónica para evitar acoplamiento:
@@ -1641,7 +1651,7 @@ https://www.roytuts.com/rest-api-crud-example-in-php-and-mongodb/
 
 - Implementar X-Rate-Limit-Limit, X-Rate-Limit-Remaining y X-Rate-Limit-Reset
 
-Se deben poder especificar para cada endpoint
+En vez de tener que especificar para cada endpoint lo que se usa aquí es una "API GATEWAY" <<<<
 
 https://github.com/dingo/api/wiki/Rate-Limiting
 https://developer.twitter.com/en/docs/basics/rate-limiting
