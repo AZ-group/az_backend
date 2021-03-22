@@ -1,6 +1,6 @@
 {
-    "name": "felipe/simplerest",
-    "description": "API Rest framework for PHP",
+    "name": "felipe/missing",
+    "description": "API de niños perdidos en el mundo",
     "type": "project",
     "license": "GPL",
     "authors": [
@@ -12,15 +12,16 @@
     "require": {
         "php": ">=7.2.0",
         "byjg/jwt-session": "2.0.*",
-        "google/apiclient": "^2.0",
-        "facebook/graph-sdk": "^5.7",
         "phpmailer/phpmailer": "^6.1",
         "guzzlehttp/guzzle": "~6.0",
-        "symfony/polyfill-uuid": "^1.18"
+        "symfony/polyfill-uuid": "^1.18",
+        "vlucas/phpdotenv": "^5.2"
     },
     "autoload": {
         "psr-4": {
-            "simplerest\\": "app/"
+            "simplerest\\": "app/",
+            "boctulus\\grained_acl\\": "packages/boctulus/grained_acl/src",
+            "boctulus\\basic_acl\\": "packages/boctulus/basic_acl/src"
         }
     },
     "require-dev": {

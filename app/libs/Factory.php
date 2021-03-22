@@ -3,6 +3,7 @@
 namespace simplerest\libs;
 
 use simplerest\libs\Config;
+use simplerest\core\api\v1\AuthController;
 
 class Factory {
 	static function response() {
@@ -38,6 +39,16 @@ class Factory {
 
 		if ($instance == null){
 			$instance = new Config();
+		}
+
+        return $instance;
+	}
+
+	static function auth(){
+		static $instance;
+
+		if ($instance == null){
+			$instance = new AuthController();
 		}
 
         return $instance;

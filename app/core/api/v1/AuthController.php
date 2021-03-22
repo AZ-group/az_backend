@@ -5,11 +5,10 @@ namespace simplerest\core\api\v1;
 use Exception;
 use simplerest\core\Controller;
 use simplerest\core\interfaces\IAuth;
+use simplerest\core\Request;
 use simplerest\libs\Factory;
 use simplerest\libs\DB;
 use simplerest\libs\Utils;
-use simplerest\models\UsersModel;
-use simplerest\models\UserRolesModel;
 use simplerest\libs\Debug;
 use simplerest\libs\Validator;
 use simplerest\core\exceptions\InvalidValidationException;
@@ -17,6 +16,10 @@ use simplerest\core\exceptions\InvalidValidationException;
 
 class AuthController extends Controller implements IAuth
 {
+    protected $users_table = 'users';
+    protected $role_field  = 'rol';
+    public $uid;
+
     function __construct()
     { 
         header('Access-Control-Allow-Credentials: True');
@@ -36,7 +39,7 @@ class AuthController extends Controller implements IAuth
             'typ' => 'JWT',
             'iat' => $time, 
             'exp' => $time + ($expires_in != null ? $expires_in : $this->config[$token_type]['expiration_time']),
-            'ip'  => $_SERVER['REMOTE_ADDR']
+            'ip'  => Request::ip()
         ];
         
         $payload = array_merge($payload, $props);
@@ -52,7 +55,7 @@ class AuthController extends Controller implements IAuth
             'typ' => 'JWT',
             'iat' => $time, 
             'exp' => $time + $this->config['email']['expires_in'],
-            'ip'  => $_SERVER['REMOTE_ADDR'],
+            'ip'  => Request::ip(),
             'email' => $email,
             'roles' => $roles,
             'permissions' => $perms
@@ -69,63 +72,11 @@ class AuthController extends Controller implements IAuth
             'typ' => 'JWT',
             'iat' => $time, 
             'exp' => $time + $this->config['email']['expires_in'],
-            'ip'  => $_SERVER['REMOTE_ADDR'],
+            'ip'  => Request::ip(),
             'uid' => $uid
          ];
 
         return \Firebase\JWT\JWT::encode($payload, $this->config['email']['secret_key'],  $this->config['email']['encryption']);
-    }
-
-    private function fetchRoles($uid) : Array {
-        $rows = DB::table('user_roles')
-        ->assoc()
-        ->where(['user_id', $uid])
-        ->select(['role_id as role'])
-        ->get();	
-
-        $acl = Factory::acl();
-
-        $roles = [];
-        if (count($rows) != 0){
-            foreach ($rows as $row){
-                $roles[] = $acl->getRoleName($row['role']);
-            }
-        }
-
-        return $roles;
-    }
-
-    private function fetchTbPermissions($uid) : Array {
-        $_permissions = DB::table('user_tb_permissions')
-        ->assoc()
-        ->select(['tb', 'can_list_all as la', 'can_show_all as ra', 'can_list as l', 'can_show as r', 'can_create as c', 'can_update as u', 'can_delete as d'])
-        ->where(['user_id' => $uid])
-        ->get();
-
-        $perms = [];
-        foreach ((array) $_permissions as $p){
-            $tb = $p['tb'];
-            $perms[$tb] =  $p['la'] * 64 + $p['ra'] * 32 +  $p['l'] * 16 + $p['r'] * 8 + $p['c'] * 4 + $p['u'] * 2 + $p['d'];
-        }
-
-        return $perms;
-    }
-
-    private function fetchSpPermissions($uid) : Array {
-        $perms = DB::table('user_sp_permissions')
-        ->assoc()
-        ->where(['user_id' => $uid])
-        ->join('sp_permissions', 'user_sp_permissions.sp_permission_id', '=', 'sp_permissions.id')
-        ->pluck('name');
-
-        return $perms ?? [];
-    }
-
-    private function fetchPermissions($uid) : Array { 
-        return [
-                'tb' => $this->fetchTbPermissions($uid), 
-                'sp' => $this->fetchSpPermissions($uid) 
-        ];
     }
 
     function login()
@@ -149,8 +100,9 @@ class AuthController extends Controller implements IAuth
         }
 
         try {              
+            $u = DB::table($this->users_table);
 
-            $row = DB::table('users')->assoc()->unhide(['password'])
+            $row = $u->assoc()->unhide(['password'])
             ->where([ 'email'=> $email, 'username' => $username ], 'OR')
             ->setValidator((new Validator())->setRequired(false))  
             ->first();
@@ -163,36 +115,37 @@ class AuthController extends Controller implements IAuth
             if (!password_verify($password, $hash))
                 Factory::response()->sendError('Incorrect username / email or password', 401);
 
-            $active = $row['active']; 
-            //Debug::dd($active, 'active');
+            $active = 1;    
+            if ($u->inSchema(['active'])){
+                $active = $row['active']; 
 
-            if ($active == null) {
+                if ($active == null) {
 
-                if ($row['confirmed_email'] === "0") {
-                    Factory::response()->sendError('Non authorized', 403, 'Please confirm your e-mail');
-                } else {
-                    Factory::response()->sendError('Non authorized', 403, 'Account pending for activation');
+                    if ($row['confirmed_email'] === "0") {
+                        Factory::response()->sendError('Non authorized', 403, 'Please confirm your e-mail');
+                    } else {
+                        Factory::response()->sendError('Non authorized', 403, 'Account pending for activation');
+                    }
                 }
-            }
 
-            if ($active == 0 || (string) $active === "0") {
-                Factory::response()->sendError('Non authorized', 403, 'Deactivated account !');
-            }
+                if ($active == 0 || (string) $active === "0") {
+                    Factory::response()->sendError('Non authorized', 403, 'Deactivated account !');
+                } 
+            }                
 
-            $username = $row['username'];   
-    
             // Fetch roles && permissions
-            $uid = $row['id'];
+            $acl   = Factory::acl();
 
-            $roles = $this->fetchRoles($uid);
-            $perms = $this->fetchPermissions($uid);
+            $uid   = $row[$u->getIdName()];            
+            $roles = $u->inSchema([$this->role_field]) ? $row[$this->role_field] : $acl->fetchRoles($uid); 
+            $perms = $acl->fetchPermissions($uid);
 
             //var_export($perms);
 
             $access  = $this->gen_jwt([ 'uid' => $uid, 
                                         'roles' => $roles, 
                                         'permissions' => $perms,
-                                        'active' => $active,
+                                        'active' => $active, 
             ], 'access_token');
 
             // el refresh no debe llevar ni roles ni permisos por seguridad !
@@ -242,7 +195,8 @@ class AuthController extends Controller implements IAuth
 
         //print_r($auth);
 
-        try {                                      
+        try 
+        {                                      
             list($refresh) = sscanf($auth, 'Bearer %s');
 
             $payload = \Firebase\JWT\JWT::decode($refresh, $this->config['refresh_token']['secret_key'], [ $this->config['refresh_token']['encryption'] ]);
@@ -254,13 +208,19 @@ class AuthController extends Controller implements IAuth
                 Factory::response()->sendError('uid is needed',400);
             }
 
-            $roles = $this->fetchRoles($payload->uid);
+            $acl   = Factory::acl();
+            $u     = DB::table($this->users_table);
 
-            if (!Factory::acl()->hasSpecialPermission("impersonate", $roles) && !(isset($payload->impersonated_by) && !empty($payload->impersonated_by)) ){
+            if ($u->inSchema([$this->role_field])){
+                $roles = [ $acl->getRoleName($u->find($payload->uid)->value($this->role_field)) ];
+            } else {
+                $roles = $acl->fetchRoles($payload->uid);
+            }
+
+            if (!$acl->hasSpecialPermission("impersonate", $roles) && !(isset($payload->impersonated_by) && !empty($payload->impersonated_by)) ){
                 Factory::response()->sendError('Unauthorized!',401, 'Impersonate requires elevated privileges');
             }    
 
-            $acl        = Factory::acl();
             $guest_role = $acl->getGuest();
 
             $impersonate_user = $data->uid ?? null;
@@ -289,23 +249,28 @@ class AuthController extends Controller implements IAuth
             if (!empty($impersonate_user)){ 
                 $uid = $impersonate_user;
 
-                $row = DB::table('users')->assoc()
-                ->where([ 'id' =>  $uid ] ) 
+                $u = DB::table($this->users_table);
+
+                $row = $u->assoc()
+                ->find($uid) 
                 ->first();
-                
+
                 if (!$row)
                     throw new Exception("User to impersonate does not exist");
 
-                $active = $row['active'];
+                $active = true;    
+                if ($u->inSchema(['active'])){
+                    $active = $row['active'];
 
-                if ($active === NULL) {
-                    Factory::response()->sendError('Account to be impersonated is pending for activation', 500);
-                } elseif (((string) $active === "0")) {
-                    Factory::response()->sendError('User account to be impersonated is deactivated', 500);
-                }  
+                    if ($active === NULL) {
+                        Factory::response()->sendError('Account to be impersonated is pending for activation', 500);
+                    } elseif (((string) $active === "0")) {
+                        Factory::response()->sendError('User account to be impersonated is deactivated', 500);
+                    }  
+                }
                 
-                $roles = $this->fetchRoles($uid);
-                $perms = $this->fetchPermissions($uid);
+                $roles = $u->inSchema([$this->role_field]) ? $row[$this->role_field] : $acl->fetchRoles($uid);
+                $perms = $acl->fetchPermissions($uid);
             }    
 
             $impersonated_by = $payload->impersonated_by ?? $payload->uid;
@@ -377,8 +342,9 @@ class AuthController extends Controller implements IAuth
 
         $uid = $payload->impersonated_by;
         
-        $roles = $this->fetchRoles($uid);
-        $perms = $this->fetchPermissions($uid);
+        $acl   = Factory::acl();
+        $roles = $acl->fetchRoles($uid);
+        $perms = $acl->fetchPermissions($uid);
 
         //////
         
@@ -453,35 +419,45 @@ class AuthController extends Controller implements IAuth
                 // guest
                 if ($payload->uid == -1) 
                 {
+                    $acl   = Factory::acl();
+
                     $active = false;
-                    $roles = [Factory::acl()->getGuest()];
-                    $permissions = [];
+                    $roles = [$acl->getGuest()];
+                    $perms = [];
                 } else {
                     $impersonated_by_role = true;
                 }
             }     
 
-            if (!$impersonated_by || $impersonated_by_role) {
+            if (!$impersonated_by || $impersonated_by_role) 
+            {
+                $u = DB::table($this->users_table);
 
-                $row = DB::table('users')->assoc()->where(['id' => $payload->uid])->first();
+                $row = $u->assoc()
+                ->where([$u->getIdName() => $payload->uid])->first();
 
                 if (!$row)
-                    throw new Exception("User not found");
+                    throw new \Exception("User not found");
 
-                $active = $row['active']; 
+                $active = 1;    
+                if ($u->inSchema(['active'])){
+                    $active = $row['active']; 
 
-                if ($active == 0 || (string) $active === "0") {
-                    Factory::response()->sendError('Non authorized', 403, 'Deactivated account !');
+                    if ($active == 0 || (string) $active === "0") {
+                        Factory::response()
+                        ->sendError('Non authorized', 403, 'Deactivated account !');
+                    }
                 }
 
-                $roles = $this->fetchRoles($uid);
-                $permissions = $this->fetchPermissions($uid);
+                $acl   = $acl ?? Factory::acl();
+                $roles = $u->inSchema([$this->role_field]) ? $row[$this->role_field] : $acl->fetchRoles($uid); 
+                $perms = $acl->fetchPermissions($uid);
             }            
 
           
             $access  = $this->gen_jwt([ 'uid' => $payload->uid,
                                         'roles' => $roles, 
-                                        'permissions' => $permissions, 
+                                        'permissions' => $perms, 
                                         'impersonated_by' => $impersonated_by,
                                         'active' => $active
                                     ], 
@@ -507,8 +483,13 @@ class AuthController extends Controller implements IAuth
         }	
     }
 
+    /*
+        Minimizar la cantidad de instancias de UsersModel !!!!!!!!!
+    */
     function register()
     {
+        global $api_version;
+
         if (!in_array($_SERVER['REQUEST_METHOD'], ['POST','OPTIONS']))
             Factory::response()->sendError('Incorrect verb ('.$_SERVER['REQUEST_METHOD'].'), expecting POST',405);
             
@@ -519,24 +500,49 @@ class AuthController extends Controller implements IAuth
 
             if ($data == null)
                 Factory::response()->sendError('Bad request',400, 'Invalid JSON');
+ 
+        
+            $acl = Factory::acl();
+            $u   = DB::table($this->users_table);
 
-            $roles = [];    
-            if (!empty($data['roles'])) {
-                if (isset($this->config['auto_approval_roles']) && !empty($this->config['auto_approval_roles'])) {
+            $many_to_many = false;
 
-                    foreach ($data['roles'] as $r){
-                        if (!in_array($r, $this->config['auto_approval_roles'])) {
-                            throw new Exception("Role $r is not auto-approved");
+            // un campo 'rol' o similar
+            if ($u->inSchema([$this->role_field])){
+                if (!empty($data[$this->role_field])) {
+                    if (isset($this->config['auto_approval_roles']) && !empty($this->config['auto_approval_roles'])) {
+                    
+                        if (!in_array($acl->getRoleName($data[$this->role_field]), $this->config['auto_approval_roles'])) {
+                            throw new \Exception("Role {$data[$this->role_field]} is not auto-approved");
                         }
 
-                        $roles[] = $r;
-                    }                    
-                }    
-            
-                unset($data['roles']);
-            }        
-            
-            $u = new UsersModel();
+                    }    
+                } else {
+                    // chequear si es requerido antes
+                    Factory::response()->sendError("rol is required", 400);
+                }  
+
+                $roles = [ $data[$this->role_field] ];   
+            } else {
+                // una tabla 'roles' en relación muchos a muchos (debería segurarme)
+                $many_to_many = true; // debería ser pre-condición
+
+                $roles = [];    
+                if (!empty($data['roles'])) {
+                    if (isset($this->config['auto_approval_roles']) && !empty($this->config['auto_approval_roles'])) {
+    
+                        foreach ($data['roles'] as $r){
+                            if (!in_array($r, $this->config['auto_approval_roles'])) {
+                                throw new \Exception("Role $r is not auto-approved");
+                            }
+    
+                            $roles[] = $r;
+                        }                    
+                    }    
+                
+                    unset($data['roles']);
+                }        
+            }
 
             $missing = $u->getMissing($data);
             if (!empty($missing))
@@ -544,7 +550,8 @@ class AuthController extends Controller implements IAuth
 
             $email_in_schema = $u->inSchema(['email']);
 
-            if ($email_in_schema){
+            if ($email_in_schema)
+            {
                 // se hace en el modelo pero es más rápido hacer chequeos acá
 
                 if (empty($data['email']))
@@ -553,63 +560,51 @@ class AuthController extends Controller implements IAuth
                 if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL))
                     throw new Exception("Invalid email");  
 
-                if (DB::table('users')->where(['email', $data['email']])->exists())
+                if (DB::table($this->users_table)->where(['email', $data['email']])->exists())
                     Factory::response()->sendError('Email already exists');    
             }            
 
-            if (DB::table('users')->where(['username', $data['username']])->exists())
+            if (DB::table($this->users_table)->where(['username', $data['username']])->exists())
                 Factory::response()->sendError('Username already exists');
 
-            $uid = DB::table('users')->setValidator(new Validator())->create($data);
-            if (empty($uid))
-                throw new Exception('Error creating user');
-
-            $u = DB::table('users');    
-            if ($u->inSchema(['belongs_to'])){
-                $affected = $u->where(['id', $uid])->update(['belongs_to' => $uid]);
+            if ($u->inSchema(['active'])){  
+                $u->fill(['active']);      
+                $data['active'] = $this->config['pre_activated'] ?? false;
             }
 
-            if (!empty($roles))
+            $uid = $u
+            ->setValidator(new Validator())
+            ->create($data);
+
+            if (empty($uid))
+                throw new \Exception('Error creating user');
+            
+            if ($many_to_many && !empty($roles))
             {
-                foreach ($roles as $role) {
-                    $role_id = Factory::acl()->getRoleId($role);
+                $acl->addUserRoles($roles, $uid);
+            }     
+            
+            /* 
+                Email confirmation
 
-                    if ($role_id == null){
-                        throw new Exception("Role $role is invalid");
-                    }
-                    
-                    // Podrian crearse todos juntos con un Store Procedure ?
-                    $ur_id = DB::table('user_roles')
-                                                    ->where(['id' => $uid])
-                                                    ->create(['user_id' => $uid, 'role_id' => $role_id]);
+                (debería ser con un hook y enviar correo)
+            */  
+            if (!$this->config['pre_activated']){  
+                $email_confirmation = $email_in_schema && $u->inSchema(['confirmed_email']);
 
-                    if (empty($ur_id))
-                        throw new Exception("Error registrating user role $role"); 
-                    
+                if ($email_confirmation)
+                {                 
+                    $exp = time() + $this->config['email']['expires_in'];
+                    $base_url =  HTTP_PROTOCOL . '://' . $_SERVER['HTTP_HOST'] . ($this->config['BASE_URL'] == '/' ? '/' : $this->config['BASE_URL']) ;
+                    $token = $this->gen_jwt_email_conf($data['email'], $roles, []);
+                    $url = $base_url . (!$this->config['REMOVE_API_SLUG'] ? "api/$api_version" : $api_version) . '/auth/confirm_email/' . $token . '/' . $exp; 
                 } 
-            }       
-            
-            $perms = $this->fetchPermissions($uid);
-
-            if ($email_in_schema){ 
-                // Email confirmation
-                $exp = time() + $this->config['email']['expires_in'];	
-
-                $base_url =  HTTP_PROTOCOL . '://' . $_SERVER['HTTP_HOST'] . ($this->config['BASE_URL'] == '/' ? '/' : $this->config['BASE_URL']) ;
-
-                $token = $this->gen_jwt_email_conf($data['email'], $roles, $perms);
-
-                $url = $base_url . (!$this->config['REMOVE_API_SLUG'] ? 'api/v1' : 'v1') . '/auth/confirm_email/' . $token . '/' . $exp; 
-
-                $firstname = $data['firstname'] ?? null;
-                $lastname  = $data['lastname']  ?? null;
-            }                
-            
-
+            }
+                
             $access  = $this->gen_jwt([
                                         'uid' => $uid, 
                                         'roles' => $roles,
-                                        'permissions' => $perms,
+                                        'permissions' => [],
                                         'active' => $this->config['pre_activated'] ? true : null
             ], 'access_token');
 
@@ -626,9 +621,11 @@ class AuthController extends Controller implements IAuth
                 'roles' => $roles
             ];
 
-            if ($email_in_schema)
-                $res['email_confirmation_link'] = $url;
-
+            
+            if (isset($email_confirmation) && $email_confirmation){
+                //dd($url, 'email_confirmation_link');
+            }
+                
 
             DB::commit();    
             Factory::response()->send($res);
@@ -643,15 +640,7 @@ class AuthController extends Controller implements IAuth
             
     }
 
-    /* 
-    Authorization checkin
-    
-    @return mixed object | null
-    */
-    function check() {
-        // lo siguiente iría en un hook  !
-        //file_put_contents('CHECK.txt', 'HTTP VERB: ' .  $_SERVER['REQUEST_METHOD']."\n", FILE_APPEND);
-
+    private function jwtPayload(){
         $auth = Factory::request()->getAuth();
 
         if (empty($auth))
@@ -670,14 +659,14 @@ class AuthController extends Controller implements IAuth
                 if (!isset($payload->ip) || empty($payload->ip))
                     Factory::response()->sendError('Unauthorized',401,'Lacks IP in web token');
 
-                if ($payload->ip != $_SERVER['REMOTE_ADDR'])
+                if ($payload->ip != Request::ip())
                     Factory::response()->sendError('Unauthorized!',401, 'IP change'); 
 
                 if (!isset($payload->uid) || empty($payload->uid))
                     Factory::response()->sendError('Unauthorized',401,'Lacks id in web token');  
 
                 // Lacks active status
-                if (!isset($payload->active) && $payload->uid != -1){
+                if (DB::table($this->users_table)->inSchema(['active']) && !isset($payload->active) && $payload->uid != -1){
                     Factory::response()->sendError('Unauthorized', 401, 'Lacks active status. Please log in.');
                 }    
 
@@ -689,7 +678,7 @@ class AuthController extends Controller implements IAuth
                     Factory::response()->sendError('Token expired',401);
 
                 //print_r($payload->roles);
-                //exit; 
+                //fexit; 
 
                 return json_decode(json_encode($payload),true);
 
@@ -706,10 +695,73 @@ class AuthController extends Controller implements IAuth
             Factory::response()->sendError('Authorization jwt token not found',400);
         }
 
-        //return false;
+    }
+
+    /* 
+    Authorization checkin
+    
+        @return mixed array | null
+    */
+    function check() {
+        static $ret;
+
+        if ($ret != null)
+            return $ret;
+
+        switch (Factory::request()->authMethod()){
+            case 'API_KEY': 
+                $api_key = Factory::request()->getApiKey();
+
+                $acl = Factory::acl();
+                $uid = $acl->getUserIdFromApiKey($api_key);
+
+                if ($uid == NULL){
+                    Factory::response()->sendError('Invalid API Key', 401);
+                }
+
+                $u = DB::table($this->users_table);
+
+                if ($u->inSchema([$this->role_field])){
+                    $rid   = $u->where([$u->getIdName() => $uid])->value($this->role_field);
+                    $roles = [ $acl->getRoleName($rid) ]; 
+                } else {
+                    $roles = $acl->fetchRoles($uid);
+                }
+                
+                $ret = [
+                    'uid'           => $uid,
+                    'roles'         => $roles,
+                    'permissions'   => $acl->fetchPermissions($uid),
+                    'active'        => true //
+                ];
+            break;
+            case 'JWT':
+                $ret = $this->jwtPayload();
+
+                if (DB::table($this->users_table)->inSchema([$this->role_field])){
+                    $ret['roles'] = [ Factory::acl()->getRoleName($ret['roles']) ]; 
+                } 
+            break;
+            default:
+                $ret = [
+                    'uid' => null,
+                    'roles' => [Factory::acl()->getGuest()],
+                    'permissions' => [],
+                    'active' => null
+                ];
+        }
+
+        $this->uid = $ret['uid'];
+
+        return $ret;
     }
 
     
+    /*
+        Proviene de un link generado en register()
+
+        Debería haber otro método que genere el mismo enlace
+    */
 	function confirm_email($jwt, $exp)
 	{
 		if (!in_array($_SERVER['REQUEST_METHOD'], ['GET','OPTIONS']))
@@ -735,26 +787,33 @@ class AuthController extends Controller implements IAuth
                 if ($payload->exp < time())
                     $error = 'Token expired';
                 
-                //if (isset($payload->active) && $payload->active == 0) {
-                //    Factory::response()->sendError('Non authorized', 403, 'Deactivated account');
-                //}
+                $u = DB::table($this->users_table);
 
+                if (!$u->inSchema(['confirmed_email'])){
+                    Factory::response()->sendError('Email confirmation is not implemented', 501);
+                }    
 
-                $u = DB::table('users');
-
-                $rows = DB::table('users')->assoc()->where(['email', $payload->email])->get(['id', 'active']);
+                $rows = $u->assoc()
+                ->select([$u->getIdName()])
+                ->when($u->inSchema(['active']), function($q){
+                    $q->addSelect('active');
+                })
+                ->where(['email', $payload->email])
+                ->get();
 
                 if (count($rows) == 0){
                     Factory::response()->sendError("Not found", 404, "Email not found");
                 }
 
-                if ((string) $rows[0]['active'] === "0") {
-                    Factory::response()->sendError('Non authorized', 403, 'Deactivated account !');
+                if ($u->inSchema(['active'])){
+                    if ((string) $rows[0]['active'] === "0") {
+                        Factory::response()->sendError('Non authorized', 403, 'Deactivated account !');
+                    }
                 }
-
-                $uid  = $rows[0]['id'];
                 
-                $ok = (bool) DB::table('users')->where(['id', $uid])
+                $uid  = $rows[0][$u->getIdName()];
+                
+                $ok = $u
                 ->fill(['confirmed_email'])
                 ->update(['confirmed_email' => 1]);
 
@@ -795,134 +854,58 @@ class AuthController extends Controller implements IAuth
 
     }     
     
-    function change_pass(){
-		if($_SERVER['REQUEST_METHOD']!='POST')
-			Factory::response()->sendError('Incorrect verb ('.$_SERVER['REQUEST_METHOD'].'), expecting POST',405);
-		
-		$headers = Factory::request()->headers();
-		$auth = $headers['Authorization'] ?? $headers['authorization'] ?? null;
-		
-		$data  = Factory::request()->getBody();
-            
-        if ($data == null)
-			Factory::response()->sendError('Invalid JSON',400);
-			
-		if (!isset($data['password']) || empty($data['password']))
-			Factory::response()->sendError('Empty email',400);
-		
-		if (empty($auth))
-			Factory::response()->sendError('No auth', 400);			
-			
-		list($jwt) = sscanf($auth, 'Bearer %s');
-
-		if($jwt != null)
-        {
-            try{
-                // Checking for token invalidation or outdated token
-                
-                $payload = \Firebase\JWT\JWT::decode($jwt, $this->config['email']['secret_key'], [ $this->config['email']['encryption'] ]);
-                
-                if (empty($payload))
-					Factory::response()->sendError('Unauthorized!',401);                     
-					
-                if (empty($payload->email)){
-                    Factory::response()->sendError('Undefined email',400);
-                }
-
-                if ($payload->exp < time())
-                    Factory::response()->sendError('Token expired',401);
-			
-				
-				$rows = DB::table('users')->assoc()->where(['email', $payload->email])->get(['id', 'active']);
-                $uid = $rows[0]['id'];
-                
-                $active = $rows[0]['active'];
-
-                if ((string) $active === "0") {
-                    Factory::response()->sendError('Non authorized', 403, 'Deactivated account !');
-                }
-
-				$affected = DB::table('users')->where(['id', $rows[0]['id']])->update(['password' => $data['password']]);
-
-				// Fetch roles
-				$uid = $rows[0]['id'];
-            
-                $roles = $this->fetchRoles($uid);
-                $perms = $this->fetchPermissions($uid);
-
-                $access  = $this->gen_jwt([ 'uid' => $uid, 
-                                            'roles' => $roles, 
-                                            'permissions' => $perms,
-                                            'active' => $active,
-                ], 'access_token');
-
-                // el refresh no debe llevar ni roles ni permisos por seguridad !
-                $refresh = $this->gen_jwt([ 'uid' => $uid
-                ], 'refresh_token');
- 
-				Factory::response()->send([
-                    'access_token' => $access,
-                    'token_type' => 'bearer', 
-					'expires_in' => $this->config['email']['expires_in'],
-					'refresh_token' => $refresh
-				]);
-				
-            } catch (\Exception $e) {
-                /*
-                * the token was not able to be decoded.
-                * this is likely because the signature was not able to be verified (tampered token)
-                *
-                * reach this point if token is empty or invalid
-                */
-                Factory::response()->sendError($e->getMessage(),401);
-            }	
-        }else{
-            Factory::response()->sendError('Authorization jwt token not found',400);
-        }
-       
-    }
-    
-
     /*
         Si el correo es válido debe generar y enviar por correo un enlance para cambiar el password
         sino no hacer nada.
     */
 	function rememberme(){
-		$data  = Factory::request()->getBody();
+        global $api_version;
+
+		$data  = Factory::request()->getBody(false);
 
 		if ($data == null)
 			Factory::response()->sendError('Invalid JSON',400);
 
-		$email = $data->email ?? null;
+		$email = $data['email'] ?? null;
 
 		if ($email == null)
 			Factory::response()->sendError('Empty email', 400);
 
 		try {	
 
-			$u = (DB::table('users'))->assoc();
-			$rows = $u->where(['email', $email])->get(['id', 'active']);
+			$u = DB::table($this->users_table)->assoc();
+            
+            $rows = $u->where(['email', $email])
+            ->select([$u->getIdName()])
+            ->when($u->inSchema(['active']), function($q){
+                $q->addSelect('active');
+            })
+            ->get();
 
 			if (count($rows) === 0){
                 // Email not found
                 Factory::response()->sendError('Please check your e-mail', 400); 
             }
 		
-            $uid = $rows[0]['id'];	//
+            $uid = $rows[0][$u->getIdName()];	//
             $exp = time() + $this->config['email']['expires_in'];	
 
-            $active = $rows[0]['active'];
 
-            if ((string) $active === "0") {
-                Factory::response()->sendError('Non authorized', 403, 'Deactivated account !');
-            }
+            $active = true;    
+            if ($u->inSchema(['active'])){
+                $active = $rows[0]['active'];
+
+                if ((string) $active === "0") {
+                    Factory::response()->sendError('Non authorized', 403, 'Deactivated account !');
+                }
+            }    
 
             $base_url =  HTTP_PROTOCOL . '://' . $_SERVER['HTTP_HOST'] . ($this->config['BASE_URL'] == '/' ? '/' : $this->config['BASE_URL']) ;
             
 
             $token = $this->gen_jwt_rememberme($uid);
             
-            $url = $base_url . (!$this->config['REMOVE_API_SLUG'] ? 'api/v1' : 'v1') .'/auth/change_pass_by_link/' . $token . '/' . $exp; 	
+            $url = $base_url . (!$this->config['REMOVE_API_SLUG'] ? "api/$api_version" : $api_version) .'/auth/change_pass_by_link/' . $token . '/' . $exp; 	
 
 		} catch (\Exception $e){
 			Factory::response()->sendError($e->getMessage(), 500);
@@ -937,8 +920,7 @@ class AuthController extends Controller implements IAuth
     
 
     /*
-        Login by link
-        User controller is resposible for redirect to the view for changing password
+        Proviene de rememberme() y da la oportunidad de cambiar el pass otorgando tokens a tal fin
     */
     function change_pass_by_link($jwt = NULL, $exp = NULL){
         if (!in_array($_SERVER['REQUEST_METHOD'], ['GET','OPTIONS'])){
@@ -968,22 +950,36 @@ class AuthController extends Controller implements IAuth
 
                     $uid = $payload->uid;
 
-                    $roles = $this->fetchRoles($uid);
-                    $perms = $this->fetchPermissions($uid);
+                    $acl   = Factory::acl();
+                    
 
-                    $row = DB::table('users')->assoc()
-                    ->where(['id'=> $uid]) 
+                    $u = DB::table($this->users_table);
+
+                    if ($u->inSchema([$this->role_field])){
+                        $rid   = $u->find($uid)->value($this->role_field);
+                        $roles = [ $acl->getRoleName($rid) ]; 
+                    } else {
+                        $roles = $acl->fetchRoles($uid);
+                    }
+                    
+                    $perms = $acl->fetchPermissions($uid);
+
+
+                    $row = $u->assoc()
+                    ->where([$u->getIdName() => $uid]) 
                     ->first();
 
                     if (!$row)
                         throw new Exception("Uid not found");
 
-                    $active = $row['active']; 
-                    
+                    $active = true;    
+                    if ($u->inSchema(['active'])){    
+                        $active = $row['active'];                     
 
-                    if ($active === false) {
-                        Factory::response()->sendError('Non authorized', 403, 'Deactivated account');
-                    }
+                        if ($active === false) {
+                            Factory::response()->sendError('Non authorized', 403, 'Deactivated account');
+                        }
+                    }    
 
                     if ($payload->exp < time())
                         Factory::response()->sendError('Token expired, please log in',401);
@@ -1024,6 +1020,6 @@ class AuthController extends Controller implements IAuth
             }     
         }	
 
-    }        
+    }      
 
 }

@@ -153,8 +153,7 @@ class Schema
 	}
 
 	function field(string $name){
-		$this->column($name);
-		return $this;
+		return $this->column($name);
 	}
 	
 	// type
@@ -829,8 +828,8 @@ class Schema
 			}
 
 		} catch (\PDOException $e) {
-			Debug::dd($change, 'SQL with error');
-			Debug::dd($e->getMessage(), "PDO error");
+			dd($change, 'SQL with error');
+			dd($e->getMessage(), "PDO error");
 			$rollback();
 			throw $e;		
         } catch (\Exception $e) {
@@ -985,7 +984,6 @@ class Schema
 
 	// From DB 
 	//
-	// another way to implement is reading "SHOW COLUMNS FROM `table_name`;"
 	protected function fromDB(){
 		if (!in_array($this->tb_name, $this->tables)){
 			return;
@@ -1000,6 +998,10 @@ class Schema
 		$lines = explode("\n", $table_def["Create Table"]);
 		$lines = array_map(function($l){ return trim($l); }, $lines);
 		
+		$last_line     = $lines[count($lines) -1];
+		$this->prev_schema['engine']  = Strings::slice($last_line, '/ENGINE=([a-zA-Z][a-zA-Z0-9_]+)/');
+		$this->prev_schema['charset'] = Strings::slice($last_line, '/CHARSET=([a-zA-Z][a-zA-Z0-9_]+)/');
+
 		$fields = [];
 		$cnt = count($lines)-1;
 		for ($i=1; $i<$cnt; $i++){
@@ -1028,55 +1030,48 @@ class Schema
 				}else{
 					$len = Strings::slice($str, '/\(([0-9,]+)\)/');					
 				}
-				
+
+
 				$charset    = Strings::slice($str, '/CHARACTER SET ([a-z0-9_]+)/');
 				$collation  = Strings::slice($str, '/COLLATE ([a-z0-9_]+)/');
 				
 				$default    = Strings::slice($str, '/DEFAULT ([a-zA-Z0-9_\(\)]+)/');
-				//Debug::dd($default, "DEFAULT($field)");
+				//dd($default, "DEFAULT($field)");
 
 				$nullable   = Strings::slice($str, '/(NOT NULL)/') == NULL;
 				$auto       = Strings::slice($str, '/(AUTO_INCREMENT)/') == 'AUTO_INCREMENT';
-				//Debug::dd($nullable, "NULLABLE($field)");
+				//dd($nullable, "NULLABLE($field)");
 
 
-				// [CONSTRAINT [symbol]] CHECK (expr) [[NOT] ENFORCED]	
-				$check      = Strings::slice($str, '/CHECK (\(.*)/', function($s){
-					$s = substr($s, 1);
-					
-					if ($s[strlen($s)-1] == '"')
-						$s = substr($s, 0, -1);
-					
-					if ($s[strlen($s)-1] == ',')
-						$s = substr($s, 0, -1);
-					
-					$s = substr($s, 0, -1);
-					
-					return $s;
-				});
 				
+				// [CONSTRAINT [symbol]] CHECK (expr) [[NOT] ENFORCED]	
+				$check   = Strings::sliceAll($str, '/CHECK \((.*)\) (ENFORCED|NOT ENFORCED)/');
+					
 				//if (strlen($str)>1)
 				//	throw new \Exception("Parsing error!");				
 			
+				
 				/*
-				Debug::dd($field, 'FIELD ***');
-				Debug::dd($lines[$i], 'LINES');
-				Debug::dd($type, 'TYPE');
-				Debug::dd($array, 'ARRAY / SET');
-				Debug::dd($len, 'LEN');
-				Debug::dd($charset, 'CHARSET');
-				Debug::dd($collation, 'COLLATION');
-				Debug::dd($nullable, 'NULLBALE');
-				Debug::dd($default, 'DEFAULT');
-				Debug::dd($auto, 'AUTO');
-				Debug::dd($check, 'CHECK');
+				dd($field, 'FIELD ***');
+				dd($lines[$i], 'LINES');
+				dd($type, 'TYPE');
+				dd($array, 'ARRAY / SET');
+				dd($len, 'LEN');
+				dd($charset, 'CHARSET');
+				dd($collation, 'COLLATION');
+				dd($nullable, 'NULLBALE');
+				dd($default, 'DEFAULT');
+				dd($auto, 'AUTO');
+				dd($check, 'CHECK');
 				echo "-----------\n";
-				*/					
+				*/
+								
 
 				$this->prev_schema['fields'][$field]['type'] = strtoupper($type);
 				$this->prev_schema['fields'][$field]['auto'] = $auto; 
 				//$this->prev_schema['fields'][$field]['attr'] = ...
 				$this->prev_schema['fields'][$field]['len'] = $len;
+				$this->prev_schema['fields'][$field]['array'] = $array;
 				$this->prev_schema['fields'][$field]['nullable'] = $nullable;
 				$this->prev_schema['fields'][$field]['charset'] = $charset;
 				$this->prev_schema['fields'][$field]['collation'] = $collation;
@@ -1086,16 +1081,16 @@ class Schema
 
 			}else{
 				// son índices de algún tipo
-				//Debug::dd($str);
+				//dd($str);
 				
 				$primary = Strings::slice($str, '/PRIMARY KEY \(`([a-zA-Z0-9_]+)`\)/');				
-				$unique  = Strings::slice_all($str, '/UNIQUE KEY `([a-zA-Z0-9_]+)` \(`([a-zA-Z0-9_]+)`\)/');
-				$index   = Strings::slice_all($str, '/KEY `([a-zA-Z0-9_]+)` \(`([a-zA-Z0-9_]+)`\)/');
+				$unique  = Strings::sliceAll($str, '/UNIQUE KEY `([a-zA-Z0-9_]+)` \(`([a-zA-Z0-9_]+)`\)/');
+				$index   = Strings::sliceAll($str, '/KEY `([a-zA-Z0-9_]+)` \(`([a-zA-Z0-9_]+)`\)/');
 				
 				/*
-				Debug::dd($primary);
-				Debug::dd($unique);
-				Debug::dd($index);
+				dd($primary);
+				dd($unique);
+				dd($index);
 				echo "-----------\n";
 				*/	
 				
@@ -1126,11 +1121,19 @@ class Schema
 				$this->fields[$name] = array_merge($this->prev_schema['fields'][$name], $this->fields[$name]);
 			} 		
 
+			/*
+			if ($name == 'vencimiento'){
+				dd($this->prev_schema['fields'][$name]['nullable']);
+				dd($this->fields[$name]);
+				exit;
+			}
+			*/
+			
 			$this->indices[$name] = $this->prev_schema['indices'][$name] ?? NULL;
 			
 			$field = $this->fields[$name];
 
-			//Debug::dd($this->fields[$name]);
+			//dd($this->fields[$name]);
 			//exit;
 
 			$charset   = isset($field['charset']) ? "CHARACTER SET {$field['charset']}" : '';
@@ -1162,11 +1165,13 @@ class Schema
 				$def .= "NOT NULL ";
 			}	
 
-			//Debug::dd($field['nullable'], 'NULLABLE');
-			//Debug::dd($field['default'], 'DEFAULT');
-			//exit;
+			/*			
+			dd($field['nullable'], "NULLABLE ($name)");
+			dd($field['default'], "DEFAULT ($name)");
+			exit;
+			*/
 
-			if (isset($field['nullable']) && $field['nullable'] == 'NOT NULL' && isset($field['default']) && $field['default'] == 'NULL'){
+			if (isset($field['nullable']) && !$field['nullable'] && isset($field['default']) && $field['default'] == 'NULL'){
 				throw new \Exception("Column `$name` can not be not nullable but default 'NULL'");
 			}
 				
@@ -1198,16 +1203,16 @@ class Schema
 		foreach ($this->indices as $name => $type){			
 			switch($type){
 				case "INDEX":
-					$this->commands[] = $this->addIndex($name);
+					$this->addIndex($name);
 				break;
 				case "PRIMARY":
-					$this->commands[] = $this->addPrimary($name);
+					$this->addPrimary($name);
 				break;
 				case "UNIQUE": 
-					$this->commands[] = $this->addUnique($name);
+					$this->addUnique($name);
 				break;
 				case "SPATIAL": 
-					$this->commands[] = $this->addSpatial($name);
+					$this->addSpatial($name);
 				break;
 			}
 		}
@@ -1215,11 +1220,12 @@ class Schema
 		// FKs
 		$this->addFKs();
 
+
 		$this->query = implode("\r\n",$this->commands);
-
-
+	
 		$conn = DB::getConnection();   
 
+		
 		DB::beginTransaction();
 		try{
 			foreach($this->commands as $change){     
@@ -1230,8 +1236,8 @@ class Schema
 			DB::commit();
 		} catch (\PDOException $e) {
 			DB::rollback();
-			Debug::dd($change, 'SQL');
-			Debug::dd($e->getMessage(), "PDO error");		
+			dd($change, 'SQL');
+			dd($e->getMessage(), "PDO error");		
         } catch (\Exception $e) {
             DB::rollback();
             throw $e;
@@ -1251,6 +1257,10 @@ class Schema
 			'indices'	=> $this->indices,
 			'fks'		=> $this->fks
 		];
+	}
+
+	function getCurrentSchema(){
+		return $this->prev_schema;
 	}
 }
 

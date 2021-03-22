@@ -1,10 +1,14 @@
 <?php
 
 require_once 'constants.php';
+require_once HELPERS_PATH. 'etc.php';
 
-setlocale(LC_ALL, 'es_AR.UTF-8');
+// puede afectar el punto decimal al formar sentencias SQL !!!
+// setlocale(LC_ALL, 'es_AR.UTF-8');
 
 return [
+	'APP_URL' => env('APP_URL'),
+
 	#
 	# For a sub-foder in /var/www/html just set as
 	# BASE_URL' => /folder/'
@@ -22,40 +26,53 @@ return [
 	'DEFAULT_CONTROLLER' => 'LoginController',
 
 	'db_connections' => [
-		'db1' => [
-			'host'	=> 'localhost',
-			'driver' => 'mysql',
-			'db_name' => 'az', 
-			'user'	=> 'boctulus', 
-			'pass'	=> 'gogogo#*$U&_441@#'
+		'db_app' => [
+			'host'		=> env('DB_HOST', '127.0.0.1'),
+			'port'		=> env('DB_PORT', 3306),
+			'driver' 	=> env('DB_CONNECTION'),
+			'db_name' 	=> env('DB_DATABASE'), 
+			'user'		=> env('DB_USERNAME'), 
+			'pass'		=> env('DB_PASSWORD'),
+			'charset'	=> 'utf8',
+			'pdo_options' => [
+				\PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+				\PDO::ATTR_EMULATE_PREPARES => false
+			]
 		],
 		
-		'db2' => [
-			'host'	=> 'localhost',
-			'driver' => 'mysql',
-			'db_name' => 'az2', 
-			'user'	=> 'boctulus', 
-			'pass'	=> 'gogogo#*$U&_441@#'
-		]
+		'db_ar' => [
+			'host'		=> env('DB_HOST_AR', '127.0.0.1'),
+			'port'		=> env('DB_PORT_AR', 3306),
+			'driver' 	=> env('DB_CONNECTION_AR'),
+			'db_name' 	=> env('DB_DATABASE_AR'), 
+			'user'		=> env('DB_USERNAME_AR'), 
+			'pass'		=> env('DB_PASSWORD_AR'),
+			'charset'	=> 'utf8',
+			'pdo_options' => [
+				\PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+				\PDO::ATTR_EMULATE_PREPARES => false
+			]
+		]		
+
 	], 
 
-	'db_connection_default' => 'db1',
+	'db_connection_default' => 'db_app',  
 	
 	'DateTimeZone' => 'America/Argentina/Buenos_Aires',
 
-	'error_handling'   => true,
-	'debug'   => true,
+	'error_handling'   => false,
+	'debug'   => env('APP_DEBUG', true),
 
 	'access_token' => [
-		'secret_key' =>'/`D*x!I<T^SH*_~&<#-&^%s~etN,RX`G_|{<+#"-I<{!}*![[}${([-zC<~pX$,e~#[[h~nyW?~:`ak><_b@>@=|$o=?h}!u+U&[##/\(> []T.Yx_J\x|g{\N`h^})\_a/<D#X( m+qb#|-,i>-~.j~(RG&[_*.,`r^LM,.E<V:`v~?;`~#p&<:W;>\%\]~fE}d~m{!u@,"Jt<b-?}A=m]H$-`|[B&@<.u@FAl:u}@>|ft!?|&|@|=@aTC@v\|Oe Gn|Rg}}; !@\@D+~@.;~<V[&yno^U|>{?{:vc`^[S`W?V<E<|[;}]}{|-{o["|}E[Op&$yL%+*}G}(|]..?,w}!#P+,=a(+`<<*^N.:V#$%.lr(%:!|&zM#%F?";=]ABb.;/[xd)#{^J]!~~|){[>a:*]>`%-"~\Fu}LBUW_},J[+,a$(? G,#" |$}VTS%*}K(|[_&:gm%^I/z+[M_E<(.n|j#$-<|]${*{+$[b_*/}m$m^&T^%>[^&!]|k+L',
-		'expiration_time' => 60 * 15 * 10000,   // seconds (normalmente 60 * 15)
-		'encryption' => 'HS256'			
+		'secret_key' 		=> env('TOKENS_ACCSS_SECRET_KEY'),
+		'expiration_time'	=> 60 * 15 * 10000,   // seconds (normalmente 60 * 15)
+		'encryption'		=> 'HS256'			
 	],
 
 	'refresh_token' => [
-		'secret_key' => '^~~W?]]t@U|~yKi`b$;:#"F(HD`@K:[~|>d}{o%&{^M^(>d (?]~H@!$ #$}(]%,z~+#^_|b~eD.?hgb],w/E.;$$-(]~\h*)+"N^{,uWFT,!L&=%Y[)[?}p;r}!`/i`BJ?c]]"~&^w!_*XYD-!|.]-`[)R!)x$^=`Y>A`,IR~;|>q]//nPh};;"h>S@p^#)/j}Q^+]&>[F{;J,%&%{y:w|<A]&s[,:.|%?djk=<uZe;-(;}rg:J~|[:oF^.{|R;<wo){+[!H\~*|`V~[G~$gZ~)|K|+)lr[%>$_%>{)\)`~C" ==n#?eH:;&moG,}=|[(:P;;:&|_}tmuZ/W\/o:\&)];~>|]}y\,o-Mm|@;<hX>([?W_};#%@$!y{C(r~,&=]+%.?_?A%!f}=VX$|@*Iu:?<(A/^S\}L|=${$_*P)^"qtetg`~`|fC)K^/%/-s&W e]l}T{:M|{{Z#~/Um*.s$"^&^)NV},!> &"[O&\)?>cv(&#U|||l=~W"{]\$^',
-		'expiration_time' => 315360000,   // seconds
-		'encryption' => 'HS256'	
+		'secret_key'		=> env('TOKENS_REFSH_SECRET_KEY'),
+		'expiration_time' 	=> 315360000,   // seconds
+		'encryption' 		=> 'HS256'	
 	],
 
 	'method_override' => [
@@ -66,31 +83,30 @@ return [
 	/* 
 		Any role listed bellow if it is asked then will be auto-aproved.
 	*/
-	'auto_approval_roles' => ['basic', 'regular'],
+	'auto_approval_roles' => ['dev'],
 
 	/*
 		If you need email confirmation then pre_activated should be false
 	*/
 	'pre_activated' => false,
 
-	// seconds
 	'email' => [
-		'secret_key' => 'TbD:||:"%;(]]I{Q[*Q"[}=J`.~z#j*.-Vt"]*!~>#k}`!~^^%[?>.T_}] }@:<|=/{]y~[^ @)?WV^)+c$"l+&@.\?Nx~$_Gx=%_=Lu:&?!~\{{?%*?}IV~@:d:|][:/;luvS"*h{"n^\]/?[:@(:SM+~~)$vh\%_Q:[[M(~xx.)%|}),c,{$gw#{~h>:@-B|_`(L~\%:[r]$=`+:]St#!}%#@|?{[m@;("[^!Y_TbSNl-k{.}.vO:)"`}:|%G:/+P$fG(W>G[\|="z`||~fC+kLe[~+E~}}#`B>: }d"\Z)R}f@Y&X..d{/px~~_zc]+{d]##|a$M@,P>~U`A!CR*:!`~?)|\mVB!|+ uQ*l*\;|*_zc"*d}+q;s{@C()V$vIv*=B[{$ `S!&+`_t;{u:&_ `DU|BD@|;"NS.)>+^&@ssm\^%#h+\{{&fnN@![%#@/[F.>),PT\i~n|^$~$&I\;=;U}"N.(LI&{m&o&S >X`$-<|td~-Kyx].h?/O]',
+		'secret_key' => env('TOKENS_EMAIL_SECRET_KEY'),
 		'expires_in' => 7 * 24 * 3600,
 		'encryption' => 'HS256',
 		'mailer' =>  [	
-			'from'	 => ['no_responder@simplerest.mapapulque.ro', 'No responder'],	
+			'from'	 => [env('MAIL_DEFAULT_FROM_ADDR'), env('MAIL_DEFAULT_FROM_NAME')],	
 			'object' => [
-				'Host' => 'smtp.easyname.com',
-				'Username' => '162997mail6',
-				'Password' => 'Hvr0tf9Is#',
-				'Port' => 587,
-	            'SMTPAuth' => true,
-				'SMTPSecure' => 'ssl',
-				'SMTPDebug' => 4,
-				'CharSet' => 'UTF-8',
-				'Debugoutput' => 'html',
-				'SMTPSecure' => false
+				'Host'			=> env('MAIL_HOST'),
+				'Port'			=> env('MAIL_PORT'),
+				'Username' 		=> env('MAIL_USERNAME'),
+				'Password' 		=> env('MAIL_PASSWORD'),
+				'SMTPSecure'	=> env('MAIL_ENCRYPTION'),
+	            'SMTPAuth' 		=> true,
+				'SMTPDebug' 	=> 4,
+				'CharSet' 		=> 'UTF-8',
+				'Debugutput' 	=> 'html',
+				'SMTPSecure'	=> false
 			]
 		]
 	],
@@ -99,20 +115,31 @@ return [
 	
 	'paginator' => [
 					'max_limit' => 50,
-					'default_limit' => 10
+					'default_limit' => 10,
+					'position' => 'BOTTOM'
 	],
 
 	'google_auth'  => [
-		'client_id' => '228180780767-4p8t6nvocukmu44ti57o60n1ck6sokpd.apps.googleusercontent.com',
-		'client_secret' => 'JByioBo6mRiVBkhW3ldylYKD',
-		// https://simplerest.mapapulque.ro/login/google_login
-		'callback_url' => 'http://simplerest.co/login/google_login'
+		'client_id' 	=> env('OAUTH_GOOGLE_CLIENT_ID'),
+		'client_secret' => env('OAUTH_GOOGLE_CLIENT_SECRET'),
+		'callback_url' 	=> env('OAUTH_GOOGLE_CALLBACK')
 	],
 
 	'facebook_auth' => [
-		'app_id' => '533640957216135',
-		'app_secret' => '234a9cf42e8710ed813d45ed9e0fb212', 
-		'callback_url' => 'https://simplerest.mapapulque.ro/login/fb_login'
-	]
+		'app_id' 		=> env('OAUTH_FACEBOOK_CLIENT_ID'),
+		'app_secret'	=> env('OAUTH_FACEBOOK_CLIENT_SECRET'), 
+		'callback_url'	=> env('OAUTH_FACEBOOK_CALLBACK')
+	],
+
+	/*
+		Service Providers
+	*/
+
+	'providers' => [
+		//devdojo\calculator\CalculatorServiceProvider::class,
+		boctulus\grained_acl\GrainedAclServiceProvider::class,
+		boctulus\basic_acl\BasicAclServiceProvider::class
+		// ...
+	],
 	
 ];

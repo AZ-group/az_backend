@@ -6,7 +6,7 @@ use PHPMailer\PHPMailer\PHPMailer;
 use simplerest\libs\Factory;
 
 class Utils {
-	static function send_mail(string $to_email, string $to_name, $subject, $body, $alt_body = null){
+	static function sendMail(string $to_email, string $to_name, $subject, $body, $alt_body = null){
 		$config = Factory::config();
 
 		$mail = new PHPMailer();
@@ -19,7 +19,7 @@ class Utils {
         $mail->setFrom($config['email']['mailer']['from'][0], $config['email']['mailer']['from'][1]);    
         $mail->addAddress($to_email, $to_name);
        
-        $mail->uidject = $subject;
+        $mail->subject = $subject;
 		$mail->msgHTML($body); 
 		
 		if (!is_null($alt_body))

@@ -1,6 +1,6 @@
 <?php
 
-use simplerest\core\Acl;
+use boctulus\grained_acl\Acl;
 use simplerest\libs\Debug;
 
 
@@ -19,42 +19,24 @@ if (!$acl_cache || is_file($acl_file) !== true) {
 
     $acl
     ->addRole('guest', -1)
-    ->addResourcePermissions('products', ['read_all'])
-    ->addResourcePermissions('baz', ['read'])
-    ->addResourcePermissions('bar', ['read', 'write'])
+    ->addResourcePermissions('kids_ar', ['read_all'])
     //->setGuest('guest')
 
     ->addRole('registered', 1)
     ->addInherit('guest')
-    ->addResourcePermissions('roles', ['read'])
-    ->addResourcePermissions('products', ['write'])
-    ->addResourcePermissions('products', ['write'])
-    ->addResourcePermissions('super_cool_table', ['read', 'write'])
-       
-
-    ->addRole('basic', 2)
+   
+    ->addRole('dev', 10)
     ->addInherit('registered')
-    ->addResourcePermissions('products', ['write'])
  
-
-    //->addRole('registeredO', 1)
-    //->addRole('registered', 10)
-
-    ->addRole('regular', 3)
+    ->addRole('supervisor', 100)  
     ->addInherit('registered')
-    ->addResourcePermissions('products', ['read', 'write'])
-    ->addResourcePermissions('foo', ['read', 'update'])
-	//->addResourcePermissions('users', ['read', 'update'])
-    
-    ->addRole('supervisor', 502)  // salta sino especifico el id al leerlo
-    ->addInherit('registered')
-    ->addResourcePermissions('users', ['read_all'])  // <--
+    ->addResourcePermissions('users', ['read_all']) 
 
-    ->addRole('admin', 100)
+    ->addRole('admin', 500)
     ->addInherit('registered')
     ->addSpecialPermissions(['read_all', 'write_all', 'read_all_folders', 'lock', 'fill_all', 'impersonate'])
  
-    ->addRole('superadmin', 500)
+    ->addRole('superadmin', 1000)
     ->addInherit('admin')
     ->addSpecialPermissions([
                              'read_all_trashcan',
@@ -65,14 +47,15 @@ if (!$acl_cache || is_file($acl_file) !== true) {
                              'grant'
                             ]);
 
+    
         
         
 
     /////////////////////
 
-    //Debug::dd($acl->hasResourcePermission('list', ['basic'], 'super_cool_table'));
-    //Debug::dd($acl->getSpPermissions());
-    //Debug::dd($acl->getRolePermissions(), 'perms');
+    //dd($acl->hasResourcePermission('list', ['basic'], 'super_cool_table'));
+    //dd($acl->getSpPermissions());
+    //dd($acl->getRolePermissions(), 'perms');
     //exit;    
     /////////////////////
 

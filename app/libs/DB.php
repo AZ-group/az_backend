@@ -4,6 +4,7 @@ namespace simplerest\libs;
 
 use simplerest\core\Model;
 use simplerest\libs\Factory;
+use simplerest\libs\Strings;
 
 class DB 
 {
@@ -14,11 +15,36 @@ class DB
 
 	protected function __construct() { }
 	
+	public static function getCurrentConnectionId(){
+		return static::$current_id_conn;
+	}
+
+	public static function getCurrent(){
+		return Factory::config()['db_connections'][static::$current_id_conn];
+	}
+
+	public static function database(){
+		return self::getCurrent()['db_name'];
+	}
+
+	// alias
+	public static function getCurrentDB(){
+		return self::database();
+	}
+
+	public static function driver(){
+		return self::getCurrent()['driver'];
+	}
+
+	public static function schema(){
+		return self::getCurrent()['schema'] ?? NULL;
+	}
+	
 	public static function setConnection($id){
 		static::$current_id_conn = $id;
 	}
 
-    public static function getConnection(string $conn_id = null, $options = null) {
+    public static function getConnection(string $conn_id = null) {
 		$config = Factory::config();
 		
 		$cc = count($config['db_connections']);
@@ -51,20 +77,46 @@ class DB
 		
 		$host    = $config['db_connections'][static::$current_id_conn]['host'] ?? 'localhost';
 		$driver  = $config['db_connections'][static::$current_id_conn]['driver'];	
+		$port    = $config['db_connections'][static::$current_id_conn]['port'] ?? NULL;
         $db_name = $config['db_connections'][static::$current_id_conn]['db_name'];
 		$user    = $config['db_connections'][static::$current_id_conn]['user'] ?? 'root';
 		$pass    = $config['db_connections'][static::$current_id_conn]['pass'] ?? '';
+		$pdo_opt = $config['db_connections'][static::$current_id_conn]['pdo_options'] ?? NULL;
+		$charset = $config['db_connections'][static::$current_id_conn]['charset'] ?? NULL;
+
+		// alias
+		if ($driver == 'postgres'){
+			$driver = 'pgsql';
+		}
 		
 		try {
-			if (empty($options)){
-				$options[\PDO::ATTR_ERRMODE] = \PDO::ERRMODE_EXCEPTION;
-				//$options[\PDO::ATTR_EMULATE_PREPARES] = false;  /* es posible desactivar ? */
+			switch ($driver) {
+				case 'mysql':
+					self::$connections[static::$current_id_conn] = new \PDO("$driver:host=$host;dbname=$db_name;port=$port", $user, $pass, $pdo_opt);				
+					break;
+				case 'sqlite':
+					$db_file = Strings::contains(DIRECTORY_SEPARATOR, $db_name) ?  $db_name : STORAGE_PATH . $db_name;
+	
+					self::$connections[static::$current_id_conn] = new \PDO("sqlite:$db_file", null, null, $pdo_opt);
+					break;
+
+				case 'pgsql':
+					self::$connections[static::$current_id_conn] = new \PDO("$driver:host=$host;dbname=$db_name;port=$port", $user, $pass, $pdo_opt);
+					break;	
+
+				default:
+					throw new \Exception("Driver '$driver' not supported / tested.");
 			}
-				
-			self::$connections[static::$current_id_conn] = new \PDO("$driver:host=" . $host . ";dbname=" . $db_name, $user, $pass, $options);
-            self::$connections[static::$current_id_conn]->exec("set names utf8");
+
+
+			if ($charset != null){
+				self::$connections[static::$current_id_conn]->exec("SET NAMES 'UTF8'");	
+			}	
+
 		} catch (\PDOException $e) {
-			throw new \PDOException($e->getMessage());
+			throw new \PDOException('PDO Exception: '. $e->getMessage());	
+		} catch (\Exception $e) {
+			throw new \Exception($e->getMessage());
 		}	
 		
 		return self::$connections[static::$current_id_conn];
@@ -104,10 +156,9 @@ class DB
 	
 	public static function table($from, $alias = NULL, bool $connect = true) {
 		// Usar un wrapper y chequear el tipo
-		if (stripos($from, ' FROM ') === false){
-			$tb_name = $from;
-		
-			$names = explode('_', $tb_name);
+		if (!Strings::contains(' FROM ', $from))
+		{
+			$names = explode('_', $from);
 			$names = array_map(function($str){ return ucfirst($str); }, $names);
 			$model_instance = implode('', $names).'Model';		
 

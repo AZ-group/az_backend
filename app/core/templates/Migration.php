@@ -2,6 +2,8 @@
 
 use simplerest\core\Schema;
 
+use simplerest\libs\Factory;
+
 class __NAME__ implements IMigration
 {
     /**
