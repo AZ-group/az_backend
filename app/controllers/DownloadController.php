@@ -28,7 +28,7 @@ class DownloadController extends ResourceController
         $_get = [];    
         
         if (!Factory::acl()->hasSpecialPermission('read_all', $this->roles)){
-            if ($this->isGuest()){                
+            if ($this->acl->isGuest()){                
                 $instance = DB::table('files');
                 
                 if ($instance->inSchema(['guest_access'])){
@@ -40,14 +40,14 @@ class DownloadController extends ResourceController
             }
         }
 
-        $_get[] =   ['id', $id];   
+        $_get[] =   ['uuid', $id];   
 
         $row = DB::table('files')->select(['filename_as_stored'])->where($_get)->first();
 
         if (empty($row))
             Factory::response()->sendError('File not found', 404);
       
-        $file = UPLOADS_PATH . $row->filename_as_stored;
+        $file = UPLOADS_PATH . $row['filename_as_stored'];
 
         if (file_exists($file)) {
             header('Content-Description: File Transfer');

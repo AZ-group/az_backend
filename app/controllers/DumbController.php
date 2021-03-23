@@ -33,6 +33,8 @@ class DumbController extends Controller
                 continue;
             }
             
+            $photo = $kid['file_url'];
+
             unset($kid['file_url']);
             unset($kid['extras']);
 

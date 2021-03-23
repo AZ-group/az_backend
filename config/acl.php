@@ -19,7 +19,8 @@ if (!$acl_cache || is_file($acl_file) !== true) {
 
     $acl
     ->addRole('guest', -1)
-    ->addResourcePermissions('kids_ar', ['read_all'])
+    ->addResourcePermissions('files', ['read_all'])
+    ->addResourcePermissions('kids_ar',  ['read_all'])
     //->setGuest('guest')
 
     ->addRole('registered', 1)
