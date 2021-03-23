@@ -1,5 +1,10 @@
 # TODO
 
+- Investigar a Hasura -un generador de GraphQL y API Rest Open Source- como competencia.
+
+https://hasura.io/docs/latest/graphql/core/databases/postgres/queries/aggregation-queries.html
+
+
 [ ACL ]
 
 - Métodos como belongsTo() deberían poder ser re-definidos en un modelo permitiendo especificar indirectamente un campo como "idcliente" que *no* es el user_id 

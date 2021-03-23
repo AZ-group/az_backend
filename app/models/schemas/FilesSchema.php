@@ -14,10 +14,10 @@ class FilesSchema implements ISchema
 		return [
 			'table_name'	=> 'files',
 
-			'id_name'		=> 'id',
+			'id_name'		=> 'uuid',
 
 			'attr_types'	=> [
-			'id' => 'INT',
+			'uuid' => 'STR',
 			'filename' => 'STR',
 			'file_ext' => 'STR',
 			'filename_as_stored' => 'STR',
@@ -29,7 +29,7 @@ class FilesSchema implements ISchema
 			'deleted_at' => 'STR'
 		],
 
-			'nullable'		=> ['id', 'belongs_to', 'guest_access', 'broken', 'deleted_at'],
+			'nullable'		=> ['uuid', 'belongs_to', 'guest_access', 'broken', 'deleted_at'],
 
 			'rules' 		=> [
 				'filename' => ['max' => 255],
