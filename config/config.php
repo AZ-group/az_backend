@@ -23,7 +23,7 @@ return [
 	*/	
 	'REMOVE_API_SLUG' => false, 
 	'HTTPS' => 'Off',
-	'DEFAULT_CONTROLLER' => 'LoginController',
+	'DEFAULT_CONTROLLER' => 'HomeController',
 
 	'db_connections' => [
 		'db1' => [
