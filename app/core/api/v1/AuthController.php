@@ -52,32 +52,32 @@ class AuthController extends Controller implements IAuth
         $time = time();
 
         $payload = [
-            'alg' => $this->config['email']['encryption'],
+            'alg' => $this->config['email_token']['encryption'],
             'typ' => 'JWT',
             'iat' => $time, 
-            'exp' => $time + $this->config['email']['expires_in'],
+            'exp' => $time + $this->config['email_token']['expires_in'],
             'ip'  => Request::ip(),
             'email' => $email,
             'roles' => $roles,
             'permissions' => $perms
          ];
 
-        return \Firebase\JWT\JWT::encode($payload, $this->config['email']['secret_key'],  $this->config['email']['encryption']);
+        return \Firebase\JWT\JWT::encode($payload, $this->config['email_token']['secret_key'],  $this->config['email_token']['encryption']);
     }
 
     protected function gen_jwt_rememberme($uid){
         $time = time();
 
         $payload = [
-            'alg' => $this->config['email']['encryption'],
+            'alg' => $this->config['email_token']['encryption'],
             'typ' => 'JWT',
             'iat' => $time, 
-            'exp' => $time + $this->config['email']['expires_in'],
+            'exp' => $time + $this->config['email_token']['expires_in'],
             'ip'  => Request::ip(),
             'uid' => $uid
          ];
 
-        return \Firebase\JWT\JWT::encode($payload, $this->config['email']['secret_key'],  $this->config['email']['encryption']);
+        return \Firebase\JWT\JWT::encode($payload, $this->config['email_token']['secret_key'],  $this->config['email_token']['encryption']);
     }
 
     function login()
@@ -595,7 +595,7 @@ class AuthController extends Controller implements IAuth
 
                 if ($email_confirmation)
                 {                 
-                    $exp = time() + $this->config['email']['expires_in'];
+                    $exp = time() + $this->config['email_token']['expires_in'];
                     $base_url =  HTTP_PROTOCOL . '://' . $_SERVER['HTTP_HOST'] . ($this->config['BASE_URL'] == '/' ? '/' : $this->config['BASE_URL']) ;
                     $token = $this->gen_jwt_email_conf($data['email'], $roles, []);
                     $url = $base_url . (!$this->config['REMOVE_API_SLUG'] ? "api/$api_version" : $api_version) . '/auth/confirm_email/' . $token . '/' . $exp; 
@@ -776,7 +776,7 @@ class AuthController extends Controller implements IAuth
         if($jwt != null)
         {
             try {
-                $payload = \Firebase\JWT\JWT::decode($jwt, $this->config['email']['secret_key'], [ $this->config['email']['encryption'] ]);
+                $payload = \Firebase\JWT\JWT::decode($jwt, $this->config['email_token']['secret_key'], [ $this->config['email_token']['encryption'] ]);
                 
                 if (empty($payload))
                     $error = 'Unauthorized!';                     
@@ -881,7 +881,7 @@ class AuthController extends Controller implements IAuth
             }
 		
             $uid = $rows[0]['id'];	//
-            $exp = time() + $this->config['email']['expires_in'];	
+            $exp = time() + $this->config['email_token']['expires_in'];	
 
             $active = $rows[0]['active'];
 
@@ -902,12 +902,12 @@ class AuthController extends Controller implements IAuth
     
         // Queue email
         $ok = (bool) DB::table('messages')->create([
-            'from_email' => $this->config['email']['mailer']['from'][0],
-            'from_name' => $this->config['email']['mailer']['from'][1],
-            'to_email' => $email, 
-            'to_name' => '', 
-            'subject' => 'Cambio de contraseña', 
-            'body' => "Para cambiar la contraseña siga el enlace:<br/><a href='$url'>$url</a>"
+            'from_email' => null,
+            'from_name'  => null,
+            'to_email'   => $email, 
+            'to_name'    => '', 
+            'subject'    => 'Cambio de contraseña', 
+            'body'       => "Para cambiar la contraseña siga el enlace:<br/><a href='$url'>$url</a>"
         ]);
 
         /*
@@ -947,7 +947,7 @@ class AuthController extends Controller implements IAuth
             if($jwt != null)
             {
                 try {
-                    $payload = \Firebase\JWT\JWT::decode($jwt, $this->config['email']['secret_key'], [ $this->config['email']['encryption'] ]);
+                    $payload = \Firebase\JWT\JWT::decode($jwt, $this->config['email_token']['secret_key'], [ $this->config['email_token']['encryption'] ]);
                     
                     if (empty($payload))
                         Factory::response()->sendError('Unauthorized!',401);                     

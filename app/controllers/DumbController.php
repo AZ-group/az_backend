@@ -2214,9 +2214,17 @@ class DumbController extends Controller
         Factory::response()->sendError('Acceso no autorizado', 401, 'Header vacio');
     }
    
-      // ok
+    /*
+        Habilitar:
+
+        https://myaccount.google.com/lesssecureapps
+
+        e IMAP
+
+        https://www.arclab.com/en/kb/email/how-to-enable-imap-pop3-smtp-gmail-account.html
+    */
     function sender(){
-        dd(Utils::sendMail('boctulus@gmail.com', 'Pablo ZZ', 'Pruebita', 'Hola!<p/>Esto es una <b>prueba</b><p/>Chau'));     
+        dd(Utils::sendMail('boctulus@gmail.com', 'Pablo ZZZ', 'Pruebita 2', 'Hola!<p/>Esto es una más <b>prueba</b> con Google<p/>Chau'));     
     }
 
     function validation_test(){

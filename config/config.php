@@ -126,6 +126,12 @@ return [
 		'encryption' 		=> 'HS256'	
 	],
 
+	'email_token' => [
+		'secret_key' => env('TOKENS_EMAIL_SECRET_KEY'),
+		'expires_in' => 7 * 24 * 3600,
+		'encryption' => 'HS256'
+	],
+
 	'method_override' => [
 		'by_url' => true,
 		'by_header' => true
@@ -139,27 +145,29 @@ return [
 	/*
 		If you need email confirmation then pre_activated should be false
 	*/
-	'pre_activated' => false,
+	'pre_activated' => true,
 
 	'email' => [
-		'secret_key' => env('TOKENS_EMAIL_SECRET_KEY'),
-		'expires_in' => 7 * 24 * 3600,
-		'encryption' => 'HS256',
-		'mailer' =>  [	
-			'from'	 => [env('MAIL_DEFAULT_FROM_ADDR'), env('MAIL_DEFAULT_FROM_NAME')],	
-			'object' => [
+		'from'		=> [
+			'address' 		=> env('MAIL_DEFAULT_FROM_ADDR'), 
+			'name' 			=> env('MAIL_DEFAULT_FROM_NAME')
+		],	
+
+		'mailers' => [
+			'smtp' => [
 				'Host'			=> env('MAIL_HOST'),
 				'Port'			=> env('MAIL_PORT'),
 				'Username' 		=> env('MAIL_USERNAME'),
 				'Password' 		=> env('MAIL_PASSWORD'),
 				'SMTPSecure'	=> env('MAIL_ENCRYPTION'),
-	            'SMTPAuth' 		=> true,
+				'SMTPAuth' 		=> env('MAIL_AUTH'),
 				'SMTPDebug' 	=> 4,
 				'CharSet' 		=> 'UTF-8',
-				'Debugutput' 	=> 'html',
-				'SMTPSecure'	=> false
+				'Debugutput' 	=> 'html'
 			]
-		]
+		],
+
+		'mailer_default' => 'smtp'
 	],
 
 	'pretty' => false,	
