@@ -22,7 +22,7 @@ use simplerest\libs\Validator;
 //use Symfony\Component\Uid\Uuid;
 use simplerest\libs\Files;
 use simplerest\libs\Time;
-use simplerest\core\Schema;
+use simplerest\libs\Schema;
 //use simplerest\models\CablesModel;
 use simplerest\core\Route;
 
@@ -3298,13 +3298,8 @@ class DumbController extends Controller
     }
 
     function test_discovery(){
-        DB::getConnection();
-        $db  = DB::database();
-
-        $sql = "SELECT * FROM `INFORMATION_SCHEMA`.`KEY_COLUMN_USAGE` 
-        WHERE `REFERENCED_TABLE_NAME` IS NOT NULL AND TABLE_SCHEMA = '$db' AND REFERENCED_TABLE_SCHEMA = '$db'";
-
-        dd(Model::query($sql));
+        $relations = Schema::getRelations('books');
+        var_dump($relations, 'RELATIONSHIPS');
     }
 
 }

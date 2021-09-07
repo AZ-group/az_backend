@@ -1,6 +1,6 @@
 <?php
 
-namespace simplerest\core;
+namespace simplerest\libs;
 
 use simplerest\core\Model;
 use simplerest\libs\DB;
@@ -44,6 +44,86 @@ class Schema
 		$this->engine_ver = (int) DB::select('SELECT VERSION() AS ver')[0]['ver'];
 		$this->tb_name = $tb_name;
 		$this->fromDB();
+	}
+
+	static function getRelations(string $table){
+		DB::getConnection();
+        $db  = DB::database();
+
+        $sql = "SELECT * FROM `INFORMATION_SCHEMA`.`KEY_COLUMN_USAGE` 
+        WHERE `REFERENCED_TABLE_NAME` IS NOT NULL AND TABLE_SCHEMA = '$db' AND REFERENCED_TABLE_SCHEMA = '$db'
+        AND TABLE_NAME = '$table' ORDER BY `REFERENCED_COLUMN_NAME`;";
+
+        $rels = Model::query($sql);
+        
+        $relationships = [];
+
+        foreach($rels as $rel){
+            $to_tb = $rel['REFERENCED_TABLE_NAME'];
+
+            $from = $rel['TABLE_NAME'] . '.' . $rel['COLUMN_NAME']; 
+            $to   = $rel['REFERENCED_TABLE_NAME'] . '.' . $rel['REFERENCED_COLUMN_NAME']; 
+
+            // "['$to', '$from']"
+            $relationships[$to_tb][] = [
+                'to'   => $to, 
+                'from' => $from
+            ];
+        }
+
+        foreach ($relationships as $tb => $rs){
+            $tos = array_column($rs, 'to');
+            //$tos = sort($tos);
+
+            $prev = null;
+            $repeted = [];
+            foreach ($tos as $to){
+                if ($to == $prev){
+                    if (!isset($repeted[$tb]) || !in_array($to, $repeted[$tb])){
+                        $repeted[$tb][] = $to;
+                    }
+                }
+
+                $prev = $to;
+            }
+        }
+
+        foreach ($relationships as $tb => $rs){
+            foreach ($rs as $k => $r){
+                if (isset($repeted[$tb]) && in_array($r['to'], $repeted[$tb])){
+                    list($_t, $fk) = explode('.', $r['from']);
+                    
+                    if (Strings::endsWith('_id', $fk)){
+                        $key = substr($fk, 0, strlen($fk) -3);                        
+                    }
+
+                    if (!isset($key) && Strings::startsWith('id_', $fk)){
+                        $key = substr($fk, 3);  
+                    } 
+
+                    // revisar porque repite el subfijo
+                    if (!isset($key)){
+                        list($t, $id) = explode('.', $r['to']);
+                        $key = $t . rand(100,999);
+                    }    
+                    
+                    $key = $key . 's';  // pluralizo
+                    
+                    list($_t, $fk) = explode('.', $r['to']);
+                    $to = "$key.$fk";
+                    
+                    unset($relationships[$tb][$k]);
+
+                    $relationships[$tb][] = [
+                        'to'   => $to, 
+                        'from' => $from 
+                    ];
+                }
+                //dd($key, $tb);      
+            }      
+        }
+        
+		return $relationships;
 	}
 
 	static function getTables(string $conn_id = null) {	
@@ -1094,6 +1174,7 @@ class Schema
 				echo "-----------\n";
 				*/	
 				
+				/*
 				if ($primary != NULL){
 					$this->prev_schema['indices'][$field] = 'PRIMARY';
 				} elseif ($unique != NULL){
@@ -1101,6 +1182,7 @@ class Schema
 				}if ($index != NULL){
 					$this->prev_schema['indices'][$field] = 'INDEX';
 				}
+				*/
 			}
 		}
 		

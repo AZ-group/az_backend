@@ -8,9 +8,6 @@ use simplerest\models\schemas\KidsArSchema;
 
 class KidsArModel extends Model
 { 
-	
-	
-
 	protected $hidden   = [];
 	protected $not_fillable = [];
 
