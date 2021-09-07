@@ -23,10 +23,10 @@ return [
 	*/	
 	'REMOVE_API_SLUG' => false, 
 	'HTTPS' => 'Off',
-	'DEFAULT_CONTROLLER' => 'LoginController',
+	'DEFAULT_CONTROLLER' => 'HomeController',
 
 	'db_connections' => [
-		'db_app' => [
+		'db1' => [
 			'host'		=> env('DB_HOST', '127.0.0.1'),
 			'port'		=> env('DB_PORT', 3306),
 			'driver' 	=> env('DB_CONNECTION'),
@@ -40,27 +40,78 @@ return [
 			]
 		],
 		
-		'db_ar' => [
-			'host'		=> env('DB_HOST_AR', '127.0.0.1'),
-			'port'		=> env('DB_PORT_AR', 3306),
-			'driver' 	=> env('DB_CONNECTION_AR'),
-			'db_name' 	=> env('DB_DATABASE_AR'), 
-			'user'		=> env('DB_USERNAME_AR'), 
-			'pass'		=> env('DB_PASSWORD_AR'),
+		'db2' => [
+			'host'		=> env('DB_HOST_2', '127.0.0.1'),
+			'port'		=> env('DB_PORT_2', 3306),
+			'driver' 	=> env('DB_CONNECTION_2'),
+			'db_name' 	=> env('DB_DATABASE_2'), 
+			'user'		=> env('DB_USERNAME_2'), 
+			'pass'		=> env('DB_PASSWORD_2'),
+			'charset'	=> 'utf8'
+		],
+
+		'db3' => [
+			'host'		=> env('DB_HOST_3', '127.0.0.1'),
+			'port'		=> env('DB_PORT_3', 3306),
+			'driver' 	=> env('DB_CONNECTION_3'),
+			'db_name' 	=> env('DB_DATABASE_3'), 
+			'user'		=> env('DB_USERNAME_3'), 
+			'pass'		=> env('DB_PASSWORD_3'),
 			'charset'	=> 'utf8',
 			'pdo_options' => [
 				\PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
 				\PDO::ATTR_EMULATE_PREPARES => false
 			]
-		]		
+		],
+
+		'db4' => [
+			'host'		=> env('DB_HOST_4', '127.0.0.1'),
+			'port'		=> env('DB_PORT_4', 3306),
+			'driver' 	=> env('DB_CONNECTION_4'),
+			'db_name' 	=> env('DB_DATABASE_4'), 
+			'user'		=> env('DB_USERNAME_4'), 
+			'pass'		=> env('DB_PASSWORD_4'),
+			'pdo_options' => [
+				\PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+				\PDO::ATTR_EMULATE_PREPARES => false
+			]
+		],
+
+		'db5' => [
+			'host'		=> env('DB_HOST_5', '127.0.0.1'),
+			'port'		=> env('DB_PORT_5', 3306),
+			'driver' 	=> env('DB_CONNECTION_5'),
+			'db_name' 	=> env('DB_DATABASE_5'), 
+			'user'		=> env('DB_USERNAME_5'), 
+			'pass'		=> env('DB_PASSWORD_5'),
+			'charset'	=> 'utf8',
+			'pdo_options' => [
+				\PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+				\PDO::ATTR_EMULATE_PREPARES => false
+			]
+		],
+		'db6' => [
+			'host'		=> env('DB_HOST_6', '127.0.0.1'),
+			'port'		=> env('DB_PORT_6'),
+			'driver' 	=> env('DB_CONNECTION_6'),
+			'db_name' 	=> env('DB_DATABASE_6'), 
+			'user'		=> env('DB_USERNAME_6'), 
+			'pass'		=> env('DB_PASSWORD_6'),
+			'charset'	=> 'utf8',
+            //'schema'	=> 'az',  
+			'pdo_options' => [
+				\PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+				\PDO::ATTR_EMULATE_PREPARES => false
+			]
+		]	
 
 	], 
 
-	'db_connection_default' => 'db_app',  
+	'db_connection_default' => 'db1',  // cambiar de nuevo a db1
 	
 	'DateTimeZone' => 'America/Argentina/Buenos_Aires',
 
-	'error_handling'   => false,
+	'error_handling'   => true,
 	'debug'   => env('APP_DEBUG', true),
 
 	'access_token' => [
@@ -75,6 +126,12 @@ return [
 		'encryption' 		=> 'HS256'	
 	],
 
+	'email_token' => [
+		'secret_key' => env('TOKENS_EMAIL_SECRET_KEY'),
+		'expires_in' => 7 * 24 * 3600,
+		'encryption' => 'HS256'
+	],
+
 	'method_override' => [
 		'by_url' => true,
 		'by_header' => true
@@ -83,32 +140,34 @@ return [
 	/* 
 		Any role listed bellow if it is asked then will be auto-aproved.
 	*/
-	'auto_approval_roles' => ['dev', 'superadmin'],
+	'auto_approval_roles' => ['basic', 'regular'],
 
 	/*
 		If you need email confirmation then pre_activated should be false
 	*/
-	'pre_activated' => false,
+	'pre_activated' => true,
 
 	'email' => [
-		'secret_key' => env('TOKENS_EMAIL_SECRET_KEY'),
-		'expires_in' => 7 * 24 * 3600,
-		'encryption' => 'HS256',
-		'mailer' =>  [	
-			'from'	 => [env('MAIL_DEFAULT_FROM_ADDR'), env('MAIL_DEFAULT_FROM_NAME')],	
-			'object' => [
+		'from'		=> [
+			'address' 		=> env('MAIL_DEFAULT_FROM_ADDR'), 
+			'name' 			=> env('MAIL_DEFAULT_FROM_NAME')
+		],	
+
+		'mailers' => [
+			'smtp' => [
 				'Host'			=> env('MAIL_HOST'),
 				'Port'			=> env('MAIL_PORT'),
 				'Username' 		=> env('MAIL_USERNAME'),
 				'Password' 		=> env('MAIL_PASSWORD'),
 				'SMTPSecure'	=> env('MAIL_ENCRYPTION'),
-	            'SMTPAuth' 		=> true,
+				'SMTPAuth' 		=> env('MAIL_AUTH'),
 				'SMTPDebug' 	=> 4,
 				'CharSet' 		=> 'UTF-8',
-				'Debugutput' 	=> 'html',
-				'SMTPSecure'	=> false
+				'Debugutput' 	=> 'html'
 			]
-		]
+		],
+
+		'mailer_default' => 'smtp'
 	],
 
 	'pretty' => false,	
@@ -136,9 +195,9 @@ return [
 	*/
 
 	'providers' => [
-		//devdojo\calculator\CalculatorServiceProvider::class,
+		devdojo\calculator\CalculatorServiceProvider::class,
 		boctulus\grained_acl\GrainedAclServiceProvider::class,
-		boctulus\basic_acl\BasicAclServiceProvider::class
+		//boctulus\basic_acl\BasicAclServiceProvider::class
 		// ...
 	],
 	

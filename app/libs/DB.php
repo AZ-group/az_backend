@@ -20,10 +20,20 @@ class DB
 	}
 
 	public static function getCurrent(){
+		if (static::$current_id_conn === null){
+			return null;
+		}
+
 		return Factory::config()['db_connections'][static::$current_id_conn];
 	}
 
 	public static function database(){
+		$current = self::getCurrent();
+
+		if ($current === null){
+			return null;
+		}
+		
 		return self::getCurrent()['db_name'];
 	}
 

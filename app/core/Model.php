@@ -141,7 +141,7 @@ class Model {
 		if (empty($this->table_name)){
 			$class_name = get_class($this);
 			$class_name = substr($class_name, strrpos($class_name, '\\')+1);
-			$str = Strings::fromCamelCase($class_name);
+			$str = Strings::camelToSnake($class_name);
 			$this->table_name = strtolower(substr($str, 0, strlen($str)-6));
 		}
 		*/
@@ -620,24 +620,29 @@ class Model {
 		return $this;
 	}
 
-	function take(int $limit){
-		$this->limit = $limit;
+	function take(int $limit = null){
+		if ($limit !== null){
+			$this->limit = $limit;
+		}
+
 		return $this;
 	}
 
-	function limit(int $limit){
-		$this->limit = $limit;
+	function limit(int $limit = null){
+		return $this->take($limit);
+	}
+
+	function offset(int $n = null)
+	{
+		if ($n !== null){
+			$this->offset = $n;
+		}
+		
 		return $this;
 	}
 
-	function offset(int $n){
-		$this->offset = $n;
-		return $this;
-	}
-
-	function skip(int $n){
-		$this->offset = $n;
-		return $this;
+	function skip(int $n = null){
+		return $this->offset($n);
 	}
 
 	function groupBy(array $g){
@@ -1169,7 +1174,7 @@ class Model {
 		$reps  = 0;
 		foreach($vals as $ix => $val)
 		{				
-			if($val == NULL){
+			if($val === NULL){
 				$q = Strings::replaceNth('?', 'NULL', $q, $ix+1-$reps);
 				$reps++;
 
@@ -1272,6 +1277,10 @@ class Model {
 		return $this->dd2();
 	}
 
+	function getWhere(){
+		return $this->where;
+	}
+
 	function get(array $fields = null, array $order = null, int $limit = NULL, int $offset = null, $pristine = false){
 		$this->onReading();
 
@@ -1318,6 +1327,10 @@ class Model {
 			$ret = false;
 				
 		return $ret;
+	}
+
+	function getOne(array $fields = null, $pristine = false){
+		return $this->first($fields, $pristine);
 	}
 	
 	function value($field){
@@ -1743,17 +1756,17 @@ class Model {
 	}
 
 	function oldest(){
-		$this->orderBy([$this->createdAt => 'DESC']);
+		$this->orderBy([$this->createdAt => 'ASC']);
 		return $this;
 	}
 
 	function latest(){
-		$this->orderBy([$this->createdAt => 'DESC']);
+		$this->oldest();
 		return $this;
 	}
 
 	function newest(){
-		$this->orderBy([$this->createdAt => 'ASC']);
+		$this->orderBy([$this->createdAt => 'DESC']);
 		return $this;
 	}
 	
@@ -1808,6 +1821,18 @@ class Model {
 	function having(array $conditions, $conjunction = 'AND'){
 		$this->_having($conditions, 'AND', $conjunction);
 		return $this;
+	}
+
+	/*
+		No admite eventos
+	*/
+	static function query(string $raw_sql){
+		$conn = DB::getConnection();
+
+		$query = $conn->query($raw_sql);
+
+		$output = $query->fetchAll();
+		return $output;
 	}
 
 	/**
@@ -1890,7 +1915,7 @@ class Model {
 		$reps  = 0;
 		foreach($vals as $ix => $val)
 		{				
-			if($val == NULL){
+			if($val === NULL){
 				$q = Strings::replaceNth('?', 'NULL', $q, $ix+1-$reps);
 				$reps++;
 
@@ -1919,7 +1944,11 @@ class Model {
 		//var_export($vals);
 		//exit;
 
-		foreach($vals as $ix => $val){			
+		foreach($vals as $ix => $val){		
+			if (is_array($val)){
+				throw new \InvalidArgumentException("Invalid value. Can not be array: ". var_export($val, true));
+			}
+			
 			if(is_null($val)){
 				$type = \PDO::PARAM_NULL;
 			}elseif(isset($vars[$ix]) && isset($this->schema['attr_types'][$vars[$ix]])){
@@ -2013,7 +2042,7 @@ class Model {
 	/*
 		@return mixed false | integer 
 	*/
-	function create(array $data)
+	function create(array $data, $ignore_duplicates = false)
 	{
 		if ($this->conn == null)
 			throw new SqlException('No connection');
@@ -2085,11 +2114,26 @@ class Model {
 		$this->last_bindings = $vals;
 		$this->last_pre_compiled_query = $q;
 
+
 		if (!$this->exec){
 			return NULL;
 		}	
 
-		$result = $st->execute();
+		if ($ignore_duplicates){
+			try {
+                $result = $st->execute();
+            } catch (\PDOException $e){
+                if (!Strings::contains('SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry', $e->getMessage())){
+                    throw new \PDOException($e->getMessage());
+                }
+            }
+		} else {
+			$result = $st->execute();
+		}
+		
+		if (!isset($result)){
+			return;
+		}
 
 		if ($result){
 			// sin schema no hay forma de saber la PRI Key. Intento con 'id' 
@@ -2164,7 +2208,7 @@ class Model {
 	protected function boot() { }
 
 	protected function onReading() { }
-	protected function onRead(?int $count) { }
+	protected function onRead(int $count) { }
 	
 	protected function onDeleting() { }
 	protected function onDeleted(?int $count) { }
@@ -2267,6 +2311,10 @@ class Model {
 
 	function getRules(){
 		return $this->schema['rules'] ?? NULL;
+	}
+
+	function getRule(string $name){
+		return $this->schema['rules'][$name] ?? NULL;
 	}
 
 	/**

@@ -28,11 +28,16 @@ class MigrationsController extends Controller
         Migrated:  2020_10_28_145609_as_d_f
 
     */
-    function migrate() {
+    function migrate(...$opt) {
+        $filenames = [];
         foreach (new \DirectoryIterator(MIGRATIONS_PATH) as $fileInfo) {
             if($fileInfo->isDot()) continue;
+            $filenames[] = $fileInfo->getFilename();
+        }   
 
-            $filename   = $fileInfo->getFilename();            
+        asort($filenames);
+
+        foreach ($filenames as $filename) {        
             $class_name = Strings::toCamelCase(substr(substr($filename,18),0,-4));
             
             require_once MIGRATIONS_PATH . DIRECTORY_SEPARATOR . $filename;
@@ -42,7 +47,9 @@ class MigrationsController extends Controller
             }
 
             echo "Migrating '$filename'\r\n";
-            (new $class_name())->up();
+            if (!in_array('--simulate', $opt)){
+                (new $class_name())->up();
+            }
             echo "Migrated  '$filename' --ok\r\n";
         }         
     }
@@ -158,11 +165,11 @@ class MigrationsController extends Controller
 
             $this->migrate();
         } catch (\PDOException $e) {    
-            Debug::dd("DROP TABLE for `$table` failed", "PDO Error");
-            Debug::dd($e->getMessage(), "MSG"); 
+            dd("DROP TABLE for `$table` failed", "PDO Error");
+            dd($e->getMessage(), "MSG"); 
             throw $e;
         } catch (\Exception $e) {   
-            Debug::dd($e->getMessage(), "MSG");
+            dd($e->getMessage(), "MSG");
             throw $e;
         }	             
 

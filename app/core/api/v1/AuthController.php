@@ -12,6 +12,7 @@ use simplerest\libs\Utils;
 use simplerest\libs\Debug;
 use simplerest\libs\Validator;
 use simplerest\core\exceptions\InvalidValidationException;
+use simplerest\libs\Files;
 
 
 class AuthController extends Controller implements IAuth
@@ -51,32 +52,32 @@ class AuthController extends Controller implements IAuth
         $time = time();
 
         $payload = [
-            'alg' => $this->config['email']['encryption'],
+            'alg' => $this->config['email_token']['encryption'],
             'typ' => 'JWT',
             'iat' => $time, 
-            'exp' => $time + $this->config['email']['expires_in'],
+            'exp' => $time + $this->config['email_token']['expires_in'],
             'ip'  => Request::ip(),
             'email' => $email,
             'roles' => $roles,
             'permissions' => $perms
          ];
 
-        return \Firebase\JWT\JWT::encode($payload, $this->config['email']['secret_key'],  $this->config['email']['encryption']);
+        return \Firebase\JWT\JWT::encode($payload, $this->config['email_token']['secret_key'],  $this->config['email_token']['encryption']);
     }
 
     protected function gen_jwt_rememberme($uid){
         $time = time();
 
         $payload = [
-            'alg' => $this->config['email']['encryption'],
+            'alg' => $this->config['email_token']['encryption'],
             'typ' => 'JWT',
             'iat' => $time, 
-            'exp' => $time + $this->config['email']['expires_in'],
+            'exp' => $time + $this->config['email_token']['expires_in'],
             'ip'  => Request::ip(),
             'uid' => $uid
          ];
 
-        return \Firebase\JWT\JWT::encode($payload, $this->config['email']['secret_key'],  $this->config['email']['encryption']);
+        return \Firebase\JWT\JWT::encode($payload, $this->config['email_token']['secret_key'],  $this->config['email_token']['encryption']);
     }
 
     function login()
@@ -531,6 +532,10 @@ class AuthController extends Controller implements IAuth
                 if (!empty($data['roles'])) {
                     if (isset($this->config['auto_approval_roles']) && !empty($this->config['auto_approval_roles'])) {
     
+                        if (!is_array($data['roles'])){
+                            $data['roles'] = [ $data['roles'] ];
+                        }
+
                         foreach ($data['roles'] as $r){
                             if (!in_array($r, $this->config['auto_approval_roles'])) {
                                 throw new \Exception("Role $r is not auto-approved");
@@ -594,7 +599,7 @@ class AuthController extends Controller implements IAuth
 
                 if ($email_confirmation)
                 {                 
-                    $exp = time() + $this->config['email']['expires_in'];
+                    $exp = time() + $this->config['email_token']['expires_in'];
                     $base_url =  HTTP_PROTOCOL . '://' . $_SERVER['HTTP_HOST'] . ($this->config['BASE_URL'] == '/' ? '/' : $this->config['BASE_URL']) ;
                     $token = $this->gen_jwt_email_conf($data['email'], $roles, []);
                     $url = $base_url . (!$this->config['REMOVE_API_SLUG'] ? "api/$api_version" : $api_version) . '/auth/confirm_email/' . $token . '/' . $exp; 
@@ -775,7 +780,7 @@ class AuthController extends Controller implements IAuth
         if($jwt != null)
         {
             try {
-                $payload = \Firebase\JWT\JWT::decode($jwt, $this->config['email']['secret_key'], [ $this->config['email']['encryption'] ]);
+                $payload = \Firebase\JWT\JWT::decode($jwt, $this->config['email_token']['secret_key'], [ $this->config['email_token']['encryption'] ]);
                 
                 if (empty($payload))
                     $error = 'Unauthorized!';                     
@@ -859,63 +864,70 @@ class AuthController extends Controller implements IAuth
         sino no hacer nada.
     */
 	function rememberme(){
-        global $api_version;
-
-		$data  = Factory::request()->getBody(false);
+		$data  = Factory::request()->getBody();
 
 		if ($data == null)
 			Factory::response()->sendError('Invalid JSON',400);
 
-		$email = $data['email'] ?? null;
+		$email = $data->email ?? null;
 
 		if ($email == null)
 			Factory::response()->sendError('Empty email', 400);
 
 		try {	
 
-			$u = DB::table($this->users_table)->assoc();
-            
-            $rows = $u->where(['email', $email])
-            ->select([$u->getIdName()])
-            ->when($u->inSchema(['active']), function($q){
-                $q->addSelect('active');
-            })
-            ->get();
+			$u = (DB::table('users'))->assoc();
+			$rows = $u->where(['email', $email])->get(['id', 'active']);
 
 			if (count($rows) === 0){
                 // Email not found
                 Factory::response()->sendError('Please check your e-mail', 400); 
             }
 		
-            $uid = $rows[0][$u->getIdName()];	//
-            $exp = time() + $this->config['email']['expires_in'];	
+            $uid = $rows[0]['id'];	//
+            $exp = time() + $this->config['email_token']['expires_in'];	
 
+            $active = $rows[0]['active'];
 
-            $active = true;    
-            if ($u->inSchema(['active'])){
-                $active = $rows[0]['active'];
-
-                if ((string) $active === "0") {
-                    Factory::response()->sendError('Non authorized', 403, 'Deactivated account !');
-                }
-            }    
+            if ((string) $active === "0") {
+                Factory::response()->sendError('Non authorized', 403, 'Deactivated account !');
+            }
 
             $base_url =  HTTP_PROTOCOL . '://' . $_SERVER['HTTP_HOST'] . ($this->config['BASE_URL'] == '/' ? '/' : $this->config['BASE_URL']) ;
             
 
             $token = $this->gen_jwt_rememberme($uid);
             
-            $url = $base_url . (!$this->config['REMOVE_API_SLUG'] ? "api/$api_version" : $api_version) .'/auth/change_pass_by_link/' . $token . '/' . $exp; 	
+            $url = $base_url .'login/change_pass_by_link/' . $token . '/' . $exp; 	
 
 		} catch (\Exception $e){
 			Factory::response()->sendError($e->getMessage(), 500);
 		}
-
     
-        // Enviar correo con el LINK: $url
+        // Queue email
+        $ok = (bool) DB::table('messages')->create([
+            'from_email' => null,
+            'from_name'  => null,
+            'to_email'   => $email, 
+            'to_name'    => '', 
+            'subject'    => 'Cambio de contraseña', 
+            'body'       => "Para cambiar la contraseña siga el enlace:<br/><a href='$url'>$url</a>"
+        ]);
 
-        Factory::response()->send(['link_sent' => $url]);  # solo para debug !!!!!
-        //Factory::response()->send('Please check your e-mail'); 
+        /*
+            Posteriormente leer la tabla messages y....
+            basado en un tamplate, hacer algo como:
+
+            $mail_sent = Utils::send_mail($email, null, 'Recuperación de password', "Hola!<p/>Para re-establecer la el password siga el enlace</br>$url");
+        */
+
+        if (!$ok){
+            Files::logger("remember-me error al agendar envio de correo a $email");
+            exit;
+        }
+
+        Files::logger("remember-me $url");
+        Factory::response()->send(['msg' => 'Por favor chequee su correo'], 200);         
     }
     
 
@@ -939,7 +951,7 @@ class AuthController extends Controller implements IAuth
             if($jwt != null)
             {
                 try {
-                    $payload = \Firebase\JWT\JWT::decode($jwt, $this->config['email']['secret_key'], [ $this->config['email']['encryption'] ]);
+                    $payload = \Firebase\JWT\JWT::decode($jwt, $this->config['email_token']['secret_key'], [ $this->config['email_token']['encryption'] ]);
                     
                     if (empty($payload))
                         Factory::response()->sendError('Unauthorized!',401);                     

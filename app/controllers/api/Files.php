@@ -14,7 +14,13 @@ class Files extends MyApiController
 
     function __construct()
     {   
-        parent::__construct();
+        parent::__construct();    
+        
+        $this->tenantid = Factory::request()->getTenantId();
+
+        if ($this->tenantid !== null){
+            $this->conn = DB::getConnection($this->tenantid);
+        }
     }
 
     function post() {

@@ -23,13 +23,7 @@ class Acl extends \simplerest\core\Acl
 
  
     protected function setup(){        
-        //$this->roles = DB::table('roles')->get();
-
-        $this->roles = [
-            ['id' => 100,   'name' => 'admin'       ],
-            ['id' => 150,   'name' => 'cliente'     ],
-            ['id' => 200,   'name' => 'encomendado' ]
-        ];
+        $this->roles = DB::table('roles')->get();
 
         foreach($this->roles as $rr){
             $this->role_names[] = $rr['name'];
