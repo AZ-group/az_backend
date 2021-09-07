@@ -46,18 +46,22 @@ class Schema
 		$this->fromDB();
 	}
 
-	static function getRelations(string $table){
+	static function getRelations(string $table = null){
 		DB::getConnection();
         $db  = DB::database();
 
         $sql = "SELECT * FROM `INFORMATION_SCHEMA`.`KEY_COLUMN_USAGE` 
-        WHERE `REFERENCED_TABLE_NAME` IS NOT NULL AND TABLE_SCHEMA = '$db' AND REFERENCED_TABLE_SCHEMA = '$db'
-        AND TABLE_NAME = '$table' ORDER BY `REFERENCED_COLUMN_NAME`;";
+        WHERE `REFERENCED_TABLE_NAME` IS NOT NULL AND TABLE_SCHEMA = '$db' AND REFERENCED_TABLE_SCHEMA = '$db' ";
+
+		if (!empty($table)){
+			$sql .= "AND TABLE_NAME = '$table' ";
+		}
+
+		$sql .= "ORDER BY `REFERENCED_COLUMN_NAME`;";
 
         $rels = Model::query($sql);
         
         $relationships = [];
-
         foreach($rels as $rel){
             $to_tb = $rel['REFERENCED_TABLE_NAME'];
 

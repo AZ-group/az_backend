@@ -3298,7 +3298,8 @@ class DumbController extends Controller
     }
 
     function test_discovery(){
-        $relations = Schema::getRelations('books');
+        //$relations = Schema::getRelations('books');
+        $relations = Schema::getRelations();
         var_dump($relations, 'RELATIONSHIPS');
     }
 
