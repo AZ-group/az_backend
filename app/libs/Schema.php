@@ -46,7 +46,7 @@ class Schema
 		$this->fromDB();
 	}
 
-	// Válido para MySQL
+	// Válido para MySQL, en un solo sentido
 	static function getRelations(string $table = null, string $db = null)
 	{
 		if ($db == null){
@@ -126,13 +126,60 @@ class Schema
                         'from' => $r['from'] 
                     ];
                 }
-                //dd($key, $tb);
-
             }      
         }
         
 		return $relationships;
 	}
+
+	/*
+		Obtiene relaciones con otras tablas de forma bi-direccional
+		(desde y hacia esa tabla)
+	*/
+	static function getAllRelations(string $table, bool $compact = false){
+        $relations = [];
+
+        $relations = Schema::getRelations($table);
+
+        foreach ($relations as $tb => $rels){
+            $arr = [];
+            foreach ($rels as $rel){
+				if ($compact){
+					$cell = "['{$rel['to']}','{$rel['from']}']"; 
+				} else {
+					$cell = [$rel['to'],$rel['from']]; 
+				}       
+				
+				$arr[] = $cell;
+            }
+
+            $relations[$tb] = $arr;
+        }
+
+        $more_rels = Schema::getRelations();
+
+        foreach ($more_rels as $tb => $rels){
+
+            foreach ($rels as $rel){
+                list($tb1, $fk1) = explode('.', $rel['to']);
+
+                if ($tb1 == $table){
+                    list($tb0, $fk0) = explode('.', $rel['from']);
+                    
+					if ($compact){
+						$cell = "['{$rel['from']}','{$rel['to']}']"; 
+					} else {
+						$cell = [$rel['from'],$rel['to']]; 
+					}
+
+                    $relations[$tb0][] = $cell; 
+                }
+            }
+            
+        }
+
+        return $relations;
+    }
 
 	static function getTables(string $conn_id = null) {	
 		$config = Factory::config();

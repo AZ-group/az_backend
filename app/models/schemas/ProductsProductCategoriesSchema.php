@@ -31,10 +31,12 @@ class ProductsProductCategoriesSchema implements ISchema
 			],
 
 			'relationships' => [
-				// ok
 				'products' => [
-					['products.id', 'products_product_categories.product_id']
-				] 
+					['products.id','products_product_categories.product_id']
+				],
+				'product_categories' => [
+					['product_categories.id','products_product_categories.product_category_id']
+				]
 			]
 		];
 	}	

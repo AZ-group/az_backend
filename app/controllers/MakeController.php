@@ -8,6 +8,7 @@ use simplerest\libs\Factory;
 use simplerest\libs\Debug;
 use simplerest\libs\DB;
 use simplerest\libs\Strings;
+use simplerest\libs\Schema;
 
 /*
     Class generator
@@ -54,10 +55,8 @@ class MakeController extends Controller
     const SERVICE_PROVIDER_TEMPLATE = self::TEMPLATES . 'ServiceProvider.php'; //
 
     protected $class_name;
-    protected $model_name;
     protected $ctr_name;
     protected $api_name; 
-    protected $model_table;
     protected $excluded_files = [];
 
     function __construct()
@@ -155,8 +154,8 @@ class MakeController extends Controller
     function setup($name) {
         static $prev_name;
 
-        if ($this->class_name != null && $this->class_name == $prev_name)
-            return;
+        //if ($this->class_name != null && $this->class_name == $prev_name)
+        //    return;
 
         $name = ucfirst($name);    
         $name_lo = strtolower($name);
@@ -170,7 +169,7 @@ class MakeController extends Controller
         $name_uc = ucfirst($name);
 
         if (strpos($name, '_') !== false) {
-            $camel_case  = Strings::fromCamelCase($name);
+            $camel_case  = Strings::toCamelCase($name);
             $snake_case = $name_lo;
         } elseif ($name == $name_lo){
             $snake_case = $name;
@@ -412,7 +411,8 @@ class MakeController extends Controller
         }
     }
 
-    function schema($name, ...$opt) { 
+    function schema($name, ...$opt) 
+    {         
         $this->setup($name);    
 
         foreach ($opt as $o){            
@@ -422,12 +422,16 @@ class MakeController extends Controller
             }
         }
 
-        //dd($from_db, 'FROM DB');
-
         $filename = $this->camel_case.'Schema.php';
 
         // destination
         $dest_path = self::SCHEMAS_PATH . $filename;
+
+        if (!Schema::hasTable($name)){
+            echo "Tabla '$name' no encontrada. Recuerde el nombre es sensible al case\r\n";
+            return;
+        }
+        
 
         if (in_array($dest_path, $this->excluded_files)){
             echo "[ Skipping ] '$dest_path'. File was ignored\r\n"; 
@@ -541,12 +545,33 @@ class MakeController extends Controller
             //Strings::replace('### TRAITS', "use Uuids;", $file);        
         }
 
+
+        /*
+            Relationships
+        */
+
+        $relations = '';
+        $rels = Schema::getAllRelations($name, true);
+        
+        $g = [];
+        $c = 0;
+        foreach ($rels as $tb => $rs){
+            $grp = "\t\t\t\t\t" . implode(",\r\n\t\t\t\t\t", $rs);
+            $grp = ($c != 0 ? "\t\t\t\t" : '') . "'$tb' => [\r\n$grp\r\n\t\t\t\t]";
+            $g[] = $grp;
+            $c++;
+        }
+
+        $relations = implode(",\r\n", $g);
+
+
         Strings::replace('__TABLE_NAME__', "'{$this->snake_case}'", $file);  
         Strings::replace('__ID__', !empty($id_name) ? "'$id_name'" : 'NULL', $file);          
         Strings::replace('__ATTR_TYPES__', $attr_types, $file);
         Strings::replace('__NULLABLES__', '['. implode(', ',array_map($escf, $nullables)). ']',$file);        
         //Strings::replace('__NOT_FILLABLE__', '['.implode(', ',array_map($escf, $not_fillable)). ']',$file);
         Strings::replace('__RULES__', $rules, $file);
+        Strings::replace('__RELATIONS__', $relations, $file);
         
 
         $ok = (bool) file_put_contents($dest_path, $file);

@@ -535,22 +535,21 @@ class Model {
 			}
 
 			if (!isset($this->schema['relationships'])){
-				throw new \Exception("Undefined relationships for ". $this->table_name); 
+				throw new \Exception("Undefined relationships for table '{$this->table_name}'"); 
 			}
 
 			$rel = $this->schema['relationships'];
 
-			if (!isset($rel[$table])){
+			if (!isset($rel[$table])){				
 				if (preg_match('/([a-zA-Z][a-zA-Z0-9]+) as ([a-zA-Z][a-zA-Z0-9]+)/', $table, $matches)){
 					$tb = $matches[1];
 					$fk = $matches[2];
+				} else {
+					throw new \Exception("Undefined relationship \$rel" . '["' . $table . '"]');
 				}
 
-				//dd($tb);
-				//dd($fk);
-
-				if ($fk == NULL || !isset($rel[$tb])){
-					throw new \Exception("There is no explicit relationship between {$this->table_name} and $tb");
+				if (!isset($rel[$tb])){
+					throw new \Exception("There is no explicit relationship between '{$this->table_name}' and '$tb'");
 				}				
 			}	
 			

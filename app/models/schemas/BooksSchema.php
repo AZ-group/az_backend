@@ -26,17 +26,16 @@ class BooksSchema implements ISchema
 			'nullable'		=> ['id'],
 
 			'rules' 		=> [
-
+				'name' => ['max' => 60]
 			],
 
-			// ok
 			'relationships' => [
-				'book_reviews' => [
-					['book_reviews.book_id',  'books.id']
-				],
 				'users' => [
-					['authors.id', 'books.author_id'],
-					['editors.id', 'books.editor_id'],
+					['authors.id','books.author_id'],
+					['editors.id','books.editor_id']
+				],
+				'book_reviews' => [
+					['book_reviews.book_id','books.id']
 				]
 			]
 		];

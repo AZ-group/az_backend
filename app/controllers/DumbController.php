@@ -1976,8 +1976,6 @@ class DumbController extends Controller
 
     }    
 
-
-
     function j2(){
         $m = DB::table('users')
         ->join('user_sp_permissions', 'users.id', '=',  'user_sp_permissions.user_id')
@@ -1989,6 +1987,7 @@ class DumbController extends Controller
         dd($m->dd()); 
     }
 
+    // revisar
     function j2_auto(){
         $m = DB::table('users')
         ->join('user_sp_permissions')
@@ -3287,8 +3286,6 @@ class DumbController extends Controller
         Files::logger($body);
     }
 
-
-
     function respuesta(){
         Factory::response()->sendError('Acceso no autorizado', 401, 'Header vacio');
     }
@@ -3304,39 +3301,6 @@ class DumbController extends Controller
         dd($relations);
     }
 
-    function test_discovery(){
-        $table = 'books';
 
-        $relations = [];
-
-        $relations = Schema::getRelations($table);
-
-        foreach ($relations as $tb => $rels){
-            $arr = [];
-            foreach ($rels as $rel){
-                $arr[] = "['{$rel['from']}','{$rel['to']}']"; 
-            }
-
-            $relations[$tb] = $arr;
-        }
-
-        $more_rels = Schema::getRelations();
-
-        foreach ($more_rels as $tb => $rels){
-
-            foreach ($rels as $rel){
-                list($tb1, $fk1) = explode('.', $rel['to']);
-
-                if ($tb1 == $table){
-                    list($tb0, $fk0) = explode('.', $rel['from']);
-                    //dd($rel, $tb0);
-                    $relations[$tb0][] = "['{$rel['from']}','{$rel['to']}']"; 
-                }
-            }
-            
-        }
-
-        var_dump($relations);
-    }
-
+   
 }
