@@ -3297,10 +3297,46 @@ class DumbController extends Controller
         Factory::response()->sendError("No encontrado", 404, "El recurso no existe");  
     }
 
+    function test_get_rels(){
+        $table = 'books';
+        
+        $relations = Schema::getRelations($table);
+        dd($relations);
+    }
+
     function test_discovery(){
-        //$relations = Schema::getRelations('books');
-        $relations = Schema::getRelations();
-        var_dump($relations, 'RELATIONSHIPS');
+        $table = 'books';
+
+        $relations = [];
+
+        $relations = Schema::getRelations($table);
+
+        foreach ($relations as $tb => $rels){
+            $arr = [];
+            foreach ($rels as $rel){
+                $arr[] = "['{$rel['from']}','{$rel['to']}']"; 
+            }
+
+            $relations[$tb] = $arr;
+        }
+
+        $more_rels = Schema::getRelations();
+
+        foreach ($more_rels as $tb => $rels){
+
+            foreach ($rels as $rel){
+                list($tb1, $fk1) = explode('.', $rel['to']);
+
+                if ($tb1 == $table){
+                    list($tb0, $fk0) = explode('.', $rel['from']);
+                    //dd($rel, $tb0);
+                    $relations[$tb0][] = "['{$rel['from']}','{$rel['to']}']"; 
+                }
+            }
+            
+        }
+
+        var_dump($relations);
     }
 
 }

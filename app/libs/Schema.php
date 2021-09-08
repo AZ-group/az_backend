@@ -99,35 +99,35 @@ class Schema
         foreach ($relationships as $tb => $rs){
             foreach ($rs as $k => $r){
                 if (isset($repeted[$tb]) && in_array($r['to'], $repeted[$tb])){
-                    list($_t, $fk) = explode('.', $r['from']);
+                    list($tb0, $fk0) = explode('.', $r['from']);
                     
-                    if (Strings::endsWith('_id', $fk)){
-                        $key = substr($fk, 0, strlen($fk) -3);                        
+                    if (Strings::endsWith('_id', $fk0)){
+                        $key = substr($fk0, 0, strlen($fk0) -3);                        
                     }
 
-                    if (!isset($key) && Strings::startsWith('id_', $fk)){
-                        $key = substr($fk, 3);  
+                    if (!isset($key) && Strings::startsWith('id_', $fk0)){
+                        $key = substr($fk0, 3);  
                     } 
 
                     // revisar porque repite el subfijo
                     if (!isset($key)){
-                        list($t, $id) = explode('.', $r['to']);
-                        $key = $t . rand(100,999);
+                        throw new \Exception("Invalid convention for FKs. Please name as xxxxx_id");
                     }    
                     
                     $key = $key . 's';  // pluralizo
                     
-                    list($_t, $fk) = explode('.', $r['to']);
-                    $to = "$key.$fk";
+                    list($tb1, $fk1) = explode('.', $r['to']);
+                    $to = "$key.$fk1";
                     
                     unset($relationships[$tb][$k]);
 
                     $relationships[$tb][] = [
                         'to'   => $to, 
-                        'from' => $from 
+                        'from' => $r['from'] 
                     ];
                 }
-                //dd($key, $tb);      
+                //dd($key, $tb);
+
             }      
         }
         
