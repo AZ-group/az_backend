@@ -47,11 +47,11 @@ class ProductsSchema implements ISchema
 				'users' => [
 					['users.id','products.belongs_to']
 				],
-				'product_comments' => [
-					['product_comments.product_id','products.id']
-				],
 				'products_product_categories' => [
 					['products_product_categories.product_id','products.id']
+				],
+				'product_comments' => [
+					['product_comments.product_id','products.id']
 				]
 			]
 		];

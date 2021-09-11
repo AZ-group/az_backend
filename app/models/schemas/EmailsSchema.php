@@ -36,6 +36,10 @@ class EmailsSchema implements ISchema
 				'to_email' => ['max' => 320],
 				'to_name' => ['max' => 40],
 				'subject' => ['max' => 40]
+			],
+
+			'relationships' => [
+				
 			]
 		];
 	}	

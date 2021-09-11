@@ -30,6 +30,10 @@ class SuperCoolTableSchema implements ISchema
 
 			'rules' 		=> [
 				'name' => ['max' => 45]
+			],
+
+			'relationships' => [
+				
 			]
 		];
 	}	

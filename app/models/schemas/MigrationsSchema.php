@@ -3,7 +3,7 @@
 namespace simplerest\models\schemas;
 
 use simplerest\core\interfaces\ISchema;
-use simplerest\core\interfaces\IMigration;
+
 ### IMPORTS
 
 class MigrationsSchema implements ISchema
@@ -26,6 +26,10 @@ class MigrationsSchema implements ISchema
 
 			'rules' 		=> [
 				'migration' => ['max' => 255]
+			],
+
+			'relationships' => [
+				
 			]
 		];
 	}	

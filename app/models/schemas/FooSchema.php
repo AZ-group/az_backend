@@ -32,6 +32,10 @@ class FooSchema implements ISchema
 
 			'rules' 		=> [
 				'bar' => ['max' => 45]
+			],
+
+			'relationships' => [
+				
 			]
 		];
 	}	

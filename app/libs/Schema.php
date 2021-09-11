@@ -109,10 +109,18 @@ class Schema
                         $key = substr($fk0, 3);  
                     } 
 
-                    // revisar porque repite el subfijo
+					/*
                     if (!isset($key)){
-                        throw new \Exception("Invalid convention for FKs. Please name as xxxxx_id");
+                        $msg = "Invalid convention for FK in table \"$table\" for \"$fk0\". Please name as xxxxx_id\r\n";
+						Files::logger($msg, 'errores.txt');
+						
+						throw new \Exception($msg);
                     }    
+					*/
+
+					if (!isset($key)){
+						$key = $fk0;
+					}
                     
                     $key = $key . 's';  // pluralizo
                     
@@ -140,6 +148,10 @@ class Schema
         $relations = [];
 
         $relations = Schema::getRelations($table);
+
+		if ($relations === null){
+			return;
+		}
 
         foreach ($relations as $tb => $rels){
             $arr = [];
@@ -192,7 +204,7 @@ class Schema
 			$conn_id = $config['db_connection_default'];
 		}
 
-		$db_name = $config['db_connections'][$conn_id]['db_name'];
+		$db_name = DB::getCurrentDB();
 
 		return DB::select("SELECT TABLE_NAME 
 		FROM information_schema.tables

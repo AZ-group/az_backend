@@ -103,7 +103,51 @@ return [
 				\PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
 				\PDO::ATTR_EMULATE_PREPARES => false
 			]
-		]	
+		],
+		'dsi' => [
+			'host'		=> env('DB_HOST_DSI', '127.0.0.1'),
+			'port'		=> env('DB_PORT_DSI'),
+			'driver' 	=> env('DB_CONNECTION_DSI'),
+			'db_name' 	=> env('DB_DATABASE_DSI'), 
+			'user'		=> env('DB_USERNAME_DSI'), 
+			'pass'		=> env('DB_PASSWORD_DSI'),
+			'charset'	=> 'utf8',
+			//'schema'	=> 'az',  
+			'pdo_options' => [
+				\PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+				\PDO::ATTR_EMULATE_PREPARES => false
+			]
+		],
+
+		'db_admin_dsi' => [
+			'host'		=> env('DB_HOST_DSI', '127.0.0.1'),
+			'port'		=> env('DB_PORT_DSI'),
+			'driver' 	=> env('DB_CONNECTION_DSI'),
+			'db_name' 	=> 'db_admin_dsi', 
+			'user'		=> env('DB_USERNAME_DSI'), 
+			'pass'		=> env('DB_PASSWORD_DSI'),
+			'charset'	=> 'utf8',
+			//'schema'	=> 'az',  
+			'pdo_options' => [
+				\PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+				\PDO::ATTR_EMULATE_PREPARES => false
+			]
+		],
+		
+		'db_flor' => [
+			'host'		=> env('DB_HOST_DSI', '127.0.0.1'),
+			'port'		=> env('DB_PORT_DSI'),
+			'driver' 	=> env('DB_CONNECTION_DSI'),
+			'db_name' 	=> 'db_flor', 
+			'user'		=> env('DB_USERNAME_DSI'), 
+			'pass'		=> env('DB_PASSWORD_DSI'),
+			'charset'	=> 'utf8',
+			//'schema'	=> 'az',  
+			'pdo_options' => [
+				\PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+				\PDO::ATTR_EMULATE_PREPARES => false
+			]
+		]			
 
 	], 
 
@@ -140,7 +184,7 @@ return [
 	/* 
 		Any role listed bellow if it is asked then will be auto-aproved.
 	*/
-	'auto_approval_roles' => ['basic', 'regular'],
+	'auto_approval_roles' => ['cliente', 'consumidor'],
 
 	/*
 		If you need email confirmation then pre_activated should be false
@@ -175,7 +219,7 @@ return [
 	'paginator' => [
 					'max_limit' => 50,
 					'default_limit' => 10,
-					'position' => 'BOTTOM'
+					'position' => 'TOP'
 	],
 
 	'google_auth'  => [

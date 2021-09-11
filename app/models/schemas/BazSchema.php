@@ -17,15 +17,19 @@ class BazSchema implements ISchema
 			'id_name'		=> 'id_baz',
 
 			'attr_types'	=> [
-			'id_baz' => 'INT',
-			'name' => 'STR',
-			'cost' => 'STR'
-		],
+				'id_baz' => 'INT',
+				'name' => 'STR',
+				'cost' => 'STR'
+			],
 
 			'nullable'		=> [],
 
 			'rules' 		=> [
 				'name' => ['max' => 45]
+			],
+
+			'relationships' => [
+				
 			]
 		];
 	}	

@@ -17,14 +17,20 @@ class ProductCategoriesSchema implements ISchema
 			'id_name'		=> 'id',
 
 			'attr_types'	=> [
-			'id' => 'INT',
-			'name' => 'STR'
-		],
+				'id' => 'INT',
+				'name' => 'STR'
+			],
 
 			'nullable'		=> ['id'],
 
 			'rules' 		=> [
 				'name' => ['max' => 80]
+			],
+
+			'relationships' => [
+				'products_product_categories' => [
+					['products_product_categories.product_category_id','product_categories.id']
+				]
 			]
 		];
 	}	

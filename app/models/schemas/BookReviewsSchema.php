@@ -19,6 +19,7 @@ class BookReviewsSchema implements ISchema
 			'attr_types'	=> [
 				'id' => 'INT',
 				'text' => 'STR',
+				'book_id' => 'INT',
 				'created_at' => 'STR',
 				'updated_at' => 'STR'
 			],
@@ -31,8 +32,8 @@ class BookReviewsSchema implements ISchema
 
 			'relationships' => [
 				'books' => [
-					['books.id', 'book_reviews.book_id']
-				] 
+					['books.id','book_reviews.book_id']
+				]
 			]
 		];
 	}	

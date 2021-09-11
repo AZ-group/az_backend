@@ -7,6 +7,7 @@ use simplerest\core\Request;
 use simplerest\libs\Factory;
 use simplerest\libs\Debug;
 use simplerest\libs\DB;
+use simplerest\libs\Files;
 use simplerest\libs\Strings;
 use simplerest\libs\Schema;
 
@@ -27,16 +28,42 @@ use simplerest\libs\Schema;
     make api SuperAwesome  [--force | -f]
     make api super_awesome  [--force | -f]
 
+    make api all --from:dsi [--force | -f]
+
+    <-- "from:" is required in this case.
+
     make any SuperAwesome  [-s | --schema ] 
                            [-m | --model] 
                            [-c | --controller ] 
                            [-a | --api ] 
                            [-p | --provider | --service ]
+          
                            [--force | -f]
 
-    Example:
+    make any all           [-s | --schema ] 
+                           [-m | --model] 
+                           [-c | --controller ] 
+                           [-a | --api ] 
+                           [-p | --provider | --service ]
+          
+                           [--force | -f]
+
+    More examples:
     
     make any baz -s -m -a -f
+    make any tbl_contacto -sam --from:dsi
+    make any all -sam --from:dsi
+    make any all -samf --from:dsi
+
+    Note:
+
+    To execute a command like
+    
+    make schema SuperAwesome [--force | -f]
+
+    ... call 'php' interpreter + 'com' controller first. 
+
+    php com make schema SuperAwesome [--force | -f]
 
 */
 class MakeController extends Controller
@@ -109,6 +136,8 @@ class MakeController extends Controller
         
         make api SuperAwesome  [--force | -f]
         make api super_awesome  [--force | -f]
+
+        php com make model all --from:dsi [--force | -f]
          
         make any SuperAwesome   [--schema | -s] 
                                 [--model | -m] 
@@ -119,7 +148,7 @@ class MakeController extends Controller
                                 [--force | -f]
                                 
                                 -sam  = -s -a -m
-                                -samf = -s -a -m -f                       
+                                -samf = -s -a -m -f                                                  
 
         make migration rename_some_column
         make migration another_table_change --table=foo
@@ -140,16 +169,6 @@ class MakeController extends Controller
         }
         */
     }
-
-    function getTables(){
-        static $tables;
-
-        if ($tables == NULL){
-            $tables = DB::select('SHOW TABLES', 'COLUMN');
-        }
-
-        return $tables;
-    } 
 
     function setup($name) {
         static $prev_name;
@@ -198,16 +217,44 @@ class MakeController extends Controller
                                 -sam  = -s -a -m
                                 -samf = -s -a -m -f
 
-             any  *             options                   
+        make any  all           options    
+
+        Ej:
+
+        make any tbl_contacto -sam --from:dsi
+
+        make any all          -sam --from:dsi
+
+
+        Remember to call "php com" before "com"
+
+        Ej:
+
+        php com make any all -samf --from:dsi
 
     */
-    function any($name, ...$opt){        
+    function any($name, ...$opt){ 
         if (count($opt) == 0){
             echo "Nothing to do. Please specify action using options.\r\nUse 'make help' for help.\r\n";
             exit;
         }
 
-        $names = $name == '*' ? $this->getTables() : [$name];
+        foreach ($opt as $o){            
+            if (preg_match('/^--from[=|:]([a-z][a-z0-9A-Z_]+)$/', $o, $matches)){
+                $from_db = $matches[1];
+                DB::getConnection($from_db);
+            }
+        }
+
+        if ($name == 'all'){
+            $tables = Schema::getTables();
+            
+            foreach ($tables as $table){
+                $this->schema($table, ...$opt);
+            }
+        }
+
+        $names = $name == 'all' ? $tables : [$name];
         
         switch($opt[0]){
             case '-sam':
@@ -358,6 +405,23 @@ class MakeController extends Controller
     }
 
     function api($name, ...$opt) { 
+        foreach ($opt as $o){            
+            if (preg_match('/^--from[=|:]([a-z][a-z0-9A-Z_]+)$/', $o, $matches)){
+                $from_db = $matches[1];
+                DB::getConnection($from_db);
+            }
+        }
+
+        if ($name == 'all'){
+            $tables = Schema::getTables();
+            
+            foreach ($tables as $table){
+                $this->api($table, ...$opt);
+            }
+
+            return;
+        }
+
         $this->setup($name);    
     
         $filename = $this->camel_case.'.php';
@@ -412,15 +476,25 @@ class MakeController extends Controller
     }
 
     function schema($name, ...$opt) 
-    {         
-        $this->setup($name);    
-
+    { 
         foreach ($opt as $o){            
             if (preg_match('/^--from[=|:]([a-z][a-z0-9A-Z_]+)$/', $o, $matches)){
                 $from_db = $matches[1];
                 DB::getConnection($from_db);
             }
         }
+
+        if ($name == 'all'){
+            $tables = Schema::getTables();
+            
+            foreach ($tables as $table){
+                $this->schema($table, ...$opt);
+            }
+
+            return;
+        }
+
+        $this->setup($name);    
 
         $filename = $this->camel_case.'Schema.php';
 
@@ -486,7 +560,12 @@ class MakeController extends Controller
             if ($field['Key'] == 'PRI'){ 
                 // Posible fuente de problemas !!!!!!!!!!!!!!!!!!!
                 if ($id_name != NULL){
-                    throw new \Exception("Only one Primary Key is allowed by convention");
+                    $msg = "A table should have simple Primary Key by convention for table \"$name\"";
+                    
+                    Files::logger($msg);
+                    //Files::logger($msg, 'errores.txt');
+                    //dd($msg, 'Warning');
+                    //return;
                 }
                 
                 $id_name = $field['Field'];
@@ -610,14 +689,24 @@ class MakeController extends Controller
     }
 
     function model($name, ...$opt) { 
-        $this->setup($name);    
-
         foreach ($opt as $o){            
             if (preg_match('/^--from[=|:]([a-z][a-z0-9A-Z_]+)$/', $o, $matches)){
                 $from_db = $matches[1];
                 DB::getConnection($from_db);
             }
         }
+
+        if ($name == 'all'){
+            $tables = Schema::getTables();
+            
+            foreach ($tables as $table){
+                $this->model($table, ...$opt);
+            }
+
+            return;
+        }
+
+        $this->setup($name);  
 
         $filename = $this->camel_case . 'Model'.'.php';
 
@@ -786,4 +875,5 @@ class MakeController extends Controller
             print_r("$dest_path was generated\r\n");
         } 
     }
+
 }

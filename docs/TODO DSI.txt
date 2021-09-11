@@ -1,0 +1,18 @@
+TODO DSI 
+========
+
+- Meter schema de db_principal en /schemas/{nombre_db}
+
+- Resolver el tema del Multitenant multi-compañia
+
+- Adaptar clase usuario (el AuthController es el que tiene toda la funcionalidad de rememberme, etc?)
+
+- AutoJoins en respuestas JSON de ciertos endpoints (maestro-detalles)
+
+- Resolver problema de PRI KEY compuestas con campos virtuales 
+
+=> OK. No hay real problema porque las tablas tienen al menos un campo AUTOINCREMENTAL
+
+- Ver que pasa que genera rules y relationships vacias para `tbl_categoria_persona_persona`
+
+- Ver que pasa con las Views de base de datos (ver sp_view.sql)

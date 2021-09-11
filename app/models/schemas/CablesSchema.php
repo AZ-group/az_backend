@@ -26,6 +26,10 @@ class CablesSchema implements ISchema
 
 			'rules' 		=> [
 				'nombre' => ['max' => 40]
+			],
+
+			'relationships' => [
+				
 			]
 		];
 	}	

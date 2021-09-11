@@ -1983,21 +1983,25 @@ class DumbController extends Controller
 
         ->select(['sp_permissions.name as perm', 'username', 'active']);
 
-        //dd($m->get()); 
+        dd($m->get()); 
         dd($m->dd()); 
     }
 
     // revisar
     function j2_auto(){
+        DB::setConnection('dsi');
+        DB::getConnection();
+
         $m = DB::table('users')
         ->join('user_sp_permissions')
         ->join('sp_permissions')
 
         ->select(['sp_permissions.name as perm', 'username', 'active']);
 
-        //dd($m->get()); 
+        dd($m->get()); 
         dd($m->dd()); 
     }
+
 
     // 'SELECT users.id, users.name, users.email, countries.name as country_name FROM users LEFT JOIN countries ON countries.id=users.country_id WHERE deleted_at IS NULL;'
     function leftjoin(){
@@ -3277,15 +3281,6 @@ class DumbController extends Controller
        dd($error_msg, 'error');
     }       
 
-    function testhook(){
-        if ($_SERVER['REQUEST_METHOD'] != 'POST'){
-            exit;
-        }
-
-        $body = Factory::request()->getBody(false);
-        Files::logger($body);
-    }
-
     function respuesta(){
         Factory::response()->sendError('Acceso no autorizado', 401, 'Header vacio');
     }
@@ -3301,6 +3296,48 @@ class DumbController extends Controller
         dd($relations);
     }
 
+    function testsp(){
+        $data = [
+            'p_nombre' => 'Florencia P.',
+            'p_email' => 'flor1@gmail.com',
+            'p_usuario' => 'flor1',
+            'p_password' => '1234',
+            'p_basedatos' => 'db_flor'
+        ];
 
+        DB::setConnection('db_admin_dsi');
+        $conn = DB::getConnection();
+
+        $sql = 'CALL sp_crear_nuevo_usuario(?, ?, ?, ?, ?)';
+        $stmt = $conn->prepare($sql);
+
+        $stmt->bindParam(1, $data['p_nombre'], \PDO::PARAM_STR, 50);
+        $stmt->bindParam(2, $data['p_email'], \PDO::PARAM_STR, 60);
+        $stmt->bindParam(3, $data['p_usuario'], \PDO::PARAM_STR, 50);
+        $stmt->bindParam(4, $data['p_password'], \PDO::PARAM_STR, 50);
+        $stmt->bindParam(5, $data['p_basedatos'], \PDO::PARAM_STR, 20);
    
+        $res = $stmt->execute();
+  
+        if (!$res){
+            throw new \Exception("No se pudo crear usuario {$data['p_usuario']}");
+        }
+
+        $sql = 'CALL sp_ejecucion_script(?)';
+        $stmt = $conn->prepare($sql);
+
+        $stmt->bindParam(1, $data['p_email'], \PDO::PARAM_STR, 60);
+        $res = $stmt->execute();
+
+        dd($res);
+    }
+   
+    function j3_auto(){
+        DB::setConnection('dsi');
+
+        $m = DB::table('tbl_cliente')
+        ->join('tbl_cliente_informacion_tributaria');
+
+        dd($m->get());
+    }
 }

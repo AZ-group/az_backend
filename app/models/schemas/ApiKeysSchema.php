@@ -28,6 +28,12 @@ class ApiKeysSchema implements ISchema
 			'rules' 		=> [
 				'uuid' => ['max' => 36],
 				'value' => ['max' => 60]
+			],
+
+			'relationships' => [
+				'users' => [
+					['users.id','api_keys.user_id']
+				]
 			]
 		];
 	}	

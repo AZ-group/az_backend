@@ -32,8 +32,21 @@ if (!$acl_cache || is_file($acl_file) !== true) {
     ->addResourcePermissions('user_roles', ['read'])
     ->addResourcePermissions('products', ['write'])
     ->addResourcePermissions('super_cool_table', ['read', 'write'])
-       
+    
+    
+    ->addRole('cliente', 40) 
+    ->addInherit('registered')
+    //->addResourcePermissions('tbl_empresa', ['read', 'write'])
+    ->addSpecialPermissions(['read_all'])
+    
 
+    ->addRole('consumidor', 80) 
+    ->addInherit('registered')
+    ->addSpecialPermissions(['read_all'])
+    
+
+
+    /*
     ->addRole('basic', 2) 
     ->addInherit('registered')
     ->addResourcePermissions('products', ['write'])    
@@ -49,7 +62,8 @@ if (!$acl_cache || is_file($acl_file) !== true) {
     ->addResourcePermissions('products', ['read', 'write'])
     ->addResourcePermissions('foo', ['read', 'update'])
     //->addResourcePermissions('users', ['read', 'update'])
-    
+    */
+   
     ->addRole('supervisor', 502)  // salta sino especifico el id al leerlo
     ->addInherit('registered')
     ->addResourcePermissions('users', ['read_all'])  // <--
@@ -58,16 +72,25 @@ if (!$acl_cache || is_file($acl_file) !== true) {
     ->addInherit('registered')
     ->addSpecialPermissions(['read_all', 'write_all', 'read_all_folders', 'lock', 'fill_all', 'impersonate'])
  
+    ->addRole('dsi', 400)
+    ->addInherit('admin')
+    ->addSpecialPermissions([
+        'read_all_trashcan',
+        'write_all_trashcan',
+        'write_all_folders', 
+        'write_all_collections'
+    ])     
+
     ->addRole('superadmin', 500)
     ->addInherit('admin')
     ->addSpecialPermissions([
-                             'read_all_trashcan',
-                             'write_all_trashcan',
-                             'write_all_folders', 
-                             'write_all_collections',
-                             'transfer',
-                             'grant'
-                            ]);
+        'read_all_trashcan',
+        'write_all_trashcan',
+        'write_all_folders', 
+        'write_all_collections',
+        'transfer',
+        'grant'
+    ]);
 
                             
 
