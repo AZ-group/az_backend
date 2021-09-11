@@ -476,7 +476,7 @@ class MakeController extends Controller
     }
 
     function schema($name, ...$opt) 
-    { 
+    {
         foreach ($opt as $o){            
             if (preg_match('/^--from[=|:]([a-z][a-z0-9A-Z_]+)$/', $o, $matches)){
                 $from_db = $matches[1];
@@ -498,8 +498,23 @@ class MakeController extends Controller
 
         $filename = $this->camel_case.'Schema.php';
 
+
+        $file = file_get_contents(self::SCHEMA_TEMPLATE);
+        $file = str_replace('__NAME__', $this->camel_case.'Schema', $file);
+        
         // destination
-        $dest_path = self::SCHEMAS_PATH . $filename;
+
+        DB::getConnection();
+        $current = DB::getCurrentConnectionId();
+     
+        if ($current == Factory::config()['db_connection_default']){
+            $file = str_replace('namespace simplerest\models\schemas', 'namespace simplerest\models\schemas' . "\\$current", $file);
+
+            Files::mkdir_ignore(self::SCHEMAS_PATH . $current);
+            $dest_path = self::SCHEMAS_PATH . "$current/". $filename;
+        }  else {
+            $dest_path = self::SCHEMAS_PATH . $filename;
+        } 
 
         if (!Schema::hasTable($name)){
             echo "Tabla '$name' no encontrada. Recuerde el nombre es sensible al case\r\n";
@@ -532,9 +547,6 @@ class MakeController extends Controller
                 return;
             }
         }
-
-        $file = file_get_contents(self::SCHEMA_TEMPLATE);
-        $file = str_replace('__NAME__', $this->camel_case.'Schema', $file);
 
         try {
             $fields = DB::select("SHOW COLUMNS FROM {$this->snake_case}");
@@ -710,7 +722,7 @@ class MakeController extends Controller
 
         $filename = $this->camel_case . 'Model'.'.php';
 
-        // destination
+        // destination        
         $dest_path = MODELS_PATH . $filename;
 
         if (in_array($dest_path, $this->excluded_files)){
@@ -746,7 +758,15 @@ class MakeController extends Controller
         $traits  = [];
         $proterties = [];
 
-        $imports[] = "use simplerest\\models\\schemas\\{$this->camel_case}Schema;";
+
+        DB::getConnection();
+        $current = DB::getCurrentConnectionId();
+     
+        if ($current == Factory::config()['db_connection_default']){
+            $extra = "$current\\";
+        }
+
+        $imports[] = "use simplerest\\models\\schemas\\$extra{$this->camel_case}Schema;";
        
         Strings::replace('__SCHEMA_CLASS__', "{$this->camel_case}Schema", $file); 
 

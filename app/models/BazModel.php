@@ -4,12 +4,12 @@ namespace simplerest\models;
 
 use simplerest\core\Model;
 use simplerest\libs\ValidationRules;
-use simplerest\models\schemas\BazSchema;
+use simplerest\models\schemas\db1\BazSchema;
 
 class BazModel extends Model
- { 
-	### TRAITS
-	### PROPERTIES
+{ 
+	
+	
 
 	protected $hidden   = [];
 	protected $not_fillable = [];

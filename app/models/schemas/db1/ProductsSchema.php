@@ -1,6 +1,6 @@
 <?php
 
-namespace simplerest\models\schemas;
+namespace simplerest\models\schemas\db1;
 
 use simplerest\core\interfaces\ISchema;
 
@@ -31,10 +31,11 @@ class ProductsSchema implements ISchema
 				'active' => 'INT',
 				'locked' => 'INT',
 				'workspace' => 'STR',
-				'belongs_to' => 'INT'
+				'belongs_to' => 'INT',
+				'category' => 'INT'
 			],
 
-			'nullable'		=> ['id', 'description', 'created_at', 'created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by', 'active', 'locked', 'workspace', 'belongs_to'],
+			'nullable'		=> ['id', 'description', 'created_at', 'created_by', 'updated_at', 'updated_by', 'deleted_at', 'deleted_by', 'active', 'locked', 'workspace', 'belongs_to', 'category'],
 
 			'rules' 		=> [
 				'name' => ['max' => 50],
@@ -46,6 +47,9 @@ class ProductsSchema implements ISchema
 			'relationships' => [
 				'users' => [
 					['users.id','products.belongs_to']
+				],
+				'product_categories' => [
+					['product_categories.id_catego','products.category']
 				],
 				'products_product_categories' => [
 					['products_product_categories.product_id','products.id']

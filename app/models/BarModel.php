@@ -4,7 +4,7 @@ namespace simplerest\models;
 
 use simplerest\core\Model;
 use simplerest\libs\ValidationRules;
-use simplerest\models\schemas\BarSchema;
+use simplerest\models\schemas\db1\BarSchema;
 use simplerest\traits\Uuids;
 
 class BarModel extends Model
@@ -18,11 +18,5 @@ class BarModel extends Model
     function __construct(bool $connect = false){
         parent::__construct($connect, new BarSchema());
 	}	
-
-	/*
-	function onRead($count){
-		var_dump($this->dd());
-	}
-	*/
 }
 

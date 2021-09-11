@@ -555,7 +555,6 @@ class Model {
 			
 			if (!isset($fk)){
 				if (count($rel[$table][0]) != 2){
-					//dd($rel[$table]);
 					throw new \Exception("Unexpected number of arguments for relationship between {$this->table_name} and $table");
 				}
 
@@ -582,23 +581,23 @@ class Model {
 		return $this;
 	}
 
-	function leftJoin($table, $on1, $op, $on2) {
-		$this->joins[] = [$table, $on1, $op, $on2, 'LEFT JOIN'];
+	function leftJoin($table, $on1 = null, $op = '=', $on2 = null) {
+		$this->join($table, $on1, $op, $on2, 'LEFT JOIN');
 		return $this;
 	}
 
-	function rightJoin($table, $on1, $op, $on2) {
-		$this->joins[] = [$table, $on1, $op, $on2, 'RIGHT JOIN'];
+	function rightJoin($table, $on1 = null, $op = '=', $on2 = null) {
+		$this->join($table, $on1, $op, $on2, 'RIGHT JOIN');
 		return $this;
 	}
 
 	function crossJoin($table) {
-		$this->joins[] = [$table, null, null, null, 'CROSS JOIN'];
+		$this->join($table, null, null, null, 'CROSS JOIN');
 		return $this;
 	}
 
 	function naturalJoin($table) {
-		$this->joins[] = [$table, null, null, null, 'NATURAL JOIN'];
+		$this->join($table, null, null, null, 'NATURAL JOIN');
 		return $this;
 	}
 	
