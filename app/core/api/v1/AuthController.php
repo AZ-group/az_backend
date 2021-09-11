@@ -628,6 +628,7 @@ class AuthController extends Controller implements IAuth
 
             
             if (isset($email_confirmation) && $email_confirmation){
+                Files::logger("Email confirmation link $url");
                 //dd($url, 'email_confirmation_link');
             }
                 
