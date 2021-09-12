@@ -32,21 +32,7 @@ if (!$acl_cache || is_file($acl_file) !== true) {
     ->addResourcePermissions('user_roles', ['read'])
     ->addResourcePermissions('products', ['write'])
     ->addResourcePermissions('super_cool_table', ['read', 'write'])
-    
-    
-    ->addRole('cliente', 40) 
-    ->addInherit('registered')
-    //->addResourcePermissions('tbl_empresa', ['read', 'write'])
-    ->addSpecialPermissions(['read_all'])
-    
 
-    ->addRole('consumidor', 80) 
-    ->addInherit('registered')
-    ->addSpecialPermissions(['read_all'])
-    
-
-
-    /*
     ->addRole('basic', 2) 
     ->addInherit('registered')
     ->addResourcePermissions('products', ['write'])    
@@ -62,7 +48,6 @@ if (!$acl_cache || is_file($acl_file) !== true) {
     ->addResourcePermissions('products', ['read', 'write'])
     ->addResourcePermissions('foo', ['read', 'update'])
     //->addResourcePermissions('users', ['read', 'update'])
-    */
    
     ->addRole('supervisor', 502)  // salta sino especifico el id al leerlo
     ->addInherit('registered')
@@ -72,14 +57,6 @@ if (!$acl_cache || is_file($acl_file) !== true) {
     ->addInherit('registered')
     ->addSpecialPermissions(['read_all', 'write_all', 'read_all_folders', 'lock', 'fill_all', 'impersonate'])
  
-    ->addRole('dsi', 400)
-    ->addInherit('admin')
-    ->addSpecialPermissions([
-        'read_all_trashcan',
-        'write_all_trashcan',
-        'write_all_folders', 
-        'write_all_collections'
-    ])     
 
     ->addRole('superadmin', 500)
     ->addInherit('admin')
@@ -92,18 +69,7 @@ if (!$acl_cache || is_file($acl_file) !== true) {
         'grant'
     ]);
 
-                            
-
-        
-        
-
-    /////////////////////
-
-    //dd($acl->hasResourcePermission('list', ['basic'], 'super_cool_table'));
-    //dd($acl->getSpPermissions());
-    //dd($acl->getRolePermissions(), 'perms');
-    //exit;    
-    /////////////////////
+                        
 
     if (!is_writable($acl_file)){
         throw new \Exception("$acl_file is not writable. Check permissions");   

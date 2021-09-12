@@ -139,10 +139,9 @@ class FrontController
                     //dd($class_name, 'CLASS_NAME:');
                     //dd($method, 'METHOD:');
                 }
-                
             }
             
-        
+         
             /*
                 Considerar usar Accept-Language en los headers en su lugar.
 
@@ -158,10 +157,20 @@ class FrontController
             if (!class_exists($class_name))
                 Response::getInstance()->sendError("Class not found", 404, "Internal error - controller class $class_name not found");  
 
-            if (!method_exists($class_name, $method))
-                Response::getInstance()->sendError("Internal error - method $method was not found in $class_name", 500); 
+            if (!method_exists($class_name, $method)){
+                if (php_sapi_name() != 'cli' || $method != self::DEFAULT_ACTION){
+                    Response::getInstance()->sendError("Internal error - method $method was not found in $class_name", 500); 
+                } else {
+                    $dont_exec = true;
+                }
+            }
+                
                     
             $controller_obj = new $class_name();
+
+            if (isset($dont_exec)){
+                exit;
+            }
 
             // Only for API Rest
             if ($_params[0]=='api' && $controller != 'Auth'){

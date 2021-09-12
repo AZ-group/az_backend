@@ -1349,17 +1349,20 @@ Un uso práctico de estos eventos es para des-confirmar un email cuando se ha ca
 
 La función isDirty() acepta un campo o un array de campos o incluso puede estar vacia en cuyo caso verifica si algún campo sería cambiado.
 
-Otro uso práctico de event hooks es para ocultar registros basados en cierta condición. Ej: si un campo definido por el usuario hidden = 1 entonces devolver 404 (No found)
+Otro uso práctico sería el uso del evento onReading() para hacer un (inner, left, right, natural, cross,...) JOIN automático para devolver el contenido de tablas relacionadas cada vez que se lea un registro de esa tabla. Así:
 
-	protected function onReading() {
-		$this->where(['hide' => 0]);
+class MaestroModel extends Model
+{ 
+	// ...
+
+	function onReading(){
+		$this->leftJoin('detalle');
 	}
-
+}
 
 Desde cualquier hook del modelo es posible acceder a propiedades útiles como $w_vars y $w_vals -entre otras- con las que es posible reconstruir el where.
 
-En el caso de Laravel, también se incluyen los eventos onRestoring() y onRestored() para cuando existe un soft-delete
-
+A futuro podrían incluirse los eventos onRestoring() y onRestored() para cuando existe un soft-delete
 
 Las APIs que extienden a ApiController también tienen varios event hooks
 

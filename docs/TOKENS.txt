@@ -1,4 +1,22 @@
 {
+    "data": {
+        "uid": "512",
+        "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImlhdCI6MTYzMTQwMjM5NSwiZXhwIjoxNjQwNDAyMzk1LCJpcCI6IjEyNy4wLjAuMSIsInVpZCI6IjUxMiIsInJvbGVzIjpbInN1cGVyYWRtaW4iXSwicGVybWlzc2lvbnMiOltdLCJhY3RpdmUiOnRydWV9.YQRVkqoh6oGSpZbKHAil-3pLhou8DzTNyos7rrQKNq8",
+        "token_type": "bearer",
+        "expires_in": 9000000,
+        "refresh_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImlhdCI6MTYzMTQwMjM5NSwiZXhwIjoxOTQ2NzYyMzk1LCJpcCI6IjEyNy4wLjAuMSIsInVpZCI6IjUxMiJ9.-Arnx9nq3v8o6aJsWLDyGGelzSK20iDVObOQp1sWWl4",
+        "roles": [
+            "superadmin"
+        ]
+    },
+    "status_code": 200,
+    "error": "",
+    "error_detail": ""
+}
+
+--
+
+{
 		"username": "Juan Perez",
 		"email": "jperez@mail.com",
 		"password": "gogogo",

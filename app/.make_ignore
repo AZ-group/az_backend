@@ -13,6 +13,7 @@ MakeController.php
 LoginController.php
 GoogleController.php
 FacebookController.php
+WebhooksModel.php
 ProductsController.php
 DumbController.php
 DumbAuthController.php

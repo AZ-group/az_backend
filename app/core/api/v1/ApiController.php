@@ -2,22 +2,23 @@
 
 namespace simplerest\core\api\v1;
 
-use simplerest\core\interfaces\IAuth;
-use simplerest\libs\Factory;
-use simplerest\libs\Arrays;
 use simplerest\libs\DB;
-use simplerest\libs\Debug;
 use simplerest\libs\Url;
+use simplerest\libs\Debug;
+use simplerest\libs\Arrays;
+use simplerest\libs\Factory;
 use simplerest\libs\Strings;
+use InvalidArgumentException;
+use simplerest\libs\Files;    
 use simplerest\libs\Validator;
+use simplerest\core\interfaces\IApi;
+use simplerest\core\interfaces\IAuth;
 use simplerest\core\FoldersAclExtension;
-use simplerest\core\api\v1\ResourceController;
 use simplerest\core\exceptions\SqlException;
+use simplerest\core\api\v1\ResourceController;
 use simplerest\core\exceptions\InvalidValidationException;
 
-use simplerest\libs\Files;    
-
-abstract class ApiController extends ResourceController
+abstract class ApiController extends ResourceController implements IApi
 {
     static protected $folder_field;
     static protected $soft_delete = true;
@@ -51,13 +52,13 @@ abstract class ApiController extends ResourceController
         }
 
         if ($this->model_name != null){
-            $this->model_table = Strings::fromCamelCase(Strings::removeRTrim('Model', $this->model_name));
+            $this->model_table = Strings::camelToSnake(Strings::removeRTrim('Model', $this->model_name));
         }else {
             if ($this->model_table != null){            
                 $this->model_name = implode(array_map('ucfirst',explode('_', $this->model_table))) . 'Model';
             } elseif (preg_match('/([A-Z][a-z0-9_]+[A-Z]*[a-z0-9_]*[A-Z]*[a-z0-9_]*[A-Z]*[a-z0-9_]*)/', get_called_class(), $matchs)){
                 $this->model_name = $matchs[1] . 'Model';
-                $this->model_table = Strings::fromCamelCase($matchs[1]);
+                $this->model_table = Strings::camelToSnake($matchs[1]);
             } else {
                 Factory::response()->sendError("ApiController with undefined Model", 500);
             }  
@@ -280,8 +281,8 @@ abstract class ApiController extends ResourceController
     function get($id = null) {
         global $api_version;
 
-        $_get   = Factory::request()->getQuery();   
-        
+        $_get   = Factory::request()->getQuery();  
+
         $this->id     = $id;
         $this->folder = Arrays::shift($_get,'folder');
 
@@ -478,10 +479,11 @@ abstract class ApiController extends ResourceController
                 if (empty($rows))
                     Factory::response()->sendError('Not found', 404, $id != null ? "Registry with id=$id in table '{$this->model_table}' was not found" : '');
                 else{
-                    Factory::response()->send($rows[0]);
-                    
                     // event hook
-                    //$this->onGot($id, $total);
+                    $this->onGot($id, 1);
+                    $this->webhook('show', $rows[0], $id);
+
+                    Factory::response()->send($rows[0]);
                 }
             }else{    
                 // "list
@@ -541,9 +543,6 @@ abstract class ApiController extends ResourceController
 
                 $allops = ['eq', 'gt', 'gteq', 'lteq', 'lt', 'neq'];
                 $eqops  = ['=',  '>' , '>=',   '<=',   '<',  '!=' ];
-
-                //var_export($_get);
-                //exit;
 
                 foreach ($_get as $key => $val){
                     if (is_array($val)){
@@ -624,6 +623,9 @@ abstract class ApiController extends ResourceController
                                             $data[$campo][] = $max;
                                         }                                         
                                     break;
+                                    case 'notBetween':
+                                        throw new \Exception("Operator 'notBetween' is not implemented");  
+                                    break;
                                     default:
                                         // 'eq', 'gt', ...
 
@@ -645,7 +647,31 @@ abstract class ApiController extends ResourceController
                                 }
                             }
                             
-                        }else{                           
+                        }else{
+                            
+                            /*
+                                null! tiene un funcionamiento muy limitado porque la validación hace que
+                                no funcione si el campo no es un string o si la lontitud es inferior a 5 o 
+                                sea a la de "null!"
+
+                            */
+                            if (count($val) == 2){
+                                if ($val[1] == 'null!'){
+                                    unset($_get[$key]); 
+                                    
+                                    $_get[$key] = [$val[0],  NULL, 'IS'];
+                                }
+                            }
+
+                            /*
+                                Cuando no se especifica valor como en ?description= debería buscar por un
+                                string vacio y de hecho al debuguear el SQL se lee por ejemplo:  
+
+                                SELECT * FROM networks WHERE (description = '') AND deleted_at IS NULL LIMIT 10;
+
+                                Sin embargo....... no arroja registros!!!! <-- BUG
+                            */
+                            
 
                             // IN
                             $v = $val[1];
@@ -659,7 +685,7 @@ abstract class ApiController extends ResourceController
                             } 
                         }   
                         
-                    }                         
+                    }                      
                 }
 
                 // avoid guests can see everything with just 'read' permission
@@ -702,8 +728,9 @@ abstract class ApiController extends ResourceController
                 if ($id == null){
                     $validation = (new Validator())->setRequired(false)->ignoreFields($ignored)->validate($this->instance->getRules(),$data);
                     
-                    if ($validation !== true)
+                    if ($validation !== true){
                         throw new InvalidValidationException(json_encode($validation));
+                    }                        
                 }      
 
                 if (!empty($this->folder)) {
@@ -852,6 +879,7 @@ abstract class ApiController extends ResourceController
 
                 // event hook
                 $this->onGot($id, $total);
+                $this->webhook('list', $rows);
                 $res->send($rows);
             }
 
@@ -962,8 +990,9 @@ abstract class ApiController extends ResourceController
 
             if ($last_inserted_id !==false){
                 // event hooks
-                $this->onPostFolder($last_inserted_id, $data, $this->folder);
+                $this->onPostFolder($last_inserted_id, $data, $this->folder);                
                 $this->onPost($last_inserted_id, $data);
+                $this->webhook('create', $data, $last_inserted_id);
 
                 Factory::response()->send([$this->instance->getKeyName() => $last_inserted_id], 201);
             }	
@@ -1059,7 +1088,7 @@ abstract class ApiController extends ResourceController
                 $instance2 = (new $model(true))
                 ->assoc();
 
-                if (count($instance2->where(['id => $id', static::$folder_field => $this->folder_name])->get()) == 0)
+                if (count($instance2->where([$id_name => $id, static::$folder_field => $this->folder_name])->get()) == 0)
                     Factory::response()->code(404)->sendError("Register for id=$id does not exists");
 
                 unset($data['folder']);    
@@ -1086,10 +1115,12 @@ abstract class ApiController extends ResourceController
                     
             }        
 
+            // This is not 100$ right but....
             foreach ($data as $k => $v){
                 if (strtoupper($v) == 'NULL' && $this->instance->isNullable($k)) 
                     $data[$k] = NULL;
             }
+            
             
             $validado = (new Validator())->setRequired($put_mode)->validate($this->instance->getRules(), $data);
             if ($validado !== true){
@@ -1122,8 +1153,9 @@ abstract class ApiController extends ResourceController
             if ($affected !== false) {
 
                 // even hooks        	    
-                $this->onPutFolder($id, $data, $affected, $this->folder);
+                $this->onPutFolder($id, $data, $affected, $this->folder);                
                 $this->onPut($id, $data, $affected);
+                $this->webhook('update', $data, $id);
                 
                 Factory::response()->send("OK");
             } else {
@@ -1252,9 +1284,10 @@ abstract class ApiController extends ResourceController
                 }
             }
 
-            $soft_is_supported  = $this->instance->inSchema([$this->instance->deletedBy()]);
-
-            if ($soft_is_supported){
+            $soft_is_supported   = $this->instance->inSchema([$this->instance->deletedAt()]);
+            $soft_del_has_author = $this->instance->inSchema([$this->instance->deletedBy()]);
+            
+            if ($soft_is_supported && $soft_del_has_author){
                 $extra = array_merge($extra, [$this->instance->deletedBy() => $this->impersonated_by != null ? $this->impersonated_by : $this->uid]);
             }               
        
@@ -1264,7 +1297,7 @@ abstract class ApiController extends ResourceController
             }
 
             $this->instance->setSoftDelete($soft_is_supported && static::$soft_delete);
-
+            
             // event hook
             $this->onDeletingAfterCheck($id);
 
@@ -1276,7 +1309,9 @@ abstract class ApiController extends ResourceController
                 if ($this->folder !==  null){
                     $this->onDeletedFolder($id, $affected, $this->folder);
                 }
+
                 $this->onDeleted($id, $affected);
+                $this->webhook('delete', [ ], $id);
                 
                 Factory::response()->sendJson("OK");
             }	
@@ -1303,10 +1338,10 @@ abstract class ApiController extends ResourceController
     protected function onGettingBeforeCheck($id) { }
     protected function onGettingAfterCheck($id) { }
     protected function onGettingAfterCheck2($id) { }  ///
-    protected function onGot($id, ?int $count){ }
 
+    protected function onGot($id, ?int $count){ }
     protected function onDeletingBeforeCheck($id){ }
-    protected function onDeletingAfterCheck($id){ }
+    protected function onDeletingAfterCheck($id){ }    
     protected function onDeleted($id, ?int $affected){ }
 
     protected function onPostingBeforeCheck($id, Array &$data){ }
@@ -1318,7 +1353,89 @@ abstract class ApiController extends ResourceController
     protected function onPuttingAfterCheck($id, Array &$data){ }
     protected function onPut($id, Array $data, ?int $affected){ }
 
-     /*
+
+    /*
+        WebHooks     
+    */
+    protected function webhook(string $op, $data, $id = null){        
+        if (!in_array($op, ['show', 'list', 'create', 'update', 'delete'])){
+            throw new \InvalidArgumentException("Invalid webhook operation for $op");
+        }
+
+        $webhooks = DB::table('webhooks')
+        ->where(['op' => $op, 'entity' => $this->model_table])
+        ->get();
+
+        $body = [       
+            'webhook_id' => null,     
+            'event_type' => $op,
+            'entity' => $this->model_table,
+            'id' => $id,
+            'data' => $data,
+            'user_id' => $this->uid,
+            'at' => date("Y-m-d H:i:s", time())
+        ];
+
+        $old_data = null;
+
+        foreach($webhooks as $hook){
+            if (!empty($hook['conditions'])){
+                parse_str($hook['conditions'], $conditions);
+            }
+
+            $body['webhook_id'] = $hook['id'];
+
+            if ($op == 'update' || $op == 'delete' || ($op == 'show' && !empty(Factory::request()->getQuery('fields')))){
+                
+                if ($op == 'update' && !empty($hook['conditions'])){                    
+                    $cond_fields = array_keys($conditions);
+                    $cond_fields = array_unique($cond_fields);
+                    $row_fields  = array_keys($body['data']);
+
+                    if (count(array_diff($cond_fields,$row_fields)) == 0)
+                    {
+                        if (Strings::filter($body['data'], $conditions)){
+                            
+                            if ($old_data === null){
+                                //dd('RETRIVE');
+                                $old_data = DB::table($this->model_table)
+                                ->assoc()->find($id)->showDeleted()->first();
+                                $body['data'] = array_merge($old_data, $body['data']);
+                            }
+                            
+                            //dd('--> callback');
+                            Url::consume_api($hook['callback'], 'POST', $body);
+                        }
+                    }  
+                    continue;
+                }
+
+                if ($old_data === null){
+                    //dd('RETRIVE');
+                    $old_data = DB::table($this->model_table)
+                    ->assoc()->find($id)->showDeleted()->first();
+                    $body['data'] = array_merge($old_data, $body['data']);
+                }
+
+                $body['data'] = array_merge($old_data, $body['data']);
+            }
+
+            if (empty($hook['conditions'])){
+                //dd('--> callback');
+                Url::consume_api($hook['callback'], 'POST', $body);
+            } else {
+                if ($op != 'list'){                   
+                    if (Strings::filter($body['data'], $conditions)){
+                        //dd('--> callback');
+                        Url::consume_api($hook['callback'], 'POST', $body);
+                    }
+                }
+            }
+        }      
+    }
+
+
+    /*
         API event hooks for folder access
     */  
 

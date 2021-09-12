@@ -22,7 +22,12 @@ return [
 		urls start with /api/ if REMOVE_API_SLUG is set to false
 	*/	
 	'REMOVE_API_SLUG' => false, 
-	'HTTPS' => 'Off',
+
+	/*
+		HTTPS :  on | off | null
+	*/
+	'HTTPS' => null,
+	
 	'DEFAULT_CONTROLLER' => 'HomeController',
 
 	'db_connections' => [
@@ -147,8 +152,7 @@ return [
 				\PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
 				\PDO::ATTR_EMULATE_PREPARES => false
 			]
-		]			
-
+		]
 	], 
 
 	'db_connection_default' => 'db1',  // cambiar de nuevo a db1

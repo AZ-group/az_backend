@@ -3340,4 +3340,9 @@ class DumbController extends Controller
 
         dd($m->get());
     }
+
+    function ddx(){
+        $res = shell_exec("php com make model all --from:db1");
+        dd($res);
+    }
 }
