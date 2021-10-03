@@ -1,6 +1,8 @@
 SELECT * FROM `INFORMATION_SCHEMA`.`KEY_COLUMN_USAGE` 
 WHERE `REFERENCED_TABLE_NAME` IS NOT NULL AND TABLE_SCHEMA = 'az' AND REFERENCED_TABLE_SCHEMA = 'az'
 
+$output = $st->fetchAll($this->getFetchMode());
+
 Debo llegar a ..
 
 // ok

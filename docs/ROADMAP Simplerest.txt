@@ -4,10 +4,8 @@ Urgente:
 .env                                    -- OK
 Terminar Query Builder                  -- OK
 Terminar migraciones
-Solucionar problemas de casting
-Envio de correos                        -- en curso
 Plantilla para envio de correos
-Prubas en NGINX
+Preubas en NGINX
 
 - pre-Alpha
 
@@ -19,9 +17,8 @@ Prubas en NGINX
 
 - Alpha 1 .. 4
 
-    Middlewares
+    Middlewares                         -- OK parcial
     Wheres anidados                     -- OK
-    Envio de correos
     Plantilla para envio de correos
     X-Rate-Limit-Limit, X-Rate-Limit-Remaining y X-Rate-Limit-Reset    
 
@@ -36,7 +33,7 @@ Prubas en NGINX
 
 - 1.0
 
-    Hateoas
+    Hateoas                             -- parcial
     JsonAPI
     Soporte para SQLite, Postgres       -- OK
 

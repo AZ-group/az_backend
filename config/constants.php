@@ -36,6 +36,8 @@ if (!defined('MODELS_PATH'))
 if (!defined('MIGRATIONS_PATH'))
     define('MIGRATIONS_PATH', MODELS_PATH . 'migrations'. DIRECTORY_SEPARATOR);   
 
+if (!defined('ETC_PATH'))
+    define('ETC_PATH', APP_PATH . 'etc'. DIRECTORY_SEPARATOR);     
 
 if (!defined('SECURITY_PATH'))
     define('SECURITY_PATH', APP_PATH . 'security'. DIRECTORY_SEPARATOR);    

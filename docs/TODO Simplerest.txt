@@ -1,5 +1,42 @@
 # TODO
 
+- Terminar middlewares para tener before y after como en Laravel
+
+- Usar constantes para los mensajes de error y de esa forma poder codificar automáticamente el código de error en Response
+
+0001  INVALID_CLASS     "Invalid class"
+  
+1000  VALIDATION_ERROR    "Validation error"
+1001  NOT_BETWEEN       "%s should be less than %s or gretter than %s"
+1002  INVALID_DATA_TYPE     "It's not a valid %s"
+...
+
+
+- Verificar funcionamiento con NGINX y AppServ (Apache para Windows)
+
+
+- Dar soporte multi-tenant con API KEYs (en vez de usar el Payload, leer directo de la DB el "db access"):
+
+- Crear comandos "make" para:
+
+  traits en /app
+  interfaces
+  exceptions
+  views
+  middlewares
+
+- En el Modelo habilitar en debug de queries con dd() al hacer un DELETE o un UPDATE 
+
+- Cambiar el Exception Handler que uso en PHP ya que:
+
+  - Muestra todo el contenido del config.php incluidas credenciales => databases.php y tokens.php
+
+  - No incluye un "BackTrace"
+
+  - Termina siendo demasiado largo para debuguear en la terminal.
+
+
+
 - Response cumpliendo  PSR-7 / PSR-15 con Middlewares
 
 https://www.zend.com/blog/creating-basic-php-web-server-swoole
@@ -12,23 +49,6 @@ https://www.zend.com/blog/creating-basic-php-web-server-swoole
 
 
 - Investigar microservicios..... 
-
-Anular:
-
-  /*
-    Si son null, se buscan las tablas localmente
-  */
-  'api-users'       => 'http://hexagon-users.lan/api/v1/users',
-  'api-roles'       => 'http://hexagon-users.lan/api/v1/roles',
-  'api-user_roles'    => 'http://hexagon-users.lan/api/v1/user_roles',
-  'api-sp_permissions'  => 'http://hexagon-users.lan/api/v1/sp_permissions',
-  'api-keys'        => 'http://hexagon-users.lan/api/v1/api_keys',
-
-  /*
-    API KEY para consultar users
-  */
-  'api_key-admin'     => '394e8a89-307e-44b2-a75a-cfe0beecc72a'
-
 
 - Usar un array de keys para cada microservicio via "config.php" 
 
@@ -48,6 +68,15 @@ Ej:
 
 <-- actualmente no puede enviarse eso en el body por las razones antes expuestas. 
 
+
+- Mejorar las reglas de validación generadas en el Schema:
+
+  { 
+    "name": "xxxy.00",
+    "price": "AAA"    <--- DECIMAL
+  }
+
+<-- no es culpa de Validator sino del SCHEMA que brinda poca información.
 
 - Investigar a Hasura -un generador de GraphQL y API Rest Open Source- como competencia.
 
@@ -197,20 +226,7 @@ https://github.com/leocavalcante/kafka-phplayground
 
 [ MIGRATIONS ]
 
-- Usar la tabla `migrations`  !!!
-
-- En "make migrations from:db" usar la opción --agnostic para que la migración desde la db sea con métodos encadenados en vez de con SQL (CREATE TABLE...)
-
 - Migraciones *sin* el método down() <-- el estado anterior se obtiene del historial de migraciones.
-
-- Absorver la DB de Fabricio con:
-
-  php com make migration --from=db[.table] 
-o
-  php com make migration --from=db[.table] --to=destination_db [--table=some_table]
-o
-  php com make migration --from=db[.table] --to=destination_db[.table]
-
 
 - Poder especificar el campo en vez del nombre de la FK para su remoción
 
@@ -435,15 +451,7 @@ y
       make -safm baz
       make -fams baz 		
       etc
-
-- Mejorar las reglas generadas en el Schema:
-
-  { 
-    "name": "xxxy.00",
-    "price": "AAA"    <--- DECIMAL
-  }
-
-<-- no es culpa de Validator sino del SCHEMA que brinda poca información. 
+ 
 
 - Con ayuda del Router mover controllers (con algunas excepción) a otras ubicaciones.
 
@@ -849,8 +857,6 @@ Se podría invalidar el access token del usuario y lo bueno es que solo es neces
 Aún sin implementar invalidación de tokens es posible expulsar a todos los usuarios y obligarlos a loguearse nuevamente cambiando las secret keys. Advertencia: si alguién se hubiera hecho con un access token podría haber cambiado la contraseña y si posee el refresh token puede volver a loguearse sin problemas. Obviamente si los tokens son de un usuario con elevados privilegios puede haber alterado permisos de mínima sobre registros y folders. 
 
 - Arreglar la falta de normalización de los folders.
-
-- DotEnv
 
 - Enviar efectivamente correos -prioridad alta-
 
@@ -2921,8 +2927,6 @@ https://en.wikipedia.org/wiki/Software_release_life_cycle
 
 
 [ MODELO ]
-
-- Terminar auto-joins generando schemas
 
 - Hacer auto-joins a tablas distantes usando mapa
 
